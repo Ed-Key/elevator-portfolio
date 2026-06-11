@@ -10,7 +10,7 @@ export const COMPANIES = [
 export const CONTACT = {
   email: 'EdKiboma@outlook.com',
   github: { label: 'github.com/Ed-Key', url: 'https://github.com/Ed-Key' },
-  linkedin: { label: 'linkedin.com/in/Edward-Kiboma', url: 'https://linkedin.com/in/Edward-Kiboma' },
+  linkedin: { label: 'linkedin.com/in/edward-kiboma', url: 'https://www.linkedin.com/in/edward-kiboma-697578245/' },
   resume: { label: 'Resume', url: '/resume.pdf' },
 }
 
