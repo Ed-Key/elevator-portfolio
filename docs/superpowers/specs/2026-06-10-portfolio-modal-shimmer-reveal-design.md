@@ -2,6 +2,10 @@
 
 **Date:** 2026-06-10
 **Status:** Approved by Eddie (implementation green-lit; animation feel to be polished together in the Lighting Lab)
+**Amended 2026-06-11:** the modal is now one-way — it opens automatically
+after the ride and never closes for visitors. The elevator is purely the
+intro. Mirror-tap reopen, the × button, and Esc-to-close were removed;
+closing survives only as a Lighting Lab preview tool.
 
 ## Concept
 
@@ -22,10 +26,11 @@ shimmer travel in opposite directions, connecting the 3D world to the website.
    behind its center line.
 3. The website is a fullscreen DOM layer: brand + nav (Home / About /
    Projects / Contact) + placeholder section content, natively scrollable.
-4. Close (× button or Esc) runs the identical animation in reverse,
-   un-revealing back to the live cabin.
-5. After close, the mirror face shows a pulsing "Tap to open" hint;
-   clicking the mirror reopens the modal.
+4. The reveal is final: visitors get no close affordance (no ×, no Esc,
+   no mirror hotspot). Reloading the page replays the intro.
+5. The reverse sweep still exists in code (`closing` phase) but is only
+   reachable from the Lighting Lab's Close preview button, so the
+   animation can be polished without riding the elevator each time.
 
 ## Architecture
 
@@ -37,20 +42,22 @@ shimmer travel in opposite directions, connecting the 3D world to the website.
     close = the same tween toward 0.
   - Phase model owned by `ElevatorExperience`:
     `closed → opening → open → closing → closed`. The modal reports
-    `onOpened`/`onClosed`; requests close via `onRequestClose` (×/Esc).
+    `onOpened`/`onClosed`. It exposes no close affordance of its own;
+    only the Lighting Lab's preview buttons drive `closing`.
   - `prefers-reduced-motion`: crossfade instead of sweep.
 - **Trigger:** `ElevatorAssetSequence` fires `onRequestModalOpen` once per
   sequence run when elapsed ≥ `turnStart + mirrorFxDelay + mirrorFxSeconds +
-  modalRevealDelay` (sequence preview mode only).
-- **`MirrorPortfolioPanel`** is repurposed as the mirror's face: brand teaser
-  (kicker / name / tagline) plus the "Tap to open" hint when the modal is
-  closed. Nav and section content move into the modal.
-  Section data moves to `src/config/portfolioContent.js` (shared).
+  modalRevealDelay` (sequence preview mode only). The threshold is clamped
+  to the sequence's end so extreme tuning values can never push the reveal
+  past the point where elapsed time stops accruing — the portfolio always
+  arrives.
+- **`MirrorPortfolioPanel`** is deleted. Nav and section content move into
+  the modal; section data moves to `src/config/portfolioContent.js`.
 - **Performance:** Canvas `frameloop` switches to `never` while the modal is
-  fully `open`; back to `always` the instant a close starts, so the cabin is
-  live behind the reverse wipe.
-- **Z-order:** mirror Html panel (≤12) < modal (30) < Lighting Lab (40), so
-  the Lab stays usable while previewing the modal.
+  fully `open`; back to `always` the instant a Lab-previewed close starts,
+  so the cabin is live behind the reverse wipe.
+- **Z-order:** modal (30) < Lighting Lab (40), so the Lab stays usable
+  while previewing the modal.
 
 ## Tunables (Lighting Lab → "Modal Reveal" section)
 
@@ -60,7 +67,7 @@ All stored in the existing tuning object (localStorage + Copy Full Setup):
 | --- | --- | --- |
 | `modalRevealDelay` | 0.35 | seconds after mirror shimmer ends |
 | `modalRevealSeconds` | 1.2 | open sweep duration |
-| `modalCloseSeconds` | 0.9 | close sweep duration |
+| `modalCloseSeconds` | 0.9 | close sweep duration (Lab preview only) |
 | `modalBandAngle` | 135 | CSS degrees; 135 = top-left → bottom-right |
 | `modalBandWidth` | 10 | band core width, % of sweep line |
 | `modalBandSoftness` | 6 | feather on each band edge, % |
@@ -79,5 +86,6 @@ riding the elevator each time.
 ## Verification
 
 `npm run lint`, `npm run build`, then live checks on the dev server: auto
-reveal after the ride, Esc/× close, mirror-tap reopen, scrolling inside the
-modal, Lab preview buttons, narrow-viewport sanity check.
+reveal after the ride, no visitor-facing close (no ×, Esc inert), scrolling
+inside the modal, Lab Open/Close preview buttons, narrow-viewport sanity
+check.
