@@ -278,13 +278,59 @@
 /* ---------- floor 01 · lobby ---------- */
 
 .floor--home {
-  grid-template-columns: minmax(0, 1fr) clamp(200px, 22vw, 300px);
+  grid-template-columns: minmax(0, 1fr) clamp(240px, 26vw, 350px);
   grid-template-areas:
     'kicker portrait'
     'name portrait'
     'lede portrait'
+    'links portrait'
+    'companies portrait'
     'meta portrait';
   column-gap: clamp(30px, 5vw, 80px);
+}
+
+.home-links {
+  grid-area: links;
+  display: flex;
+  align-items: center;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-links li {
+  display: flex;
+  align-items: center;
+}
+
+.home-links li + li::before {
+  content: '|';
+  margin: 0 18px;
+  color: var(--ink-low);
+  font-size: 0.8rem;
+  opacity: 0.45;
+}
+
+.home-links a {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  color: var(--ink-mid);
+  font-family: var(--font-display);
+  font-size: 1.04rem;
+  font-weight: 540;
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+
+.home-links a:hover,
+.home-links a:focus-visible {
+  color: var(--gold);
+}
+
+.home-links svg {
+  display: block;
+  opacity: 0.9;
 }
 
 .floor--home .floor__kicker {
@@ -295,30 +341,106 @@
   grid-area: name;
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(3.2rem, 8.6vw, 7.6rem);
-  font-weight: 740;
-  line-height: 0.92;
-  letter-spacing: -0.015em;
+  font-size: clamp(2.2rem, 3.8vw, 3.3rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
 }
 
-.home-name__line {
-  display: block;
-}
-
-.home-name__line--indent {
-  margin-left: clamp(1.4rem, 6vw, 5.5rem);
+.home-name__accent {
   color: var(--gold);
 }
 
 .home-lede {
   grid-area: lede;
-  margin: 6px 0 0;
-  max-width: 50ch;
+  margin: 4px 0 0;
+  max-width: 56ch;
   color: var(--ink-mid);
   font-family: var(--font-serif);
-  font-size: clamp(1.18rem, 1.8vw, 1.45rem);
+  font-size: clamp(1.12rem, 1.5vw, 1.32rem);
   font-weight: 420;
-  line-height: 1.5;
+  line-height: 1.65;
+}
+
+.companies {
+  grid-area: companies;
+  display: grid;
+  gap: 10px;
+  margin-top: clamp(8px, 2vh, 18px);
+}
+
+.companies__label {
+  color: var(--gold-dim);
+  font-family: var(--font-display);
+  font-size: 0.66rem;
+  font-weight: 560;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.companies__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.companies__list li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.companies__slash {
+  margin-right: 4px;
+  color: var(--ink-low);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+
+.companies__chip {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 50%;
+  color: var(--gold);
+  background:
+    linear-gradient(160deg, rgb(240 200 112 / 12%), rgb(240 200 112 / 2%) 65%),
+    rgb(16 14 20 / 60%);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 640;
+}
+
+.companies__chip {
+  overflow: hidden;
+}
+
+.companies__chip img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.companies__wordmark {
+  width: auto;
+  height: 19px;
+  opacity: 0.92;
+  filter: brightness(0) invert(96%) sepia(8%);
+}
+
+.companies__name {
+  color: var(--ink-mid);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 560;
 }
 
 .home-lede em,
@@ -768,6 +890,8 @@ a.directory__row:focus-visible .directory__arrow {
       'kicker'
       'name'
       'lede'
+      'links'
+      'companies'
       'portrait'
       'meta';
   }

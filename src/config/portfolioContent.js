@@ -1,10 +1,17 @@
 // Portfolio content — sections are "floors" in the building the elevator
 // just carried you into. Edit copy here; layout lives in PortfolioFloors.jsx.
 
+export const COMPANIES = [
+  { id: 'matrices', name: 'Matrices.ai', initial: 'M', wordmark: '/images/logos/matrices-full.svg', wordmarkHeight: 18 },
+  { id: 'godaddy', name: 'GoDaddy', initial: 'G', wordmark: '/images/logos/godaddy-full.svg', wordmarkHeight: 19 },
+  { id: 'tufts', name: 'Tufts', initial: 'T', wordmark: '/images/logos/tufts-wordmark.svg', wordmarkHeight: 26 },
+]
+
 export const CONTACT = {
   email: 'EdKiboma@outlook.com',
   github: { label: 'github.com/Ed-Key', url: 'https://github.com/Ed-Key' },
   linkedin: { label: 'linkedin.com/in/Edward-Kiboma', url: 'https://linkedin.com/in/Edward-Kiboma' },
+  resume: { label: 'Resume', url: '/resume.pdf' },
 }
 
 export const PROJECTS = [
