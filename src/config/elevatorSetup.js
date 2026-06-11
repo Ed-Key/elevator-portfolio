@@ -1,5 +1,7 @@
 export const ENVIRONMENT_PRESETS = ['studio', 'apartment', 'city', 'warehouse', 'lobby', 'park', 'forest', 'sunset', 'dawn', 'night']
 
+export const MODAL_EASE_OPTIONS = ['power1.inOut', 'power2.inOut', 'power2.out', 'power3.out', 'power4.out', 'expo.out', 'sine.inOut', 'none']
+
 export const CAMERA_SHOTS = [
   { label: 'Start shot', value: 'outsideShot' },
   { label: 'Push-in shot', value: 'pushShot' },
@@ -67,15 +69,17 @@ export const DEFAULT_TUNING = {
   mirrorFxX: -2.65,
   mirrorFxY: 2.47,
   mirrorFxZ: -0.03,
+  modalBandAngle: 135,
+  modalBandColor: '#ffe7c2',
+  modalBandOpacity: 0.9,
+  modalBandSoftness: 6,
+  modalBandWidth: 10,
+  modalCloseSeconds: 0.9,
+  modalEase: 'power2.inOut',
+  modalRevealDelay: 0.35,
+  modalRevealSeconds: 1.2,
   openDelay: 0.35,
   openSeconds: 3,
-  portfolioScreenGuide: true,
-  portfolioScreenHeight: 3200,
-  portfolioScreenScale: 0.0138,
-  portfolioScreenWidth: 2600,
-  portfolioScreenX: -2.725,
-  portfolioScreenY: 2.3,
-  portfolioScreenZ: 0,
   enterDelay: 0.2,
   enterSeconds: 2.15,
   turnSeconds: 1.8,

@@ -3,9 +3,9 @@ import { ContactShadows, Environment, OrbitControls, PerspectiveCamera, useAnima
 import { Color, MathUtils, Vector3 } from 'three'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ElevatorCallButton from './ElevatorCallButton'
-import MirrorPortfolioPanel from './MirrorPortfolioPanel'
 import MirrorShimmerPlane from './MirrorShimmerPlane'
-import { CAMERA_SHOTS, DEFAULT_CAMERA_SHOTS, DEFAULT_TUNING, ENVIRONMENT_PRESETS, ORIGINAL_TUNING } from '../config/elevatorSetup'
+import PortfolioModal from './PortfolioModal'
+import { CAMERA_SHOTS, DEFAULT_CAMERA_SHOTS, DEFAULT_TUNING, ENVIRONMENT_PRESETS, MODAL_EASE_OPTIONS, ORIGINAL_TUNING } from '../config/elevatorSetup'
 import './ElevatorExperience.css'
 
 const DOOR_OPEN_CLIP_TIME = 3
@@ -174,15 +174,17 @@ function getExportableSetup(tuning) {
       mirrorFxX: currentTuning.mirrorFxX,
       mirrorFxY: currentTuning.mirrorFxY,
       mirrorFxZ: currentTuning.mirrorFxZ,
+      modalBandAngle: currentTuning.modalBandAngle,
+      modalBandColor: currentTuning.modalBandColor,
+      modalBandOpacity: currentTuning.modalBandOpacity,
+      modalBandSoftness: currentTuning.modalBandSoftness,
+      modalBandWidth: currentTuning.modalBandWidth,
+      modalCloseSeconds: currentTuning.modalCloseSeconds,
+      modalEase: currentTuning.modalEase,
+      modalRevealDelay: currentTuning.modalRevealDelay,
+      modalRevealSeconds: currentTuning.modalRevealSeconds,
       openDelay: currentTuning.openDelay,
       openSeconds: currentTuning.openSeconds,
-      portfolioScreenGuide: currentTuning.portfolioScreenGuide,
-      portfolioScreenHeight: currentTuning.portfolioScreenHeight,
-      portfolioScreenScale: currentTuning.portfolioScreenScale,
-      portfolioScreenWidth: currentTuning.portfolioScreenWidth,
-      portfolioScreenX: currentTuning.portfolioScreenX,
-      portfolioScreenY: currentTuning.portfolioScreenY,
-      portfolioScreenZ: currentTuning.portfolioScreenZ,
       previewMode: currentTuning.previewMode,
       sequenceSpeed: currentTuning.sequenceSpeed,
       turnSeconds: currentTuning.turnSeconds,
@@ -236,7 +238,8 @@ function getMaterials(material) {
   return Array.isArray(material) ? material : [material]
 }
 
-function ElevatorAssetSequence({ cameraJumpRequest, setCameraDraft, showTools, tuning }) {
+function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCameraDraft, showTools, tuning }) {
+  const autoRevealFiredRef = useRef(false)
   const cameraRef = useRef()
   const currentLookAtRef = useRef(new Vector3(...outsideShot.lookAt))
   const elapsedRef = useRef(0)
@@ -255,6 +258,7 @@ function ElevatorAssetSequence({ cameraJumpRequest, setCameraDraft, showTools, t
     if (startedRef.current) return
 
     startedRef.current = true
+    autoRevealFiredRef.current = false
     elapsedRef.current = 0
     setStarted(true)
   }, [])
@@ -263,6 +267,7 @@ function ElevatorAssetSequence({ cameraJumpRequest, setCameraDraft, showTools, t
     if (tuning.previewMode !== 'sequence' || tuning.sequenceRunId === 0) return
 
     startedRef.current = true
+    autoRevealFiredRef.current = false
     elapsedRef.current = 0
 
     const frameId = window.requestAnimationFrame(() => {
@@ -403,7 +408,23 @@ function ElevatorAssetSequence({ cameraJumpRequest, setCameraDraft, showTools, t
     }
 
     if (started && tuning.previewMode === 'sequence') {
-      elapsedRef.current = Math.min(elapsedRef.current + delta * tuning.sequenceSpeed, getSequenceTiming(tuning).closeEnd)
+      const timing = getSequenceTiming(tuning)
+
+      elapsedRef.current = Math.min(elapsedRef.current + delta * tuning.sequenceSpeed, timing.closeEnd)
+
+      if (!autoRevealFiredRef.current) {
+        // Clamp to the sequence end: elapsed stops accruing at closeEnd, so an
+        // unclamped threshold beyond it would leave the portfolio unreachable.
+        const revealAt = Math.min(
+          timing.turnStart + tuning.mirrorFxDelay + tuning.mirrorFxSeconds + tuning.modalRevealDelay,
+          timing.closeEnd,
+        )
+
+        if (elapsedRef.current >= revealAt) {
+          autoRevealFiredRef.current = true
+          onRequestModalOpen()
+        }
+      }
     }
 
     const cameraShots = getCameraShots(tuning)
@@ -448,13 +469,6 @@ function ElevatorAssetSequence({ cameraJumpRequest, setCameraDraft, showTools, t
         <MirrorShimmerPlane
           elapsedRef={elapsedRef}
           showGuide={showTools && tuning.mirrorFxGuide}
-          started={started}
-          timing={getSequenceTiming(tuning)}
-          tuning={tuning}
-        />
-        <MirrorPortfolioPanel
-          elapsedRef={elapsedRef}
-          showGuide={showTools && tuning.portfolioScreenGuide}
           started={started}
           timing={getSequenceTiming(tuning)}
           tuning={tuning}
@@ -529,7 +543,8 @@ function ShotOffsetInput({ axis, label, onChange }) {
   )
 }
 
-function LightingLab({ cameraDraft, setCameraDraft, setCameraJumpRequest, setTuning, tuning }) {
+function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, setCameraJumpRequest, setTuning, tuning }) {
+  const [collapsed, setCollapsed] = useState(false)
   const [copyStatus, setCopyStatus] = useState('')
   const [jumpStatus, setJumpStatus] = useState('')
   const [saveStatus, setSaveStatus] = useState('')
@@ -667,100 +682,46 @@ function LightingLab({ cameraDraft, setCameraDraft, setCameraJumpRequest, setTun
   }
 
   return (
-    <aside className="lighting-lab" data-preview-ui>
+    <aside className={collapsed ? 'lighting-lab lighting-lab--collapsed' : 'lighting-lab'} data-preview-ui>
       <div className="lighting-lab__header">
         <div>
           <p>Lighting Lab</p>
           <span>Elevator scene tools</span>
         </div>
-        <div className="lighting-lab__modes" aria-label="Preview mode">
-          <button
-            className={tuning.previewMode === 'sequence' ? 'is-active' : ''}
-            onClick={previewSequence}
-            type="button"
-          >
-            Sequence
-          </button>
-          <button
-            className={tuning.previewMode === 'manual' ? 'is-active' : ''}
-            onClick={() => updateTuning('previewMode', 'manual')}
-            type="button"
-          >
-            Manual
-          </button>
-          <button
-            className={tuning.previewMode === 'camera' ? 'is-active' : ''}
-            onClick={() => updateTuning('previewMode', 'camera')}
-            type="button"
-          >
-            Camera
-          </button>
-        </div>
+        <button
+          aria-expanded={!collapsed}
+          className="lighting-lab__toggle"
+          onClick={() => setCollapsed((current) => !current)}
+          type="button"
+        >
+          {collapsed ? 'Expand' : 'Minimize'}
+        </button>
+      </div>
 
-        <div className="tuning-section">
-          <div className="tuning-section__header">
-            <span>Portfolio Screen</span>
-          </div>
-          <label className="tuning-field tuning-field--checkbox">
-            <span>
-              Show screen guide
-              <strong>{tuning.portfolioScreenGuide ? 'On' : 'Off'}</strong>
-            </span>
-            <input
-              checked={tuning.portfolioScreenGuide}
-              onChange={(event) => updateTuning('portfolioScreenGuide', event.target.checked)}
-              type="checkbox"
-            />
-          </label>
-          <TuningSlider
-            label="Screen width"
-            max={2600}
-            min={320}
-            onChange={(value) => updateTuning('portfolioScreenWidth', value)}
-            step={10}
-            value={tuning.portfolioScreenWidth}
-          />
-          <TuningSlider
-            label="Screen height"
-            max={3200}
-            min={320}
-            onChange={(value) => updateTuning('portfolioScreenHeight', value)}
-            step={10}
-            value={tuning.portfolioScreenHeight}
-          />
-          <TuningSlider
-            label="Screen scale"
-            max={0.03}
-            min={0.0005}
-            onChange={(value) => updateTuning('portfolioScreenScale', value)}
-            step={0.00005}
-            value={tuning.portfolioScreenScale}
-          />
-          <TuningSlider
-            label="Screen X"
-            max={-1.5}
-            min={-4}
-            onChange={(value) => updateTuning('portfolioScreenX', value)}
-            step={0.005}
-            value={tuning.portfolioScreenX}
-          />
-          <TuningSlider
-            label="Screen Y"
-            max={4.8}
-            min={-0.5}
-            onChange={(value) => updateTuning('portfolioScreenY', value)}
-            step={0.01}
-            value={tuning.portfolioScreenY}
-          />
-          <TuningSlider
-            label="Screen Z"
-            max={4}
-            min={-4}
-            onChange={(value) => updateTuning('portfolioScreenZ', value)}
-            step={0.01}
-            value={tuning.portfolioScreenZ}
-          />
-        </div>
+      {!collapsed && (
+      <>
+      <div className="lighting-lab__modes" aria-label="Preview mode">
+        <button
+          className={tuning.previewMode === 'sequence' ? 'is-active' : ''}
+          onClick={previewSequence}
+          type="button"
+        >
+          Sequence
+        </button>
+        <button
+          className={tuning.previewMode === 'manual' ? 'is-active' : ''}
+          onClick={() => updateTuning('previewMode', 'manual')}
+          type="button"
+        >
+          Manual
+        </button>
+        <button
+          className={tuning.previewMode === 'camera' ? 'is-active' : ''}
+          onClick={() => updateTuning('previewMode', 'camera')}
+          type="button"
+        >
+          Camera
+        </button>
       </div>
 
       <div className="tuning-grid">
@@ -1035,6 +996,91 @@ function LightingLab({ cameraDraft, setCameraDraft, setCameraJumpRequest, setTun
             value={tuning.mirrorFxRotationZ}
           />
         </div>
+
+        <div className="tuning-section">
+          <div className="tuning-section__header">
+            <span>Modal Reveal</span>
+            <div className="tuning-section__header-actions">
+              <button onClick={onModalOpen} type="button">
+                Open
+              </button>
+              <button onClick={onModalClose} type="button">
+                Close
+              </button>
+            </div>
+          </div>
+
+          <label className="tuning-field">
+            <span>Ease</span>
+            <select value={tuning.modalEase} onChange={(event) => updateTuning('modalEase', event.target.value)}>
+              {MODAL_EASE_OPTIONS.map((ease) => (
+                <option key={ease} value={ease}>
+                  {ease}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="tuning-field">
+            <span>Band color</span>
+            <input type="color" value={tuning.modalBandColor} onChange={(event) => updateTuning('modalBandColor', event.target.value)} />
+          </label>
+
+          <TuningSlider
+            label="Reveal delay"
+            max={3}
+            min={0}
+            onChange={(value) => updateTuning('modalRevealDelay', value)}
+            step={0.05}
+            value={tuning.modalRevealDelay}
+          />
+          <TuningSlider
+            label="Reveal seconds"
+            max={4}
+            min={0.2}
+            onChange={(value) => updateTuning('modalRevealSeconds', value)}
+            step={0.05}
+            value={tuning.modalRevealSeconds}
+          />
+          <TuningSlider
+            label="Close seconds"
+            max={4}
+            min={0.2}
+            onChange={(value) => updateTuning('modalCloseSeconds', value)}
+            step={0.05}
+            value={tuning.modalCloseSeconds}
+          />
+          <TuningSlider
+            label="Band angle"
+            max={360}
+            min={0}
+            onChange={(value) => updateTuning('modalBandAngle', value)}
+            step={1}
+            value={tuning.modalBandAngle}
+          />
+          <TuningSlider
+            label="Band width"
+            max={40}
+            min={0}
+            onChange={(value) => updateTuning('modalBandWidth', value)}
+            step={0.5}
+            value={tuning.modalBandWidth}
+          />
+          <TuningSlider
+            label="Band feather"
+            max={40}
+            min={0.5}
+            onChange={(value) => updateTuning('modalBandSoftness', value)}
+            step={0.5}
+            value={tuning.modalBandSoftness}
+          />
+          <TuningSlider
+            label="Band opacity"
+            max={1}
+            min={0}
+            onChange={(value) => updateTuning('modalBandOpacity', value)}
+            value={tuning.modalBandOpacity}
+          />
+        </div>
       </div>
 
       <div className="camera-tools">
@@ -1128,6 +1174,8 @@ function LightingLab({ cameraDraft, setCameraDraft, setCameraJumpRequest, setTun
           Original
         </button>
       </div>
+      </>
+      )}
     </aside>
   )
 }
@@ -1139,7 +1187,19 @@ export default function ElevatorExperience({ showTools = false }) {
     position: outsideShot.position,
   }))
   const [cameraJumpRequest, setCameraJumpRequest] = useState(null)
+  const [modalPhase, setModalPhase] = useState('closed')
   const [tuning, setTuning] = useState(readStoredTuning)
+
+  const openModal = useCallback(() => {
+    setModalPhase((current) => (current === 'open' || current === 'opening' ? current : 'opening'))
+  }, [])
+
+  const closeModal = useCallback(() => {
+    setModalPhase((current) => (current === 'closed' || current === 'closing' ? current : 'closing'))
+  }, [])
+
+  const handleModalOpened = useCallback(() => setModalPhase('open'), [])
+  const handleModalClosed = useCallback(() => setModalPhase('closed'), [])
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -1153,28 +1213,42 @@ export default function ElevatorExperience({ showTools = false }) {
   }, [tuning])
 
   return (
-    <main className="elevator-experience-shell">
-      <Canvas shadows gl={{ preserveDrawingBuffer: true }}>
+    <div className="elevator-experience-shell">
+      <Canvas frameloop={modalPhase === 'open' ? 'never' : 'always'} shadows gl={{ preserveDrawingBuffer: true }}>
         <RendererTuning exposure={tuning.exposure} />
         <color attach="background" args={[tuning.background]} />
         <ambientLight intensity={tuning.ambient} />
         <directionalLight position={[6, 7, 5]} intensity={tuning.key} castShadow />
         <pointLight position={[3, 2.7, -2.6]} intensity={tuning.cyan} color="#7dd3fc" />
         <pointLight position={[-1.6, 2.2, -1.1]} intensity={tuning.cabin} color="#f8fafc" />
-        <ElevatorAssetSequence cameraJumpRequest={cameraJumpRequest} setCameraDraft={setCameraDraft} showTools={showTools} tuning={tuning} />
+        <ElevatorAssetSequence
+          cameraJumpRequest={cameraJumpRequest}
+          onRequestModalOpen={openModal}
+          setCameraDraft={setCameraDraft}
+          showTools={showTools}
+          tuning={tuning}
+        />
         <ContactShadows position={[0, 0.02, 0]} opacity={tuning.contactShadow} scale={12} blur={2.6} far={5} />
         <Environment environmentIntensity={tuning.environmentIntensity} preset={tuning.environment} />
       </Canvas>
+      <PortfolioModal
+        onClosed={handleModalClosed}
+        onOpened={handleModalOpened}
+        phase={modalPhase}
+        tuning={tuning}
+      />
       {showTools && (
         <LightingLab
           cameraDraft={cameraDraft}
+          onModalClose={closeModal}
+          onModalOpen={openModal}
           setCameraDraft={setCameraDraft}
           setCameraJumpRequest={setCameraJumpRequest}
           setTuning={setTuning}
           tuning={tuning}
         />
       )}
-    </main>
+    </div>
   )
 }
 
