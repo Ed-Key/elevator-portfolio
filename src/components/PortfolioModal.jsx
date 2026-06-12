@@ -120,7 +120,9 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
             gsap.to(targets, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.06, overwrite: 'auto' })
           } else if (!entry.isIntersecting && revealed.has(id)) {
             revealed.delete(id)
-            gsap.set(targets, { autoAlpha: 0, y: 18 })
+            // overwrite kills a still-running reveal tween from a fast pass-through,
+            // so the floor reliably re-staggers on its next entry.
+            gsap.set(targets, { autoAlpha: 0, y: 18, overwrite: 'auto' })
           }
         })
       },
