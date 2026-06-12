@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { PROJECTS } from '../config/portfolioContent'
 import './ProjectsPanel.css'
 
@@ -37,12 +37,20 @@ function CellInner({ index, project }) {
   )
 }
 
-function ProjectCell({ denied, index, onDeniedPress, project }) {
-  const className = `panel-cell panel-cell--slot${index + 1}`
+function ProjectCell({ denied, index, onArm, onArmNow, onDeniedPress, onDisarm, project }) {
+  const shared = {
+    className: `panel-cell panel-cell--slot${index + 1}`,
+    onFocus: onArmNow, // keyboard drives the stage exactly like hover
+    onPointerEnter: (event) => {
+      if (event.pointerType === 'mouse') onArm()
+    },
+    onPointerLeave: onDisarm, // cancels pending intent; stage HOLDS current project
+    'data-reveal': true,
+  }
 
   if (project.url) {
     return (
-      <a className={className} data-reveal href={project.url} rel="noreferrer" target="_blank">
+      <a {...shared} href={project.url} rel="noreferrer" target="_blank">
         <CellInner index={index} project={project} />
       </a>
     )
@@ -50,14 +58,42 @@ function ProjectCell({ denied, index, onDeniedPress, project }) {
 
   return (
     <button
-      className={className}
+      {...shared}
       data-denied={denied ? 'true' : undefined}
-      data-reveal
       onClick={() => onDeniedPress(project.id)}
       type="button"
     >
       <CellInner index={index} project={project} />
     </button>
+  )
+}
+
+function ProjectStage({ project }) {
+  const capsLine = `${project.tech.map((tech) => tech.name).join(' · ')} — ${project.year}`
+
+  return (
+    <div className="stage-show" key={project.id}>
+      <div className="stage-show__text">
+        <span aria-hidden="true" className="stage-show__mark">
+          {project.name[0]}
+        </span>
+        <h3 className="stage-show__name">{project.name}</h3>
+        <p className="stage-show__blurb">{project.blurb}</p>
+        <span className="stage-show__glyphs">
+          {project.tech.map((tech) => (
+            <TechGlyph key={tech.name} tech={tech} />
+          ))}
+        </span>
+        <span className="stage-show__caps">{capsLine}</span>
+        {project.url ? (
+          <a className="stage-show__visit" href={project.url} rel="noreferrer" target="_blank">
+            Visit ↗
+          </a>
+        ) : (
+          <span className="panel-cell__tag stage-show__lock">Private build</span>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -72,13 +108,29 @@ function IdlePlate() {
 
 export default function ProjectsPanel() {
   const [deniedId, setDeniedId] = useState(null)
+  const [activeId, setActiveId] = useState(null) // stage holds the last armed project
+  const intentRef = useRef(null)
 
-  // Locked floor: the button blinks but won't ride.
+  useEffect(() => () => clearTimeout(intentRef.current), [])
+
+  // ~100ms hover intent: sweeping across the ring doesn't thrash the stage.
+  const armStage = (id) => {
+    clearTimeout(intentRef.current)
+    intentRef.current = setTimeout(() => setActiveId(id), 100)
+  }
+  const armStageNow = (id) => {
+    clearTimeout(intentRef.current)
+    setActiveId(id)
+  }
+  const disarmStage = () => clearTimeout(intentRef.current)
+
   const pressDenied = (id) => {
     setDeniedId(null)
     requestAnimationFrame(() => setDeniedId(id))
     setTimeout(() => setDeniedId((current) => (current === id ? null : current)), 600)
   }
+
+  const activeProject = PROJECTS.find((project) => project.id === activeId) ?? null
 
   return (
     <article aria-label="Selected projects" className="floor floor--projects">
@@ -88,12 +140,15 @@ export default function ProjectsPanel() {
             denied={deniedId === project.id}
             index={index}
             key={project.id}
+            onArm={() => armStage(project.id)}
+            onArmNow={() => armStageNow(project.id)}
             onDeniedPress={pressDenied}
+            onDisarm={disarmStage}
             project={project}
           />
         ))}
         <div className="panel-stage" data-reveal>
-          <IdlePlate />
+          {activeProject ? <ProjectStage project={activeProject} /> : <IdlePlate />}
         </div>
       </div>
     </article>

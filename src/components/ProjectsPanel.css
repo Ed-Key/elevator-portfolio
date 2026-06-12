@@ -174,3 +174,110 @@
   letter-spacing: 0.24em;
   text-transform: uppercase;
 }
+
+/* ---------- stage: active project ---------- */
+
+.stage-show {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: clamp(16px, 2vw, 34px);
+  align-items: center;
+  justify-content: center;
+  padding: clamp(14px, 2vh, 26px) clamp(16px, 2vw, 30px);
+  animation: stage-in 320ms ease both;
+}
+
+@keyframes stage-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+.stage-show__text {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  align-items: center;
+  min-width: 0;
+  max-width: 44ch;
+  text-align: center;
+}
+
+.stage-show__mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgb(240 200 112 / 50%);
+  border-radius: 50%;
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 640;
+}
+
+.stage-show__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2vw, 1.8rem);
+  font-weight: 700;
+  line-height: 1.08;
+}
+
+.stage-show__blurb {
+  margin: 0;
+  color: var(--ink-mid);
+  font-family: var(--font-serif);
+  font-size: clamp(0.92rem, 1.15vw, 1.05rem);
+  font-weight: 420;
+  line-height: 1.5;
+}
+
+.stage-show__glyphs {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+}
+
+/* stage glyphs are always awake (brand color) */
+.stage-show .tech-glyph {
+  width: 16px;
+  height: 16px;
+  background-color: var(--brand);
+}
+
+.stage-show__caps {
+  color: rgb(240 200 112 / 70%);
+  font-family: var(--font-display);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.stage-show__visit {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 2px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  color: var(--void-deep);
+  background: var(--gold);
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background-color 200ms ease;
+}
+
+.stage-show__visit:hover,
+.stage-show__visit:focus-visible {
+  background: #ffe7c2;
+}
+
+.stage-show__lock {
+  position: static;
+  margin-top: 2px;
+}
