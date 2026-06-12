@@ -140,7 +140,7 @@ export function ProjectsFloor() {
                 <span className="directory__blurb">{project.blurb}</span>
               </span>
               <span className="directory__meta">
-                <span className="directory__stack">{project.stack}</span>
+                <span className="directory__stack">{project.tech.map((t) => t.name).join(' · ')}</span>
                 <span className="directory__year">{project.year}</span>
               </span>
             </>
