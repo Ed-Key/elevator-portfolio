@@ -20,6 +20,9 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
   const [activeFloorId, setActiveFloorId] = useState('home')
   const reducedMotion = useMemo(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false, [])
   const activeFloor = PORTFOLIO_FLOORS.find((floor) => floor.id === activeFloorId) ?? PORTFOLIO_FLOORS[0]
+  // Observers must survive phase churn (opening → open → closing) — keying
+  // their effects on `phase` would tear down and replay the reveal mid-open.
+  const mounted = phase !== 'closed'
 
   const applyProgress = useCallback(() => {
     const container = containerRef.current
@@ -70,7 +73,7 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
   // Scroll position drives the panel lamp: a section is "current" while it
   // crosses the middle band of the scroller (robust for tall floors).
   useEffect(() => {
-    if (phase === 'closed') return undefined
+    if (!mounted) return undefined
 
     const scroller = scrollerRef.current
 
@@ -88,12 +91,12 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
     scroller.querySelectorAll('.floor-section').forEach((section) => io.observe(section))
 
     return () => io.disconnect()
-  }, [phase])
+  }, [mounted])
 
   // Each floor staggers its content in as it enters, and resets once it has
   // fully left so re-entry replays the arrival — the elevator settling.
   useEffect(() => {
-    if (phase === 'closed') return undefined
+    if (!mounted) return undefined
 
     const scroller = scrollerRef.current
 
@@ -102,7 +105,7 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
     const sections = Array.from(scroller.querySelectorAll('.floor-section'))
 
     if (reducedMotion) {
-      sections.forEach((section) => gsap.set(section.querySelectorAll('[data-reveal]'), { autoAlpha: 1, y: 0 }))
+      sections.forEach((section) => gsap.set(section.querySelectorAll('[data-reveal]'), { clearProps: 'all' }))
 
       return undefined
     }
@@ -117,7 +120,16 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
 
           if (entry.intersectionRatio >= 0.25 && !revealed.has(id)) {
             revealed.add(id)
-            gsap.to(targets, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.06, overwrite: 'auto' })
+            gsap.to(targets, {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.5,
+              ease: 'power3.out',
+              stagger: 0.06,
+              overwrite: 'auto',
+              // hand styling back to CSS so :hover transforms (portrait tilt) work
+              clearProps: 'all',
+            })
           } else if (!entry.isIntersecting && revealed.has(id)) {
             revealed.delete(id)
             // overwrite kills a still-running reveal tween from a fast pass-through,
@@ -135,7 +147,7 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
       io.disconnect()
       gsap.killTweensOf(scroller.querySelectorAll('[data-reveal]'))
     }
-  }, [phase, reducedMotion])
+  }, [mounted, reducedMotion])
 
   const goToFloor = useCallback(
     (floorId) => {

@@ -359,6 +359,35 @@
   50% { opacity: 0.25; }
 }
 
+/* narrow ring: the stage can't fit window + text side by side, so the
+   window stacks above a tightened text column instead of both shrinking */
+@media (max-width: 1180px) and (min-width: 901px) {
+  .stage-show--windowed {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .stage-show--windowed .stage-show__text {
+    align-items: center;
+    max-width: 46ch;
+    text-align: center;
+  }
+
+  .stage-show--windowed .stage-show__window {
+    width: min(56%, 260px);
+  }
+
+  .stage-show--windowed .stage-show__mark { display: none; }
+
+  .stage-show--windowed .stage-show__blurb {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .stage-show { animation: none; }
   .stage-show__live::before { animation: none; }
