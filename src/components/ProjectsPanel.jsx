@@ -18,20 +18,22 @@ export function TechGlyph({ tech }) {
   )
 }
 
-function useReducedMotion() {
-  const [reduced, setReduced] = useState(
-    () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false,
-  )
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(() => window.matchMedia?.(query).matches ?? false)
 
   useEffect(() => {
-    const mql = window.matchMedia?.('(prefers-reduced-motion: reduce)')
+    const mql = window.matchMedia?.(query)
     if (!mql) return undefined
-    const onChange = (event) => setReduced(event.matches)
+    const onChange = (event) => setMatches(event.matches)
     mql.addEventListener('change', onChange)
     return () => mql.removeEventListener('change', onChange)
-  }, [])
+  }, [query])
 
-  return reduced
+  return matches
+}
+
+function useReducedMotion() {
+  return useMediaQuery('(prefers-reduced-motion: reduce)')
 }
 
 // Ladder: video → poster → null (text tier's monogram carries the stage).
@@ -161,6 +163,8 @@ export default function ProjectsPanel() {
   const [activeId, setActiveId] = useState(null) // stage holds the last armed project
   const intentRef = useRef(null)
   const reducedMotion = useReducedMotion()
+  const compact = useMediaQuery('(max-width: 900px), (pointer: coarse)')
+  const [expandedId, setExpandedId] = useState(null)
 
   useEffect(() => () => clearTimeout(intentRef.current), [])
 
@@ -182,6 +186,43 @@ export default function ProjectsPanel() {
   }
 
   const activeProject = PROJECTS.find((project) => project.id === activeId) ?? null
+
+  if (compact) {
+    return (
+      <article aria-label="Selected projects" className="floor floor--projects">
+        <div className="projects-stack">
+          {PROJECTS.map((project, index) => {
+            const expanded = expandedId === project.id
+            return (
+              <div className={expanded ? 'panel-cell panel-cell--open' : 'panel-cell'} data-reveal key={project.id}>
+                <button
+                  aria-expanded={expanded}
+                  className="panel-cell__toggle"
+                  onClick={() => setExpandedId(expanded ? null : project.id)}
+                  type="button"
+                >
+                  <CellInner index={index} project={project} />
+                </button>
+                <div aria-hidden={!expanded} className="panel-cell__drawer">
+                  <div className="panel-cell__drawer-inner">
+                    <StageMedia project={project} reducedMotion={reducedMotion || !expanded} />
+                    <p className="stage-show__blurb">{project.blurb}</p>
+                    {project.url ? (
+                      <a className="stage-show__visit" href={project.url} rel="noreferrer" target="_blank" tabIndex={expanded ? 0 : -1}>
+                        Visit ↗
+                      </a>
+                    ) : (
+                      <span className="panel-cell__tag stage-show__lock">Private build</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </article>
+    )
+  }
 
   return (
     <article aria-label="Selected projects" className="floor floor--projects">

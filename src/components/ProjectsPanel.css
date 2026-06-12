@@ -363,3 +363,72 @@
   .stage-show { animation: none; }
   .stage-show__live::before { animation: none; }
 }
+
+/* ---------- compact: stacked accordion (touch / narrow) ---------- */
+
+.projects-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.projects-stack .panel-cell {
+  display: grid;
+  padding: 0;
+  cursor: default;
+}
+
+.panel-cell__toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 92px;
+  padding: 14px 16px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.projects-stack .panel-cell__num { font-size: 1.9rem; }
+
+/* expanding drawer — 0fr → 1fr grid-rows trick */
+.panel-cell__drawer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 360ms ease;
+}
+
+.panel-cell--open .panel-cell__drawer { grid-template-rows: 1fr; }
+
+.panel-cell__drawer-inner {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 16px;
+}
+
+.panel-cell--open .panel-cell__drawer-inner { padding: 4px 16px 16px; }
+
+.panel-cell--open {
+  border-color: rgb(240 200 112 / 55%);
+}
+
+.panel-cell--open .panel-cell__num {
+  color: rgb(240 200 112 / 92%);
+  text-shadow: 0 0 18px rgb(240 200 112 / 45%);
+}
+
+.panel-cell--open .tech-glyph { background-color: var(--brand); }
+
+.projects-stack .stage-show__window {
+  width: min(100%, 420px);
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-cell__drawer { transition: none; }
+}

@@ -17,10 +17,9 @@ await page.getByRole('button', { name: 'Open', exact: true }).click()
 await page.waitForSelector('[data-phase="open"]', { timeout: 15000 })
 await page.waitForTimeout(600)
 
-// Collapse the Lighting Lab — expanded it overlays the floor panel and
-// intercepts the Projects button click.
-await page.getByRole('button', { name: 'Minimize', exact: true }).click()
-await page.waitForTimeout(200)
+// Hide the Lighting Lab — it overlays the floor panel (fully on mobile)
+// and intercepts the Projects button click.
+await page.addStyleTag({ content: '[data-preview-ui] { display: none !important; }' })
 
 await page.locator('.floor-panel__button', { hasText: 'Projects' }).click()
 await page.waitForTimeout(1000)
