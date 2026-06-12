@@ -537,114 +537,6 @@
   text-align: center;
 }
 
-/* ---------- floor 02 · projects directory ---------- */
-
-.directory {
-  display: grid;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.directory__row {
-  display: grid;
-  grid-template-columns: clamp(40px, 4vw, 58px) minmax(0, 1fr) auto;
-  column-gap: clamp(14px, 2.4vw, 30px);
-  align-items: baseline;
-  padding: clamp(16px, 2.6vh, 24px) 10px;
-  border-top: 1px solid var(--gold-hair);
-  color: inherit;
-  text-decoration: none;
-  transition: background-color 200ms ease;
-}
-
-.directory li:last-child .directory__row {
-  border-bottom: 1px solid var(--gold-hair);
-}
-
-a.directory__row:hover,
-a.directory__row:focus-visible {
-  background: rgb(240 200 112 / 5%);
-}
-
-.directory__num {
-  color: var(--ink-low);
-  font-family: var(--font-display);
-  font-size: 0.86rem;
-  font-weight: 520;
-  font-variant-numeric: tabular-nums;
-  transition: color 200ms ease;
-}
-
-a.directory__row:hover .directory__num,
-a.directory__row:focus-visible .directory__num {
-  color: var(--gold);
-}
-
-.directory__main {
-  display: grid;
-  gap: 6px;
-}
-
-.directory__name {
-  font-family: var(--font-display);
-  font-size: clamp(1.3rem, 2.3vw, 1.85rem);
-  font-weight: 640;
-  line-height: 1.05;
-  letter-spacing: -0.01em;
-}
-
-.directory__arrow {
-  display: inline-block;
-  margin-left: 10px;
-  color: var(--gold);
-  font-size: 0.78em;
-  opacity: 0;
-  transform: translate(-4px, 4px);
-  transition:
-    opacity 200ms ease,
-    transform 200ms ease;
-}
-
-a.directory__row:hover .directory__arrow,
-a.directory__row:focus-visible .directory__arrow {
-  opacity: 1;
-  transform: translate(0, 0);
-}
-
-.directory__blurb {
-  max-width: 56ch;
-  color: var(--ink-mid);
-  font-family: var(--font-serif);
-  font-size: clamp(1rem, 1.4vw, 1.12rem);
-  font-weight: 420;
-  line-height: 1.45;
-}
-
-.directory__meta {
-  display: grid;
-  gap: 5px;
-  justify-items: end;
-  text-align: right;
-}
-
-.directory__stack {
-  color: var(--ink-low);
-  font-family: var(--font-display);
-  font-size: 0.64rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.directory__year {
-  color: var(--gold-dim);
-  font-family: var(--font-display);
-  font-size: 0.78rem;
-  font-weight: 560;
-  font-variant-numeric: tabular-nums;
-}
-
 /* ---------- floor 03 · about ---------- */
 
 .floor--about {
@@ -912,21 +804,6 @@ a.directory__row:focus-visible .directory__arrow {
 
   .floor--about {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .directory__row {
-    grid-template-columns: clamp(30px, 8vw, 40px) minmax(0, 1fr);
-    row-gap: 10px;
-  }
-
-  .directory__meta {
-    grid-column: 2;
-    justify-items: start;
-    text-align: left;
-  }
-
-  .directory__meta .directory__year {
-    display: none;
   }
 
   .contact-email {
