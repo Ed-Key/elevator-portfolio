@@ -124,6 +124,25 @@ export const PROJECTS = [
   },
 ]
 
+// The capacity plate: languages the operator is rated for. `projects`
+// lists which ring projects light each glyph (cross-highlight); empty
+// arrays stay etched — rated beyond what's on display.
+export const LANGUAGES = [
+  { name: 'TypeScript', slug: 'typescript', color: '#3178c6', projects: ['pageaura', 'showdown-copilot', 'daily-bread', 'avirem'] },
+  { name: 'JavaScript', slug: 'javascript', color: '#f7df1e', projects: ['elevator', 'ace'] },
+  { name: 'Python', slug: 'python', color: '#4b8bbe', projects: ['showdown-copilot', 'potencia'] },
+  { name: 'Rust', slug: 'rust', color: '#ce6d35', projects: ['showdown-copilot'] },
+  { name: 'Java', slug: 'openjdk', color: '#f89820', projects: [] },
+  { name: 'C', slug: 'c', color: '#a8b9cc', projects: [] },
+  { name: 'C++', slug: 'cplusplus', color: '#659ad2', projects: [] },
+  { name: 'C#', slug: 'csharp', color: '#a179dc', projects: ['water-sim'] },
+  { name: 'SQL', slug: null, color: '#e8b54a', projects: ['pageaura', 'avirem'] },
+  { name: 'HTML', slug: 'html5', color: '#e34f26', projects: ['daily-bread', 'ace'] },
+  { name: 'CSS', slug: 'css', color: '#2965f1', projects: ['elevator', 'daily-bread', 'ace'] },
+  { name: 'GLSL', slug: 'opengl', color: '#5586a4', projects: ['pageaura', 'elevator'] },
+  { name: 'Bash', slug: 'gnubash', color: '#4eaa25', projects: [] },
+]
+
 export const EXPERIENCE = [
   { company: 'Matrices.ai', role: 'Software Developer / Project Lead', period: '2025 — 2026' },
   { company: 'Tufts Engineering Education', role: 'Software Developer', period: '2023 — 2025' },

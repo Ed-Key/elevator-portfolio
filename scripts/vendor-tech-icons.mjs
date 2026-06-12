@@ -4,15 +4,18 @@ import { copyFile, mkdir, readdir } from 'node:fs/promises'
 import path from 'node:path'
 
 const SLUGS = [
-  'claude', 'csharp', 'figma', 'firebase', 'googlecloud', 'greensock',
-  'langchain', 'nextdotjs', 'opengl', 'python', 'react', 'rust', 'stripe',
+  'c', 'claude', 'cplusplus', 'csharp', 'css', 'figma', 'firebase',
+  'gnubash', 'googlecloud', 'greensock', 'html5', 'javascript', 'langchain',
+  'nextdotjs', 'openjdk', 'opengl', 'python', 'react', 'rust', 'stripe',
   'supabase', 'threedotjs', 'typescript', 'unity',
 ]
 // If upstream renamed a slug, try these before failing.
 const FALLBACKS = {
   claude: ['anthropic'],
   csharp: ['dotnet'],
+  css: ['css3'],
   greensock: ['gsap'],
+  openjdk: ['java'],
   opengl: ['webgl'],
 }
 
