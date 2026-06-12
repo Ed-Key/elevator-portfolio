@@ -40,6 +40,7 @@ const TECH = {
 
 // media: best available asset per project — the stage renders
 // video → poster → monogram (nothing blocks on recordings existing).
+// logo, when present, replaces the monogram mark beside the text.
 export const PROJECTS = [
   {
     id: 'pageaura',
@@ -49,7 +50,7 @@ export const PROJECTS = [
     url: 'https://github.com/Ed-Key',
     status: 'live',
     tech: [TECH.react, TECH.threejs, TECH.supabase, TECH.claude],
-    media: { video: null, poster: null },
+    media: { video: null, poster: null, logo: null },
   },
   {
     id: 'showdown-copilot',
@@ -59,7 +60,7 @@ export const PROJECTS = [
     url: null,
     status: 'private',
     tech: [TECH.rust, TECH.python, TECH.typescript],
-    media: { video: null, poster: null },
+    media: { video: null, poster: null, logo: null },
   },
   {
     id: 'daily-bread',
@@ -69,7 +70,7 @@ export const PROJECTS = [
     url: 'https://daily-bread-landing.web.app',
     status: 'live',
     tech: [TECH.typescript, TECH.react, TECH.firebase, TECH.claude],
-    media: { video: null, poster: null },
+    media: { video: null, poster: null, logo: '/media/projects/daily-bread-logo.svg' },
   },
   {
     id: 'avirem',
@@ -79,7 +80,7 @@ export const PROJECTS = [
     url: null,
     status: 'private',
     tech: [TECH.nextjs, TECH.supabase, TECH.stripe],
-    media: { video: null, poster: null },
+    media: { video: null, poster: null, logo: null },
   },
   {
     id: 'elevator',
@@ -89,7 +90,7 @@ export const PROJECTS = [
     url: 'https://github.com/Ed-Key',
     status: 'live',
     tech: [TECH.r3f, TECH.gsap, TECH.glsl],
-    media: { video: null, poster: null },
+    media: { video: null, poster: null, logo: null },
   },
   {
     id: 'potencia',
@@ -99,7 +100,7 @@ export const PROJECTS = [
     url: null,
     status: 'private',
     tech: [TECH.python, TECH.langchain, TECH.gcp],
-    media: { video: null, poster: null },
+    media: { video: null, poster: null, logo: null },
   },
   {
     id: 'water-sim',
@@ -109,7 +110,7 @@ export const PROJECTS = [
     url: null,
     status: 'private',
     tech: [TECH.unity, TECH.csharp],
-    media: { video: null, poster: null },
+    media: { video: null, poster: null, logo: null },
   },
   {
     id: 'ace',
@@ -119,7 +120,7 @@ export const PROJECTS = [
     url: 'https://ed-key.github.io/ACE/',
     status: 'live',
     tech: [TECH.react, TECH.figma],
-    media: { video: null, poster: null },
+    media: { video: null, poster: null, logo: null },
   },
 ]
 

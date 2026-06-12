@@ -3,6 +3,10 @@
 **Date:** 2026-06-11
 **Status:** Approved by Eddie (brainstormed via visual companion; all five
 core decisions picked from live mockups)
+**Amended 2026-06-12:** the media ladder gains a logo tier — `media.logo`
+(an SVG) replaces the monogram mark beside the stage text (Daily Bread
+ships its bible-and-loaf logo); cells also reveal the project year beneath
+the engraved number on hover/expand.
 
 ## Concept
 

@@ -74,6 +74,9 @@ function CellInner({ index, project }) {
       <span aria-hidden="true" className="panel-cell__num">
         {String(index + 1).padStart(2, '0')}
       </span>
+      <span aria-hidden="true" className="panel-cell__year">
+        {project.year}
+      </span>
       {project.status === 'private' && <span className="panel-cell__tag">Private build</span>}
       <span className="panel-cell__base">
         <span className="panel-cell__name">{project.name}</span>
@@ -126,9 +129,13 @@ function ProjectStage({ project, reducedMotion }) {
     <div className={hasWindow ? 'stage-show stage-show--windowed' : 'stage-show'} key={project.id}>
       <StageMedia project={project} reducedMotion={reducedMotion} />
       <div className="stage-show__text">
-        <span aria-hidden="true" className="stage-show__mark">
-          {project.name[0]}
-        </span>
+        {project.media.logo ? (
+          <img alt="" aria-hidden="true" className="stage-show__logo" src={project.media.logo} />
+        ) : (
+          <span aria-hidden="true" className="stage-show__mark">
+            {project.name[0]}
+          </span>
+        )}
         <h3 className="stage-show__name">{project.name}</h3>
         <p className="stage-show__blurb">{project.blurb}</p>
         <span className="stage-show__glyphs">
@@ -205,6 +212,9 @@ export default function ProjectsPanel() {
                 </button>
                 <div aria-hidden={!expanded} className="panel-cell__drawer">
                   <div className="panel-cell__drawer-inner">
+                    {project.media.logo && (
+                      <img alt="" aria-hidden="true" className="stage-show__logo stage-show__logo--drawer" src={project.media.logo} />
+                    )}
                     <StageMedia project={project} reducedMotion={reducedMotion || !expanded} />
                     <p className="stage-show__blurb">{project.blurb}</p>
                     {project.url ? (

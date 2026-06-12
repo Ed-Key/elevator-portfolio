@@ -67,6 +67,29 @@
   text-shadow: 0 0 18px rgb(240 200 112 / 45%);
 }
 
+/* year rides under the engraved number, only while the button is lit */
+.panel-cell__year {
+  position: absolute;
+  top: calc(10px + clamp(2rem, 3.4vw, 3rem));
+  right: 14px;
+  color: rgb(240 200 112 / 70%);
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.18em;
+  opacity: 0;
+  transform: translateY(-3px);
+  transition: opacity 250ms ease, transform 250ms ease;
+}
+
+.panel-cell:hover .panel-cell__year,
+.panel-cell:focus-visible .panel-cell__year,
+.panel-cell--open .panel-cell__year {
+  opacity: 1;
+  transform: none;
+}
+
 .panel-cell__tag {
   position: absolute;
   top: 12px;
@@ -213,6 +236,19 @@
   font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 640;
+}
+
+/* a real project logo outranks the monogram mark */
+.stage-show__logo {
+  width: clamp(72px, 9vw, 104px);
+  height: clamp(72px, 9vw, 104px);
+  object-fit: contain;
+  filter: drop-shadow(0 8px 26px rgb(0 0 0 / 50%)) drop-shadow(0 0 18px rgb(240 200 112 / 14%));
+}
+
+.stage-show__logo--drawer {
+  width: 64px;
+  height: 64px;
 }
 
 .stage-show__name {
@@ -421,6 +457,8 @@
 }
 
 .projects-stack .panel-cell__num { font-size: 1.9rem; }
+
+.projects-stack .panel-cell__year { top: calc(12px + 1.9rem); }
 
 /* expanding drawer — 0fr → 1fr grid-rows trick */
 .panel-cell__drawer {
