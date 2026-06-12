@@ -1,4 +1,4 @@
-import { BIO, CAPABILITIES, COMPANIES, CONTACT, EXPERIENCE, PROJECTS } from '../config/portfolioContent'
+import { BIO, CAPABILITIES, COMPANIES, CONTACT, EXPERIENCE } from '../config/portfolioContent'
 
 // Floor bodies. Every element carrying data-reveal is staggered in by the
 // floor-transition timeline in PortfolioModal.
@@ -114,51 +114,6 @@ export function HomeFloor() {
         <img alt="Edward Kiboma laughing while holding his dog" decoding="async" src="/images/eddie.jpg" />
         <figcaption>The developer in question w/ P.P. (doggy)</figcaption>
       </figure>
-    </article>
-  )
-}
-
-export function ProjectsFloor() {
-  return (
-    <article className="floor floor--projects" aria-label="Selected projects">
-      <ul className="directory">
-        {PROJECTS.map((project, index) => {
-          const inner = (
-            <>
-              <span className="directory__num" aria-hidden="true">
-                {String(index + 1).padStart(2, '0')}
-              </span>
-              <span className="directory__main">
-                <span className="directory__name">
-                  {project.name}
-                  {project.url && (
-                    <span className="directory__arrow" aria-hidden="true">
-                      ↗
-                    </span>
-                  )}
-                </span>
-                <span className="directory__blurb">{project.blurb}</span>
-              </span>
-              <span className="directory__meta">
-                <span className="directory__stack">{project.tech.map((t) => t.name).join(' · ')}</span>
-                <span className="directory__year">{project.year}</span>
-              </span>
-            </>
-          )
-
-          return (
-            <li key={project.id} data-reveal>
-              {project.url ? (
-                <a className="directory__row" href={project.url} rel="noreferrer" target="_blank">
-                  {inner}
-                </a>
-              ) : (
-                <div className="directory__row">{inner}</div>
-              )}
-            </li>
-          )
-        })}
-      </ul>
     </article>
   )
 }

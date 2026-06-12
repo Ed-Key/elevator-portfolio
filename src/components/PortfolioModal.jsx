@@ -1,7 +1,8 @@
 import gsap from 'gsap'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import PortfolioBackdrop from './PortfolioBackdrop'
-import { AboutFloor, ContactFloor, HomeFloor, ProjectsFloor } from './PortfolioFloors'
+import { AboutFloor, ContactFloor, HomeFloor } from './PortfolioFloors'
+import ProjectsPanel from './ProjectsPanel'
 import { PORTFOLIO_FLOORS } from '../config/portfolioContent'
 import './PortfolioModal.css'
 
@@ -9,7 +10,7 @@ const FLOOR_COMPONENTS = {
   about: AboutFloor,
   contact: ContactFloor,
   home: HomeFloor,
-  projects: ProjectsFloor,
+  projects: ProjectsPanel,
 }
 
 export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
@@ -81,7 +82,7 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
     const tween = gsap.fromTo(
       targets,
       { autoAlpha: 0, y: 18 },
-      { autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.06, overwrite: 'auto' },
+      { autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.06, overwrite: 'auto', clearProps: 'all' },
     )
 
     return () => {
