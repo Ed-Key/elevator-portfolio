@@ -31,6 +31,12 @@ if (MOBILE) {
   await page.waitForTimeout(500)
   await page.screenshot({ path: 'shots/projects-mobile-open.png' })
   console.log('wrote shots/projects-mobile-open.png')
+  // The capacity plate sits below the stack — scroll it into frame to see
+  // which languages the expanded cell lights.
+  await page.locator('.capacity-plate').scrollIntoViewIfNeeded()
+  await page.waitForTimeout(400)
+  await page.screenshot({ path: 'shots/projects-mobile-plate.png' })
+  console.log('wrote shots/projects-mobile-plate.png')
 } else {
   await page.locator('.panel-cell').first().hover()
   await page.waitForTimeout(400)

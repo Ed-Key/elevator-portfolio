@@ -7,6 +7,13 @@ core decisions picked from live mockups)
 (an SVG) replaces the monogram mark beside the stage text (Daily Bread
 ships its bible-and-loaf logo); cells also reveal the project year beneath
 the engraved number on hover/expand.
+**Amended 2026-06-12:** a "Rated for" capacity plate of 13 language glyphs
+(`LANGUAGES`) runs below the ring/stack, etched gold until the staged or
+expanded project cross-lights the languages it's built in; the idle stage
+becomes a constellation — the 12 glyph-bearing languages drift as etched
+motes around the count (deterministic scatter, static under reduced
+motion); ring rebalanced to `min(68vh, 720px)` with a `1fr 1.75fr 1fr`
+stage row.
 
 ## Concept
 

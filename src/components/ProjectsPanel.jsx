@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { PROJECTS } from '../config/portfolioContent'
+import { LANGUAGES, PROJECTS } from '../config/portfolioContent'
 import './ProjectsPanel.css'
 
 // Floor 02 — the elevator button panel. Eight engraved cells ring an open
@@ -156,9 +156,75 @@ function ProjectStage({ project, reducedMotion }) {
   )
 }
 
+// The rated-capacity plate: every elevator carries one. Languages sit
+// etched at rest; the staged project lights the ones it's built in.
+function CapacityPlate({ litId }) {
+  return (
+    <div className="capacity-plate" data-reveal>
+      <span className="capacity-plate__label">Rated for</span>
+      <ul className="capacity-plate__list">
+        {LANGUAGES.map((lang) => {
+          const lit = litId !== null && lang.projects.includes(litId)
+          return (
+            <li className={lit ? 'plate-lang is-lit' : 'plate-lang'} key={lang.name}>
+              {lang.slug ? (
+                <TechGlyph tech={lang} />
+              ) : (
+                <span className="plate-lang__chip" style={{ '--brand': lang.color }} title={lang.name}>
+                  {lang.name}
+                </span>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
+// Idle constellation scatter — hand-placed (no Math.random, screenshots
+// stay stable), ringing the count without entering the center ~30% where
+// it sits. Durations/delays stagger the drift so motes never beat in sync.
+const MOTE_FIELD = [
+  { left: 10, top: 16, dx: 9, dy: -8, dur: 7.5, delay: -1.2 },
+  { left: 28, top: 8, dx: -8, dy: 10, dur: 9, delay: -3.5 },
+  { left: 50, top: 12, dx: 10, dy: 8, dur: 6.5, delay: -2 },
+  { left: 72, top: 8, dx: -9, dy: -9, dur: 10.5, delay: -5 },
+  { left: 88, top: 20, dx: 8, dy: 11, dur: 8, delay: -0.5 },
+  { left: 92, top: 48, dx: -10, dy: -8, dur: 6, delay: -4.2 },
+  { left: 86, top: 76, dx: 11, dy: 8, dur: 9.5, delay: -6.3 },
+  { left: 66, top: 88, dx: -8, dy: -10, dur: 7, delay: -2.8 },
+  { left: 42, top: 90, dx: 9, dy: 9, dur: 10, delay: -1.8 },
+  { left: 20, top: 84, dx: -11, dy: 8, dur: 8.5, delay: -4.8 },
+  { left: 7, top: 62, dx: 8, dy: -11, dur: 6.8, delay: -3.1 },
+  { left: 16, top: 38, dx: -9, dy: 8, dur: 11, delay: -0.9 },
+]
+
 function IdlePlate() {
+  const motes = LANGUAGES.filter((lang) => lang.slug)
+
   return (
     <div className="stage-idle">
+      <span aria-hidden="true" className="stage-idle__field">
+        {motes.map((lang, index) => {
+          const spot = MOTE_FIELD[index % MOTE_FIELD.length]
+          return (
+            <i
+              className="stage-idle__mote"
+              key={lang.name}
+              style={{
+                '--glyph': `url(/images/tech/${lang.slug}.svg)`,
+                '--mote-x': `${spot.dx}px`,
+                '--mote-y': `${spot.dy}px`,
+                '--mote-dur': `${spot.dur}s`,
+                '--mote-delay': `${spot.delay}s`,
+                left: `${spot.left}%`,
+                top: `${spot.top}%`,
+              }}
+            />
+          )
+        })}
+      </span>
       <span className="stage-idle__count">{String(PROJECTS.length).padStart(2, '0')}</span>
       <span className="stage-idle__hint">projects — hover a cell</span>
     </div>
@@ -230,6 +296,7 @@ export default function ProjectsPanel() {
             )
           })}
         </div>
+        <CapacityPlate litId={expandedId} />
       </article>
     )
   }
@@ -253,6 +320,7 @@ export default function ProjectsPanel() {
           {activeProject ? <ProjectStage project={activeProject} reducedMotion={reducedMotion} /> : <IdlePlate />}
         </div>
       </div>
+      <CapacityPlate litId={activeId} />
     </article>
   )
 }
