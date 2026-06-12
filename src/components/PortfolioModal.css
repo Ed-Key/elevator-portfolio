@@ -212,8 +212,16 @@
   grid-area: content;
   min-height: 0;
   overflow-y: auto;
+  scroll-snap-type: y mandatory;
   scrollbar-width: thin;
   scrollbar-color: rgb(240 200 112 / 30%) transparent;
+}
+
+.floor-section {
+  display: grid;
+  min-height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 .site-content::-webkit-scrollbar {

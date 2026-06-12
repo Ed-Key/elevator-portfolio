@@ -15,12 +15,11 @@ const FLOOR_COMPONENTS = {
 
 export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
   const containerRef = useRef(null)
-  const contentRef = useRef(null)
+  const scrollerRef = useRef(null)
   const progressRef = useRef({ value: 0 })
   const [activeFloorId, setActiveFloorId] = useState('home')
   const reducedMotion = useMemo(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false, [])
   const activeFloor = PORTFOLIO_FLOORS.find((floor) => floor.id === activeFloorId) ?? PORTFOLIO_FLOORS[0]
-  const ActiveFloorBody = FLOOR_COMPONENTS[activeFloor.id]
 
   const applyProgress = useCallback(() => {
     const container = containerRef.current
@@ -68,51 +67,81 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
     if (phase === 'open') containerRef.current?.focus()
   }, [phase])
 
-  // Arriving at a floor: stagger its content in like an elevator settling.
-  useLayoutEffect(() => {
-    if (phase === 'closed' || reducedMotion) return
+  // Scroll position drives the panel lamp: a section is "current" while it
+  // crosses the middle band of the scroller (robust for tall floors).
+  useEffect(() => {
+    if (phase === 'closed') return undefined
 
-    const content = contentRef.current
+    const scroller = scrollerRef.current
 
-    if (!content) return
+    if (!scroller) return undefined
 
-    gsap.set(content, { autoAlpha: 1, y: 0 })
-
-    const targets = content.querySelectorAll('[data-reveal]')
-    const tween = gsap.fromTo(
-      targets,
-      { autoAlpha: 0, y: 18 },
-      { autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.06, overwrite: 'auto', clearProps: 'all' },
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActiveFloorId(entry.target.dataset.floor)
+        })
+      },
+      { root: scroller, rootMargin: '-45% 0px -45% 0px', threshold: 0 },
     )
 
-    return () => {
-      tween.kill()
+    scroller.querySelectorAll('.floor-section').forEach((section) => io.observe(section))
+
+    return () => io.disconnect()
+  }, [phase])
+
+  // Each floor staggers its content in as it enters, and resets once it has
+  // fully left so re-entry replays the arrival — the elevator settling.
+  useEffect(() => {
+    if (phase === 'closed') return undefined
+
+    const scroller = scrollerRef.current
+
+    if (!scroller) return undefined
+
+    const sections = Array.from(scroller.querySelectorAll('.floor-section'))
+
+    if (reducedMotion) {
+      sections.forEach((section) => gsap.set(section.querySelectorAll('[data-reveal]'), { autoAlpha: 1, y: 0 }))
+
+      return undefined
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFloorId, reducedMotion])
+
+    sections.forEach((section) => gsap.set(section.querySelectorAll('[data-reveal]'), { autoAlpha: 0, y: 18 }))
+    const revealed = new Set()
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const id = entry.target.dataset.floor
+          const targets = entry.target.querySelectorAll('[data-reveal]')
+
+          if (entry.intersectionRatio >= 0.25 && !revealed.has(id)) {
+            revealed.add(id)
+            gsap.to(targets, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.06, overwrite: 'auto' })
+          } else if (!entry.isIntersecting && revealed.has(id)) {
+            revealed.delete(id)
+            gsap.set(targets, { autoAlpha: 0, y: 18 })
+          }
+        })
+      },
+      { root: scroller, threshold: [0, 0.25] },
+    )
+
+    sections.forEach((section) => io.observe(section))
+
+    return () => {
+      io.disconnect()
+      gsap.killTweensOf(scroller.querySelectorAll('[data-reveal]'))
+    }
+  }, [phase, reducedMotion])
 
   const goToFloor = useCallback(
     (floorId) => {
-      if (floorId === activeFloorId) return
+      const section = scrollerRef.current?.querySelector(`[data-floor="${floorId}"]`)
 
-      const content = contentRef.current
-
-      if (reducedMotion || !content) {
-        setActiveFloorId(floorId)
-
-        return
-      }
-
-      gsap.killTweensOf(content)
-      gsap.to(content, {
-        autoAlpha: 0,
-        y: -12,
-        duration: 0.18,
-        ease: 'power1.in',
-        onComplete: () => setActiveFloorId(floorId),
-      })
+      section?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' })
     },
-    [activeFloorId, reducedMotion],
+    [reducedMotion],
   )
 
   if (phase === 'closed') return null
@@ -153,15 +182,23 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
             </button>
           ))}
         </nav>
-        <main className="site-content">
-          <div className="site-content__inner" ref={contentRef}>
-            <p className="floor-indicator" data-reveal>
-              <span className="floor-indicator__num">{activeFloor.number}</span>
-              <span aria-hidden="true" className="floor-indicator__rule" />
-              <span className="floor-indicator__label">{activeFloor.label}</span>
-            </p>
-            <ActiveFloorBody />
-          </div>
+        <main className="site-content" ref={scrollerRef}>
+          {PORTFOLIO_FLOORS.map((floor) => {
+            const FloorBody = FLOOR_COMPONENTS[floor.id]
+
+            return (
+              <section className="floor-section" data-floor={floor.id} key={floor.id}>
+                <div className="site-content__inner">
+                  <p className="floor-indicator" data-reveal>
+                    <span className="floor-indicator__num">{floor.number}</span>
+                    <span aria-hidden="true" className="floor-indicator__rule" />
+                    <span className="floor-indicator__label">{floor.label}</span>
+                  </p>
+                  <FloorBody />
+                </div>
+              </section>
+            )
+          })}
         </main>
       </div>
       <div aria-hidden="true" className="portfolio-modal__band" />
