@@ -18,6 +18,54 @@ export function TechGlyph({ tech }) {
   )
 }
 
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(
+    () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false,
+  )
+
+  useEffect(() => {
+    const mql = window.matchMedia?.('(prefers-reduced-motion: reduce)')
+    if (!mql) return undefined
+    const onChange = (event) => setReduced(event.matches)
+    mql.addEventListener('change', onChange)
+    return () => mql.removeEventListener('change', onChange)
+  }, [])
+
+  return reduced
+}
+
+// Ladder: video → poster → null (text tier's monogram carries the stage).
+// Only the active project's <video> is ever mounted, and only when motion
+// is allowed; reduced-motion visitors get the poster tier.
+function StageMedia({ project, reducedMotion }) {
+  const { poster, video } = project.media
+  const showVideo = Boolean(video) && !reducedMotion
+
+  if (!showVideo && !poster) return null
+
+  return (
+    <div className="stage-show__window">
+      {showVideo && <span className="stage-show__live">Live</span>}
+      <span aria-hidden="true" className="stage-show__windowbar">
+        <i /><i /><i />
+      </span>
+      {showVideo ? (
+        <video
+          autoPlay
+          key={project.id}
+          loop
+          muted
+          playsInline
+          poster={poster ?? undefined}
+          src={video}
+        />
+      ) : (
+        <img alt={`${project.name} screenshot`} src={poster} />
+      )}
+    </div>
+  )
+}
+
 function CellInner({ index, project }) {
   return (
     <>
@@ -68,11 +116,13 @@ function ProjectCell({ denied, index, onArm, onArmNow, onDeniedPress, onDisarm, 
   )
 }
 
-function ProjectStage({ project }) {
+function ProjectStage({ project, reducedMotion }) {
   const capsLine = `${project.tech.map((tech) => tech.name).join(' · ')} — ${project.year}`
+  const hasWindow = Boolean(project.media.video || project.media.poster)
 
   return (
-    <div className="stage-show" key={project.id}>
+    <div className={hasWindow ? 'stage-show stage-show--windowed' : 'stage-show'} key={project.id}>
+      <StageMedia project={project} reducedMotion={reducedMotion} />
       <div className="stage-show__text">
         <span aria-hidden="true" className="stage-show__mark">
           {project.name[0]}
@@ -110,6 +160,7 @@ export default function ProjectsPanel() {
   const [deniedId, setDeniedId] = useState(null)
   const [activeId, setActiveId] = useState(null) // stage holds the last armed project
   const intentRef = useRef(null)
+  const reducedMotion = useReducedMotion()
 
   useEffect(() => () => clearTimeout(intentRef.current), [])
 
@@ -148,7 +199,7 @@ export default function ProjectsPanel() {
           />
         ))}
         <div className="panel-stage" data-reveal>
-          {activeProject ? <ProjectStage project={activeProject} /> : <IdlePlate />}
+          {activeProject ? <ProjectStage project={activeProject} reducedMotion={reducedMotion} /> : <IdlePlate />}
         </div>
       </div>
     </article>
