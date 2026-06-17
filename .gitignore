@@ -29,3 +29,4 @@ scripts/tmp-*.mjs
 *.njsproj
 *.sln
 *.sw?
+.vercel
