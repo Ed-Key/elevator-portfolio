@@ -244,6 +244,13 @@
   padding: clamp(28px, 5.5vh, 60px) clamp(24px, 4.5vw, 64px);
 }
 
+.floor-section[data-floor='projects'] .site-content__inner {
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+  max-width: none;
+  padding-inline: clamp(16px, 2.6vw, 46px);
+}
+
 .floor-indicator {
   display: flex;
   align-items: center;
@@ -782,6 +789,13 @@
   .site-content__inner {
     align-content: start;
     padding-top: clamp(22px, 4vh, 36px);
+  }
+
+  .floor-section[data-floor='projects'] .site-content__inner {
+    grid-template-rows: auto;
+    align-content: start;
+    max-width: 1140px;
+    padding-inline: clamp(18px, 4vw, 28px);
   }
 
   .floor--home {

@@ -16,6 +16,9 @@ dist-ssr
 # Brainstorming companion sessions
 .superpowers/
 
+# Local throwaway probes
+scripts/tmp-*.mjs
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

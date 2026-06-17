@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { LANGUAGES, PROJECTS } from '../config/portfolioContent'
+import PageAuraMark from './PageAuraMark'
+import StageModel from './StageModel'
 import './ProjectsPanel.css'
 
 // Floor 02 — the elevator button panel. Eight engraved cells ring an open
@@ -34,6 +36,10 @@ function useMediaQuery(query) {
 
 function useReducedMotion() {
   return useMediaQuery('(prefers-reduced-motion: reduce)')
+}
+
+function getProjectLinks(project) {
+  return project.links ?? (project.url ? [{ label: 'Visit', url: project.url }] : [])
 }
 
 // Ladder: video → poster → null (text tier's monogram carries the stage).
@@ -77,9 +83,9 @@ function CellInner({ index, project }) {
       <span aria-hidden="true" className="panel-cell__year">
         {project.year}
       </span>
-      {project.status === 'private' && <span className="panel-cell__tag">Private build</span>}
       <span className="panel-cell__base">
         <span className="panel-cell__name">{project.name}</span>
+        <span className="panel-cell__blurb">{project.blurb}</span>
         <span className="panel-cell__glyphs">
           {project.tech.map((tech) => (
             <TechGlyph key={tech.name} tech={tech} />
@@ -91,6 +97,7 @@ function CellInner({ index, project }) {
 }
 
 function ProjectCell({ denied, index, onArm, onArmNow, onDeniedPress, onDisarm, project }) {
+  const primaryLink = getProjectLinks(project)[0]
   const shared = {
     className: `panel-cell panel-cell--slot${index + 1}`,
     onFocus: onArmNow, // keyboard drives the stage exactly like hover
@@ -101,9 +108,9 @@ function ProjectCell({ denied, index, onArm, onArmNow, onDeniedPress, onDisarm, 
     'data-reveal': true,
   }
 
-  if (project.url) {
+  if (primaryLink) {
     return (
-      <a {...shared} href={project.url} rel="noreferrer" target="_blank">
+      <a {...shared} href={primaryLink.url} rel="noreferrer" target="_blank">
         <CellInner index={index} project={project} />
       </a>
     )
@@ -124,33 +131,47 @@ function ProjectCell({ denied, index, onArm, onArmNow, onDeniedPress, onDisarm, 
 function ProjectStage({ project, reducedMotion }) {
   const capsLine = `${project.tech.map((tech) => tech.name).join(' · ')} — ${project.year}`
   const hasWindow = Boolean(project.media.video || project.media.poster)
+  const links = getProjectLinks(project)
 
   return (
     <div className={hasWindow ? 'stage-show stage-show--windowed' : 'stage-show'} key={project.id}>
       <StageMedia project={project} reducedMotion={reducedMotion} />
       <div className="stage-show__text">
-        {project.media.logo ? (
+        {project.media.stageMark === 'pageauraSparkles' ? (
+          <PageAuraMark />
+        ) : project.media.model && !reducedMotion ? (
+          <StageModel
+            poster={
+              project.media.logo ? (
+                <img alt="" className="stage-show__logo" src={project.media.logo} />
+              ) : null
+            }
+            src={project.media.model}
+            view={project.media.modelView}
+          />
+        ) : project.media.logo ? (
           <img alt="" aria-hidden="true" className="stage-show__logo" src={project.media.logo} />
-        ) : (
+        ) : !hasWindow ? (
           <span aria-hidden="true" className="stage-show__mark">
             {project.name[0]}
           </span>
-        )}
+        ) : null}
         <h3 className="stage-show__name">{project.name}</h3>
-        <p className="stage-show__blurb">{project.blurb}</p>
         <span className="stage-show__glyphs">
           {project.tech.map((tech) => (
             <TechGlyph key={tech.name} tech={tech} />
           ))}
         </span>
         <span className="stage-show__caps">{capsLine}</span>
-        {project.url ? (
-          <a className="stage-show__visit" href={project.url} rel="noreferrer" target="_blank">
-            Visit ↗
-          </a>
-        ) : (
-          <span className="panel-cell__tag stage-show__lock">Private build</span>
-        )}
+        {links.length > 0 ? (
+          <span className="stage-show__actions">
+            {links.map((link) => (
+              <a className="stage-show__visit" href={link.url} key={link.url} rel="noreferrer" target="_blank">
+                {link.label}
+              </a>
+            ))}
+          </span>
+        ) : null}
       </div>
     </div>
   )
@@ -266,8 +287,13 @@ export default function ProjectsPanel() {
         <div className="projects-stack">
           {PROJECTS.map((project, index) => {
             const expanded = expandedId === project.id
+            const links = getProjectLinks(project)
+            const className = [
+              'panel-cell',
+              expanded ? 'panel-cell--open' : '',
+            ].filter(Boolean).join(' ')
             return (
-              <div className={expanded ? 'panel-cell panel-cell--open' : 'panel-cell'} data-reveal key={project.id}>
+              <div className={className} data-reveal key={project.id}>
                 <button
                   aria-expanded={expanded}
                   className="panel-cell__toggle"
@@ -278,18 +304,28 @@ export default function ProjectsPanel() {
                 </button>
                 <div aria-hidden={!expanded} className="panel-cell__drawer">
                   <div className="panel-cell__drawer-inner">
-                    {project.media.logo && (
+                    {project.media.stageMark === 'pageauraSparkles' ? (
+                      <PageAuraMark />
+                    ) : project.media.logo ? (
                       <img alt="" aria-hidden="true" className="stage-show__logo stage-show__logo--drawer" src={project.media.logo} />
-                    )}
+                    ) : null}
                     <StageMedia project={project} reducedMotion={reducedMotion || !expanded} />
-                    <p className="stage-show__blurb">{project.blurb}</p>
-                    {project.url ? (
-                      <a className="stage-show__visit" href={project.url} rel="noreferrer" target="_blank" tabIndex={expanded ? 0 : -1}>
-                        Visit ↗
-                      </a>
-                    ) : (
-                      <span className="panel-cell__tag stage-show__lock">Private build</span>
-                    )}
+                    {links.length > 0 ? (
+                      <span className="stage-show__actions">
+                        {links.map((link) => (
+                          <a
+                            className="stage-show__visit"
+                            href={link.url}
+                            key={link.url}
+                            rel="noreferrer"
+                            target="_blank"
+                            tabIndex={expanded ? 0 : -1}
+                          >
+                            {link.label}
+                          </a>
+                        ))}
+                      </span>
+                    ) : null}
                   </div>
                 </div>
               </div>

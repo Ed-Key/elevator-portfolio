@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" role="img" aria-labelledby="title desc">
+  <title id="title">Showdown Copilot architecture preview</title>
+  <desc id="desc">A dark diagram showing a Pokemon Showdown page flowing into a TypeScript extension, Python proxy, Rust MCTS engine, and neural prior.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#10131d"/>
+      <stop offset="0.55" stop-color="#171024"/>
+      <stop offset="1" stop-color="#0b1820"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" x2="1">
+      <stop offset="0" stop-color="#202840"/>
+      <stop offset="1" stop-color="#171a2c"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feColorMatrix in="blur" result="gold" type="matrix" values="1 0 0 0 0.93 0 1 0 0 0.66 0 0 1 0 0.26 0 0 0 0.55 0"/>
+      <feMerge>
+        <feMergeNode in="gold"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="1280" height="800" fill="url(#bg)"/>
+  <circle cx="1070" cy="105" r="250" fill="#2f1c4f" opacity="0.28"/>
+  <circle cx="190" cy="690" r="260" fill="#123a3f" opacity="0.24"/>
+  <g fill="none" stroke="#f0c870" stroke-opacity="0.13">
+    <path d="M86 154h1108M86 270h1108M86 386h1108M86 502h1108M86 618h1108"/>
+    <path d="M174 90v620M376 90v620M578 90v620M780 90v620M982 90v620"/>
+  </g>
+  <text x="84" y="98" fill="#f6f0e2" font-family="Inter, Arial, sans-serif" font-size="42" font-weight="800">Showdown Copilot</text>
+  <text x="86" y="136" fill="#b8c2d8" font-family="Inter, Arial, sans-serif" font-size="18" letter-spacing="3">HUMAN-IN-THE-LOOP BATTLE ADVISOR</text>
+  <g font-family="Inter, Arial, sans-serif">
+    <g filter="url(#glow)">
+      <rect x="88" y="238" width="210" height="126" rx="18" fill="url(#panel)" stroke="#f0c870" stroke-opacity="0.5"/>
+      <text x="118" y="286" fill="#f6f0e2" font-size="22" font-weight="700">Showdown</text>
+      <text x="118" y="319" fill="#b8c2d8" font-size="15">live battle state</text>
+      <circle cx="254" cy="316" r="22" fill="#d95555"/>
+      <circle cx="254" cy="316" r="10" fill="#f6f0e2"/>
+    </g>
+    <path d="M305 301h118" fill="none" stroke="#f0c870" stroke-width="4" stroke-linecap="round"/>
+    <path d="M423 301l-18-12v24z" fill="#f0c870"/>
+    <rect x="436" y="238" width="210" height="126" rx="18" fill="url(#panel)" stroke="#61dafb" stroke-opacity="0.58"/>
+    <text x="466" y="286" fill="#f6f0e2" font-size="22" font-weight="700">Extension</text>
+    <text x="466" y="319" fill="#b8c2d8" font-size="15">TypeScript overlay</text>
+    <path d="M653 301h118" fill="none" stroke="#f0c870" stroke-width="4" stroke-linecap="round"/>
+    <path d="M771 301l-18-12v24z" fill="#f0c870"/>
+    <rect x="784" y="238" width="210" height="126" rx="18" fill="url(#panel)" stroke="#4b8bbe" stroke-opacity="0.66"/>
+    <text x="814" y="286" fill="#f6f0e2" font-size="22" font-weight="700">Proxy</text>
+    <text x="814" y="319" fill="#b8c2d8" font-size="15">belief + PIMC</text>
+    <path d="M889 370v82" fill="none" stroke="#f0c870" stroke-width="4" stroke-linecap="round"/>
+    <path d="M889 452l-12-18h24z" fill="#f0c870"/>
+    <rect x="694" y="466" width="390" height="140" rx="20" fill="#101522" stroke="#ce6d35" stroke-opacity="0.72"/>
+    <text x="734" y="520" fill="#f6f0e2" font-size="26" font-weight="800">Rust MCTS engine</text>
+    <text x="734" y="556" fill="#b8c2d8" font-size="16">PUCT search, alternatives, telemetry</text>
+    <path d="M686 536H560" fill="none" stroke="#f0c870" stroke-width="4" stroke-linecap="round"/>
+    <path d="M560 536l18-12v24z" fill="#f0c870"/>
+    <rect x="186" y="468" width="360" height="136" rx="20" fill="#101522" stroke="#9da7ff" stroke-opacity="0.62"/>
+    <text x="226" y="520" fill="#f6f0e2" font-size="24" font-weight="800">Neural prior sidecar</text>
+    <text x="226" y="555" fill="#b8c2d8" font-size="16">Kakuna policy hints at the root</text>
+    <g fill="#f0c870" opacity="0.86">
+      <circle cx="236" cy="646" r="5"/>
+      <circle cx="262" cy="646" r="5"/>
+      <circle cx="288" cy="646" r="5"/>
+    </g>
+    <text x="314" y="653" fill="#d6ddeb" font-size="15">recommendation stream returns to the player</text>
+  </g>
+</svg>
