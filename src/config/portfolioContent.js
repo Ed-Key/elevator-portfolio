@@ -44,6 +44,8 @@ const TECH = {
 // model (draco glb) outranks logo as a spinning 3D mark on the stage.
 // backdrop, when present, plays dimmed behind the whole stage while the
 // project is staged (skipped under reduced motion).
+// prop, when present, is a still (or list of stills that cycle) tucked
+// behind the window with a corner peeking out (desktop stage only).
 export const PROJECTS = [
   {
     id: 'pageaura',
@@ -75,6 +77,12 @@ export const PROJECTS = [
       logo: null,
       model: null,
       backdrop: '/media/projects/showdown-teaser.mp4',
+      prop: [
+        '/media/projects/showdown-tcg-card.png',
+        '/media/projects/showdown-card-ogerpon.png',
+        '/media/projects/showdown-card-gholdengo.png',
+        '/media/projects/showdown-card-garchomp.png',
+      ],
     },
   },
   {
