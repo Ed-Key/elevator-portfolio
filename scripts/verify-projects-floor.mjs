@@ -34,6 +34,14 @@ await page.locator('.panel-stage').hover() // move off the cells onto the stage 
 await page.waitForTimeout(300)
 check('stage holds after pointer leaves', await page.locator('.stage-show__name', { hasText: 'PageAura' }).isVisible())
 
+await page.locator('.panel-cell', { hasText: 'Showdown Copilot' }).hover()
+await page.waitForTimeout(800)
+check('showdown mounts stage backdrop', (await page.locator('.stage-backdrop video').count()) === 1)
+check('showdown text sits on shield', (await page.locator('.stage-show--backdropped').count()) === 1)
+await page.locator('.panel-cell', { hasText: 'PageAura' }).hover()
+await page.waitForTimeout(600)
+check('backdrop unmounts off showdown', (await page.locator('.stage-backdrop').count()) === 0)
+
 const before = page.context().pages().length
 await page.locator('button.panel-cell', { hasText: 'Showdown Copilot' }).click()
 await page.waitForTimeout(150)
