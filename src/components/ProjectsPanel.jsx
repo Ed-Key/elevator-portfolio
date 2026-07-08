@@ -54,9 +54,12 @@ function StageMedia({ project, reducedMotion }) {
   return (
     <div className="stage-show__window">
       {showVideo && <span className="stage-show__live">Live</span>}
-      <span aria-hidden="true" className="stage-show__windowbar">
-        <i /><i /><i />
-      </span>
+      {/* real demo footage carries its own chrome; the fake bar only frames stills */}
+      {!showVideo && (
+        <span aria-hidden="true" className="stage-show__windowbar">
+          <i /><i /><i />
+        </span>
+      )}
       {showVideo ? (
         <video
           autoPlay
