@@ -227,8 +227,8 @@
   opacity: 0;
   transition: opacity 600ms ease;
   pointer-events: none;
-  -webkit-mask: radial-gradient(ellipse at 50% 50%, #000 40%, transparent 68%);
-  mask: radial-gradient(ellipse at 50% 50%, #000 40%, transparent 68%);
+  -webkit-mask: radial-gradient(ellipse at 50% 50%, #000 62%, transparent 98%);
+  mask: radial-gradient(ellipse at 50% 50%, #000 62%, transparent 98%);
 }
 
 .stage-backdrop.is-ready { opacity: 1; }
@@ -237,7 +237,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: brightness(0.2) saturate(0.55) blur(3px);
+  filter: brightness(0.34) saturate(0.6) blur(3px);
 }
 
 /* gold-tinted scrim: keeps the footage in the floor's atmosphere */
@@ -247,7 +247,7 @@
   content: '';
   background:
     radial-gradient(ellipse at 50% 58%, rgb(240 200 112 / 7%), transparent 70%),
-    rgb(10 8 16 / 55%);
+    rgb(10 8 16 / 38%);
 }
 
 .stage-idle {
