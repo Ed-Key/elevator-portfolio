@@ -42,6 +42,29 @@ function getProjectLinks(project) {
   return project.links ?? (project.url ? [{ label: 'Visit', url: project.url }] : [])
 }
 
+// Prop art behind the window. With several faces it cycles like the
+// engine re-reading the board; reduced motion pins the first face.
+function StageProp({ reducedMotion, srcs }) {
+  const faces = Array.isArray(srcs) ? srcs : [srcs]
+  const [face, setFace] = useState(0)
+
+  useEffect(() => {
+    if (reducedMotion || faces.length < 2) return undefined
+    const id = setInterval(() => setFace((n) => (n + 1) % faces.length), 7000)
+    return () => clearInterval(id)
+  }, [reducedMotion, faces.length])
+
+  return (
+    <img
+      alt=""
+      aria-hidden="true"
+      className="stage-show__prop"
+      key={face}
+      src={faces[face]}
+    />
+  )
+}
+
 // Ladder: video → poster → null (text tier's monogram carries the stage).
 // Only the active project's <video> is ever mounted, and only when motion
 // is allowed; reduced-motion visitors get the poster tier.
@@ -52,27 +75,31 @@ function StageMedia({ project, reducedMotion }) {
   if (!showVideo && !poster) return null
 
   return (
-    <div className="stage-show__window">
-      {showVideo && <span className="stage-show__live">Live</span>}
-      {/* real demo footage carries its own chrome; the fake bar only frames stills */}
-      {!showVideo && (
-        <span aria-hidden="true" className="stage-show__windowbar">
-          <i /><i /><i />
-        </span>
-      )}
-      {showVideo ? (
-        <video
-          autoPlay
-          key={project.id}
-          loop
-          muted
-          playsInline
-          poster={poster ?? undefined}
-          src={video}
-        />
-      ) : (
-        <img alt={`${project.name} screenshot`} src={poster} />
-      )}
+    <div className="stage-show__media">
+      {/* a prop tucked behind the window, corner peeking out */}
+      {project.media.prop && <StageProp reducedMotion={reducedMotion} srcs={project.media.prop} />}
+      <div className="stage-show__window">
+        {showVideo && <span className="stage-show__live">Live</span>}
+        {/* real demo footage carries its own chrome; the fake bar only frames stills */}
+        {!showVideo && (
+          <span aria-hidden="true" className="stage-show__windowbar">
+            <i /><i /><i />
+          </span>
+        )}
+        {showVideo ? (
+          <video
+            autoPlay
+            key={project.id}
+            loop
+            muted
+            playsInline
+            poster={poster ?? undefined}
+            src={video}
+          />
+        ) : (
+          <img alt={`${project.name} screenshot`} src={poster} />
+        )}
+      </div>
     </div>
   )
 }

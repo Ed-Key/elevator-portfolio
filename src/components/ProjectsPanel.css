@@ -545,10 +545,37 @@
   justify-content: flex-start;
 }
 
-.stage-show__window {
+.stage-show__media {
   position: relative;
+  z-index: 0;
   flex: none;
   width: min(54%, 560px);
+}
+
+/* prop art peeks out from behind the window, leaning the other way */
+.stage-show__prop {
+  position: absolute;
+  z-index: -1;
+  top: -11%;
+  right: -10%;
+  width: 36%;
+  border-radius: 10px;
+  box-shadow: 0 16px 42px rgb(0 0 0 / 45%);
+  transform: rotate(7deg);
+  animation: prop-in 600ms ease both;
+}
+
+@keyframes prop-in {
+  from { opacity: 0; transform: rotate(7deg) translateY(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-show__prop { animation: none; }
+}
+
+.stage-show__window {
+  position: relative;
+  width: 100%;
   overflow: hidden;
   border: 1px solid rgb(240 200 112 / 30%);
   border-radius: 3px;
@@ -628,7 +655,7 @@
     text-align: center;
   }
 
-  .stage-show--windowed .stage-show__window {
+  .stage-show--windowed .stage-show__media {
     width: min(56%, 260px);
   }
 
@@ -762,6 +789,9 @@
 }
 
 .panel-cell--open .panel-cell__drawer-inner { padding: 4px 16px 16px; }
+
+/* the drawer is tight; no room for prop art */
+.panel-cell__drawer-inner .stage-show__prop { display: none; }
 
 .panel-cell--open {
   border-color: rgb(240 200 112 / 55%);
