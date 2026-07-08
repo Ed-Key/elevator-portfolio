@@ -42,6 +42,8 @@ const TECH = {
 // video → poster → monogram (nothing blocks on recordings existing).
 // logo, when present, replaces the monogram mark beside the text;
 // model (draco glb) outranks logo as a spinning 3D mark on the stage.
+// backdrop, when present, plays dimmed behind the whole stage while the
+// project is staged (skipped under reduced motion).
 export const PROJECTS = [
   {
     id: 'pageaura',
@@ -67,7 +69,13 @@ export const PROJECTS = [
     status: 'private',
     tech: [TECH.rust, TECH.python, TECH.typescript],
     links: [],
-    media: { video: null, poster: '/media/projects/showdown-copilot-poster.svg', logo: null, model: null },
+    media: {
+      video: '/media/projects/showdown-demo.mp4',
+      poster: '/media/projects/showdown-dashboard.png',
+      logo: null,
+      model: null,
+      backdrop: '/media/projects/showdown-teaser.mp4',
+    },
   },
   {
     id: 'daily-bread',

@@ -74,6 +74,32 @@ function StageMedia({ project, reducedMotion }) {
   )
 }
 
+// Ambient backdrop tier: the staged project's footage fills the stage
+// behind the window and text, dimmed to texture by the CSS layers. Only
+// mounted when the project defines media.backdrop and motion is allowed.
+function StageBackdrop({ src }) {
+  const [ready, setReady] = useState(false)
+  const videoRef = useRef(null)
+
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.playbackRate = 0.75
+  }, [src])
+
+  return (
+    <div aria-hidden="true" className={ready ? 'stage-backdrop is-ready' : 'stage-backdrop'}>
+      <video
+        autoPlay
+        loop
+        muted
+        onPlaying={() => setReady(true)}
+        playsInline
+        ref={videoRef}
+        src={src}
+      />
+    </div>
+  )
+}
+
 function CellInner({ index, project }) {
   return (
     <>
@@ -128,13 +154,20 @@ function ProjectCell({ denied, index, onArm, onArmNow, onDeniedPress, onDisarm, 
   )
 }
 
-function ProjectStage({ project, reducedMotion }) {
+function ProjectStage({ backdropped, project, reducedMotion }) {
   const capsLine = `${project.tech.map((tech) => tech.name).join(' · ')} — ${project.year}`
   const hasWindow = Boolean(project.media.video || project.media.poster)
   const links = getProjectLinks(project)
+  const classes = [
+    'stage-show',
+    hasWindow && 'stage-show--windowed',
+    backdropped && 'stage-show--backdropped',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
-    <div className={hasWindow ? 'stage-show stage-show--windowed' : 'stage-show'} key={project.id}>
+    <div className={classes} key={project.id}>
       <StageMedia project={project} reducedMotion={reducedMotion} />
       <div className="stage-show__text">
         {project.media.stageMark === 'pageauraSparkles' ? (
@@ -353,7 +386,18 @@ export default function ProjectsPanel() {
           />
         ))}
         <div className="panel-stage" data-reveal>
-          {activeProject ? <ProjectStage project={activeProject} reducedMotion={reducedMotion} /> : <IdlePlate />}
+          {activeProject?.media.backdrop && !reducedMotion ? (
+            <StageBackdrop key={activeProject.id} src={activeProject.media.backdrop} />
+          ) : null}
+          {activeProject ? (
+            <ProjectStage
+              backdropped={Boolean(activeProject.media.backdrop) && !reducedMotion}
+              project={activeProject}
+              reducedMotion={reducedMotion}
+            />
+          ) : (
+            <IdlePlate />
+          )}
         </div>
       </div>
       <CapacityPlate litId={activeId} />
