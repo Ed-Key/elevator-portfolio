@@ -38,6 +38,9 @@ await page.locator('.panel-cell', { hasText: 'Showdown Copilot' }).hover()
 await page.waitForTimeout(800)
 check('showdown mounts stage backdrop', (await page.locator('.stage-backdrop video').count()) === 1)
 check('showdown text sits on shield', (await page.locator('.stage-show--backdropped').count()) === 1)
+// backdrop only flags is-ready once the video autoplays, so a codec/autoplay
+// regression trips this rather than only the gitignored probe
+check('backdrop reaches is-ready', (await page.locator('.stage-backdrop.is-ready').count()) === 1)
 await page.locator('.panel-cell', { hasText: 'PageAura' }).hover()
 await page.waitForTimeout(600)
 check('backdrop unmounts off showdown', (await page.locator('.stage-backdrop').count()) === 0)
@@ -62,6 +65,33 @@ check(
   'riding back re-lights Lobby',
   (await page.locator('.floor-panel__button', { hasText: 'Lobby' }).getAttribute('aria-current')) === 'true',
 )
+
+// reduced-motion policy: a second context asks for reduced motion, rides to the
+// projects floor, hovers showdown, and asserts no backdrop, no shield, no window
+// video, and the dashboard poster in the window instead
+const rmContext = await browser.newContext({
+  reducedMotion: 'reduce',
+  viewport: { width: 1440, height: 900 },
+})
+const rmPage = await rmContext.newPage()
+await rmPage.goto(`${BASE}/?tools=1`)
+await rmPage.waitForTimeout(1500)
+await rmPage.getByRole('button', { name: 'Open', exact: true }).click()
+await rmPage.waitForSelector('[data-phase="open"]', { timeout: 15000 })
+await rmPage.addStyleTag({ content: '[data-preview-ui]{display:none !important}' })
+await rmPage.waitForTimeout(600)
+await rmPage.locator('.floor-panel__button', { hasText: 'Projects' }).click()
+await rmPage.waitForTimeout(1200)
+await rmPage.locator('.panel-cell', { hasText: 'Showdown Copilot' }).hover()
+await rmPage.waitForTimeout(800)
+check('reduced motion mounts no backdrop', (await rmPage.locator('.stage-backdrop').count()) === 0)
+check('reduced motion drops the shield', (await rmPage.locator('.stage-show--backdropped').count()) === 0)
+check('reduced motion plays no window video', (await rmPage.locator('.stage-show__window video').count()) === 0)
+check(
+  'reduced motion shows dashboard poster',
+  (await rmPage.locator('.stage-show__window img').getAttribute('src')) === '/media/projects/showdown-dashboard.png',
+)
+await rmContext.close()
 
 await browser.close()
 console.log(failures === 0 ? '\nALL CHECKS PASSED' : `\n${failures} CHECK(S) FAILED`)
