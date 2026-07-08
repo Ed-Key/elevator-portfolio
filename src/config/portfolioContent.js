@@ -81,7 +81,7 @@ export const PROJECTS = [
       video: null,
       poster: '/media/projects/daily-bread-landing.png',
       logo: '/media/projects/daily-bread-logo.svg',
-      model: null,
+      model: '/media/projects/daily-bread-logo.glb',
     },
   },
   {
@@ -91,7 +91,7 @@ export const PROJECTS = [
     year: '2026',
     status: 'live',
     tech: [TECH.nextjs, TECH.supabase, TECH.stripe],
-    links: [{ label: 'Open', url: 'https://avirem.vercel.app' }],
+    links: [{ label: 'Open', url: 'https://www.joinavirem.com/' }],
     media: { video: null, poster: '/media/projects/avirem-preview.png', logo: null, model: null },
   },
   {
