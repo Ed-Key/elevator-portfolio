@@ -68,9 +68,9 @@ export const PROJECTS = [
     name: 'Showdown Copilot',
     blurb: 'Pokemon Showdown advisor: TypeScript overlay, Python belief proxy, Rust MCTS, and neural priors for human decisions.',
     year: '2026',
-    status: 'private',
+    status: 'live',
     tech: [TECH.rust, TECH.python, TECH.typescript],
-    links: [],
+    links: [{ label: 'Code', url: 'https://github.com/Ed-Key/showdown-stack' }],
     media: {
       video: '/media/projects/showdown-demo.mp4',
       poster: '/media/projects/showdown-dashboard.png',

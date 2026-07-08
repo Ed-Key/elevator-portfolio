@@ -46,7 +46,7 @@ await page.waitForTimeout(600)
 check('backdrop unmounts off showdown', (await page.locator('.stage-backdrop').count()) === 0)
 
 const before = page.context().pages().length
-await page.locator('button.panel-cell', { hasText: 'Showdown Copilot' }).click()
+await page.locator('button.panel-cell', { hasText: 'Potencia' }).click()
 await page.waitForTimeout(150)
 check('private press blinks (data-denied)', (await page.locator('[data-denied="true"]').count()) === 1)
 await page.waitForTimeout(600)
