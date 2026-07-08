@@ -227,6 +227,8 @@
   opacity: 0;
   transition: opacity 600ms ease;
   pointer-events: none;
+  -webkit-mask: radial-gradient(ellipse at 50% 50%, #000 40%, transparent 68%);
+  mask: radial-gradient(ellipse at 50% 50%, #000 40%, transparent 68%);
 }
 
 .stage-backdrop.is-ready { opacity: 1; }
@@ -235,6 +237,17 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  filter: brightness(0.2) saturate(0.55) blur(3px);
+}
+
+/* gold-tinted scrim: keeps the footage in the floor's atmosphere */
+.stage-backdrop::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background:
+    radial-gradient(ellipse at 50% 58%, rgb(240 200 112 / 7%), transparent 70%),
+    rgb(10 8 16 / 55%);
 }
 
 .stage-idle {
@@ -504,6 +517,16 @@
   align-items: flex-start;
   max-width: min(34%, 360px);
   text-align: left;
+}
+
+/* readable things sit on frosted glass whenever footage plays behind them */
+.stage-show--backdropped .stage-show__text {
+  padding: clamp(14px, 2vh, 22px) clamp(16px, 1.8vw, 26px);
+  background: rgb(12 10 18 / 45%);
+  border: 1px solid rgb(240 200 112 / 10%);
+  border-radius: 14px;
+  -webkit-backdrop-filter: blur(32px);
+  backdrop-filter: blur(32px);
 }
 
 .stage-show--windowed .stage-show__actions {
