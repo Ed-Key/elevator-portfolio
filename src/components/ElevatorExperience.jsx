@@ -1,10 +1,14 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { ContactShadows, Environment, OrbitControls, PerspectiveCamera, useAnimations, useGLTF } from '@react-three/drei'
 import { Color, MathUtils, Vector3 } from 'three'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import ElevatorCallButton from './ElevatorCallButton'
 import MirrorShimmerPlane from './MirrorShimmerPlane'
-import PortfolioModal from './PortfolioModal'
+
+// Lazy so gsap and the portfolio content ride in their own chunk: it starts
+// fetching on first render but stays off the critical path, and the elevator
+// sequence gives it seconds of cover before the modal can open.
+const PortfolioModal = lazy(() => import('./PortfolioModal'))
 import { CAMERA_SHOTS, DEFAULT_CAMERA_SHOTS, DEFAULT_TUNING, ENVIRONMENT_PRESETS, MODAL_EASE_OPTIONS, ORIGINAL_TUNING } from '../config/elevatorSetup'
 import './ElevatorExperience.css'
 
@@ -1231,12 +1235,14 @@ export default function ElevatorExperience({ showTools = false }) {
         <ContactShadows position={[0, 0.02, 0]} opacity={tuning.contactShadow} scale={12} blur={2.6} far={5} />
         <Environment environmentIntensity={tuning.environmentIntensity} preset={tuning.environment} />
       </Canvas>
-      <PortfolioModal
-        onClosed={handleModalClosed}
-        onOpened={handleModalOpened}
-        phase={modalPhase}
-        tuning={tuning}
-      />
+      <Suspense fallback={null}>
+        <PortfolioModal
+          onClosed={handleModalClosed}
+          onOpened={handleModalOpened}
+          phase={modalPhase}
+          tuning={tuning}
+        />
+      </Suspense>
       {showTools && (
         <LightingLab
           cameraDraft={cameraDraft}
