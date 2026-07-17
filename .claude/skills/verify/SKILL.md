@@ -32,6 +32,16 @@ Recipe that works:
    `button:has-text("PROJECTS")` etc. (getByRole lookups have been
    flaky here; :has-text works).
 
+## Chunk-failure path
+
+To test async chunk failure, block it with a Playwright route:
+`page.route('**/PortfolioModal-*.js', r => r.abort())`. Gotcha learned
+the hard way: Chromium caches a rejected dynamic import in the module
+map for the life of the document, so unblocking and calling `import()`
+again still rejects instantly with no network request. Recovery from a
+failed chunk requires a page reload; only pre-failure retries (or other
+browsers) can succeed in place.
+
 ## Other surfaces
 
 - `/?tools` mounts the Lighting Lab tuning panel (body text starts

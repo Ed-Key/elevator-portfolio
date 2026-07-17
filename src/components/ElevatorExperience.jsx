@@ -1,14 +1,63 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { ContactShadows, Environment, OrbitControls, PerspectiveCamera, useAnimations, useGLTF } from '@react-three/drei'
 import { Color, MathUtils, Vector3 } from 'three'
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import ElevatorCallButton from './ElevatorCallButton'
 import MirrorShimmerPlane from './MirrorShimmerPlane'
 
-// Lazy so gsap and the portfolio content ride in their own chunk: it starts
-// fetching on first render but stays off the critical path, and the elevator
-// sequence gives it seconds of cover before the modal can open.
-const PortfolioModal = lazy(() => import('./PortfolioModal'))
+// The modal loads through a plain dynamic import so gsap and the portfolio
+// content ride in their own chunk: the fetch starts at mount but stays off
+// the critical path, and the elevator sequence gives it seconds of cover
+// before the modal can open. Deliberately not React.lazy: a rejected lazy
+// chunk throws through Suspense and takes the Canvas down with it, while a
+// promise handler keeps the failure out of React entirely.
+function PortfolioModalLoader({ phase, ...modalProps }) {
+  const [Modal, setModal] = useState(null)
+  const [failed, setFailed] = useState(false)
+  const autoRetriedRef = useRef(false)
+
+  const load = useCallback(function request() {
+    import('./PortfolioModal').then(
+      (module) => {
+        setModal(() => module.default)
+        setFailed(false)
+      },
+      () => {
+        // One delayed silent retry covers transient flakes; a second
+        // failure surfaces the retry card once the modal is due on screen.
+        if (autoRetriedRef.current) {
+          setFailed(true)
+        } else {
+          autoRetriedRef.current = true
+          setTimeout(request, 4000)
+        }
+      },
+    )
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  if (Modal) return <Modal phase={phase} {...modalProps} />
+
+  if (failed && phase !== 'closed') {
+    // Chromium caches a rejected dynamic import for the life of the
+    // document, so in-page retries cannot succeed there; a reload is the
+    // one recovery that always works, and it also picks up fresh chunk
+    // URLs after a stale deploy.
+    return (
+      <div className="portfolio-modal-fallback" role="alert">
+        <p>This floor didn't load.</p>
+        <button onClick={() => window.location.reload()} type="button">
+          Reload
+        </button>
+      </div>
+    )
+  }
+
+  return null
+}
 import { CAMERA_SHOTS, DEFAULT_CAMERA_SHOTS, DEFAULT_TUNING, ENVIRONMENT_PRESETS, MODAL_EASE_OPTIONS, ORIGINAL_TUNING } from '../config/elevatorSetup'
 import './ElevatorExperience.css'
 
@@ -1235,14 +1284,12 @@ export default function ElevatorExperience({ showTools = false }) {
         <ContactShadows position={[0, 0.02, 0]} opacity={tuning.contactShadow} scale={12} blur={2.6} far={5} />
         <Environment environmentIntensity={tuning.environmentIntensity} preset={tuning.environment} />
       </Canvas>
-      <Suspense fallback={null}>
-        <PortfolioModal
-          onClosed={handleModalClosed}
-          onOpened={handleModalOpened}
-          phase={modalPhase}
-          tuning={tuning}
-        />
-      </Suspense>
+      <PortfolioModalLoader
+        onClosed={handleModalClosed}
+        onOpened={handleModalOpened}
+        phase={modalPhase}
+        tuning={tuning}
+      />
       {showTools && (
         <LightingLab
           cameraDraft={cameraDraft}
