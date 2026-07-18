@@ -58,7 +58,8 @@ export const DEFAULT_TUNING = {
   cameraFov: 52,
   doorOpen: 0,
   materialLift: 0.12,
-  metalRoughness: 1,
+  metalPolish: 0.7,
+  metalRoughness: 0.32,
   mirrorFxAngle: 135,
   mirrorFxColor: '#ffffff',
   mirrorFxDelay: 0,
@@ -114,5 +115,6 @@ export const ORIGINAL_TUNING = {
   cameraFov: 44,
   doorOpen: 0,
   materialLift: 0,
+  metalPolish: 0,
   metalRoughness: 0,
 }

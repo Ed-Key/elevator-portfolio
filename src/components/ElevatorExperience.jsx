@@ -245,6 +245,7 @@ function getExportableSetup(tuning) {
       floorColor: currentTuning.floorColor,
       key: currentTuning.key,
       materialLift: currentTuning.materialLift,
+      metalPolish: currentTuning.metalPolish,
       metalRoughness: currentTuning.metalRoughness,
       mirrorFxAngle: currentTuning.mirrorFxAngle,
       mirrorFxColor: currentTuning.mirrorFxColor,
@@ -494,7 +495,12 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
           }
 
           if ('roughness' in material) {
-            material.roughness = MathUtils.lerp(baseline.roughness ?? 0.5, tuning.metalRoughness, tuning.materialLift)
+            // Polish is deliberately decoupled from materialLift: lift drags
+            // the metal color toward neutral gray, so riding roughness on it
+            // meant sharp reflections were only reachable by killing the
+            // bronze. Polish blends roughness toward the Metal rough target
+            // on its own axis.
+            material.roughness = MathUtils.lerp(baseline.roughness ?? 0.5, tuning.metalRoughness, tuning.metalPolish ?? tuning.materialLift)
           }
 
           if ('metalness' in material && typeof baseline.metalness === 'number') {
@@ -512,7 +518,7 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
         material.needsUpdate = true
       })
     })
-  }, [scene, tuning.environmentIntensity, tuning.floorColor, tuning.materialLift, tuning.metalRoughness, tuning.wallColor])
+  }, [scene, tuning.environmentIntensity, tuning.floorColor, tuning.materialLift, tuning.metalPolish, tuning.metalRoughness, tuning.wallColor])
 
   useFrame((_, delta) => {
     const camera = cameraRef.current
@@ -892,6 +898,13 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           min={0}
           onChange={(value) => updateTuning('materialLift', value)}
           value={tuning.materialLift}
+        />
+        <TuningSlider
+          label="Metal polish"
+          max={1}
+          min={0}
+          onChange={(value) => updateTuning('metalPolish', value)}
+          value={tuning.metalPolish}
         />
         <TuningSlider
           label="Metal rough"
