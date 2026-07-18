@@ -352,3 +352,25 @@
     max-height: 42svh;
   }
 }
+
+.lighting-lab__tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  margin-bottom: 12px;
+  padding: 2px;
+  border: 1px solid rgb(148 163 184 / 22%);
+  border-radius: 6px;
+  background: rgb(2 6 23 / 48%);
+}
+
+.lighting-lab__tabs button {
+  min-height: 26px;
+  font-size: 0.7rem;
+  text-transform: capitalize;
+}
+
+.lighting-lab__tabs button.is-active {
+  color: #0f172a;
+  background: #e2e8f0;
+}

@@ -5,6 +5,7 @@ import { ToneMappingMode } from 'postprocessing'
 import { Box3, Color, MathUtils, Vector3 } from 'three'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ElevatorCallButton from './ElevatorCallButton'
+import HallPracticals from './HallPracticals'
 import MirrorShimmerPlane from './MirrorShimmerPlane'
 
 // The modal loads through a plain dynamic import so gsap and the portfolio
@@ -60,7 +61,7 @@ function PortfolioModalLoader({ phase, ...modalProps }) {
 
   return null
 }
-import { CAMERA_SHOTS, DEFAULT_CAMERA_SHOTS, DEFAULT_TUNING, ENVIRONMENT_PRESETS, MODAL_EASE_OPTIONS, ORIGINAL_TUNING, TONE_MAPPING_OPTIONS } from '../config/elevatorSetup'
+import { CAMERA_SHOTS, DEFAULT_CAMERA_SHOTS, DEFAULT_TUNING, ENVIRONMENT_PRESETS, MODAL_EASE_OPTIONS, ORIGINAL_TUNING, PRACTICAL_STYLE_OPTIONS, TONE_MAPPING_OPTIONS } from '../config/elevatorSetup'
 import './ElevatorExperience.css'
 
 const DOOR_OPEN_CLIP_TIME = 3
@@ -71,6 +72,8 @@ const CAMERA_SAMPLE_INTERVAL = 0.12
 const outsideShot = DEFAULT_CAMERA_SHOTS.outsideShot
 
 const METAL_MATERIALS = new Set(['Metal', 'DarkerMetal', 'Mirror'])
+
+const LAB_TABS = ['scene', 'render', 'hall', 'motion', 'fx', 'camera']
 
 const TONE_MAPPING_MODES = {
   aces: ToneMappingMode.ACES_FILMIC,
@@ -275,6 +278,11 @@ function getExportableSetup(tuning) {
       modalRevealSeconds: currentTuning.modalRevealSeconds,
       openDelay: currentTuning.openDelay,
       openSeconds: currentTuning.openSeconds,
+      practicalAngle: currentTuning.practicalAngle,
+      practicalColor: currentTuning.practicalColor,
+      practicalHeight: currentTuning.practicalHeight,
+      practicalIntensity: currentTuning.practicalIntensity,
+      practicalStyle: currentTuning.practicalStyle,
       previewMode: currentTuning.previewMode,
       sequenceSpeed: currentTuning.sequenceSpeed,
       toneMapping: currentTuning.toneMapping,
@@ -685,6 +693,7 @@ function ShotOffsetInput({ axis, label, onChange }) {
 function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, setCameraJumpRequest, setTuning, tuning }) {
   const [collapsed, setCollapsed] = useState(false)
   const [copyStatus, setCopyStatus] = useState('')
+  const [labTab, setLabTab] = useState('scene')
   const [jumpStatus, setJumpStatus] = useState('')
   const [saveStatus, setSaveStatus] = useState('')
   const [shotName, setShotName] = useState('outsideShot')
@@ -863,7 +872,20 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
         </button>
       </div>
 
-      <div className="tuning-grid">
+      <div className="lighting-lab__tabs" role="tablist">
+        {LAB_TABS.map((tab) => (
+          <button
+            key={tab}
+            className={labTab === tab ? 'is-active' : ''}
+            onClick={() => setLabTab(tab)}
+            type="button"
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      <div className="tuning-grid" hidden={labTab !== 'scene'}>
         <label className="tuning-field">
           <span>HDRI preset</span>
           <select value={tuning.environment} onChange={(event) => updateTuning('environment', event.target.value)}>
@@ -913,6 +935,9 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           onChange={(value) => updateTuning('metalRoughness', value)}
           value={tuning.metalRoughness}
         />
+      </div>
+
+      <div className="tuning-grid" hidden={labTab !== 'motion'}>
         <TuningSlider
           label="Camera smooth"
           max={8}
@@ -1000,7 +1025,9 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           onChange={(value) => updateTuning('doorOpen', value)}
           value={tuning.doorOpen}
         />
+      </div>
 
+      <div className="tuning-grid" hidden={labTab !== 'render'}>
         <div className="tuning-section">
           <div className="tuning-section__header">
             <span>Render</span>
@@ -1042,6 +1069,57 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
             value={tuning.vignetteDarkness}
           />
         </div>
+      </div>
+
+      <div className="tuning-grid" hidden={labTab !== 'hall'}>
+        <div className="tuning-section">
+          <div className="tuning-section__header">
+            <span>Practicals</span>
+          </div>
+
+          <label className="tuning-field">
+            <span>Fixture style</span>
+            <select value={tuning.practicalStyle} onChange={(event) => updateTuning('practicalStyle', event.target.value)}>
+              {PRACTICAL_STYLE_OPTIONS.map((style) => (
+                <option key={style} value={style}>
+                  {style}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="tuning-field">
+            <span>Fixture color</span>
+            <input
+              type="color"
+              value={tuning.practicalColor}
+              onChange={(event) => updateTuning('practicalColor', event.target.value)}
+            />
+          </label>
+
+          <TuningSlider
+            label="Fixture power"
+            max={120}
+            min={0}
+            onChange={(value) => updateTuning('practicalIntensity', value)}
+            step={1}
+            value={tuning.practicalIntensity}
+          />
+          <TuningSlider
+            label="Beam angle"
+            max={1.1}
+            min={0.2}
+            onChange={(value) => updateTuning('practicalAngle', value)}
+            value={tuning.practicalAngle}
+          />
+          <TuningSlider
+            label="Mount height"
+            max={2.2}
+            min={1.2}
+            onChange={(value) => updateTuning('practicalHeight', value)}
+            step={0.01}
+            value={tuning.practicalHeight}
+          />
+        </div>
 
         <div className="tuning-section">
           <div className="tuning-section__header">
@@ -1065,7 +1143,9 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
             />
           </label>
         </div>
+      </div>
 
+      <div className="tuning-grid" hidden={labTab !== 'fx'}>
         <div className="tuning-section">
           <div className="tuning-section__header">
             <span>Mirror FX</span>
@@ -1294,7 +1374,7 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
         </div>
       </div>
 
-      <div className="camera-tools">
+      <div className="camera-tools" hidden={labTab !== 'camera'}>
         <label className="tuning-field">
           <span>Selected shot</span>
           <select value={shotName} onChange={(event) => setShotName(event.target.value)}>
@@ -1451,6 +1531,7 @@ export default function ElevatorExperience({ showTools = false }) {
           showTools={showTools}
           tuning={tuning}
         />
+        <HallPracticals tuning={tuning} />
         <ContactShadows position={[0, 0.02, 0]} opacity={tuning.contactShadow} scale={12} blur={2.6} far={5} />
         <HallEnvironment intensity={tuning.environmentIntensity} preset={tuning.environment} />
         <EffectComposer multisampling={4}>
