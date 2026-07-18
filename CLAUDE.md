@@ -25,6 +25,22 @@ Working agreements for this repo. Follow these exactly.
 - Worktrees live under `.claude/worktrees/` (kept out of status via
   `.git/info/exclude`).
 
+## Pull Requests (mandatory)
+
+Same convention as PageAura; sessions in either repo should produce
+indistinguishable PRs.
+
+- Every PR fills `.github/PULL_REQUEST_TEMPLATE.md` for real: Summary, Risk
+  map (tier plus agent stats), Review focus (file pointers and a time
+  estimate), Verification (evidence, not claims), Media.
+- Ed reviews on GitHub and merges; Claude never merges.
+- Anything with a visual surface gets before/after screenshots or a short
+  clip captured during verification: compact JPEGs or MP4s (about 2 MB per
+  PR), committed on the PR branch under `docs/pr-media/<topic>/`, embedded
+  with commit-SHA raw URLs. This repo is public, so raw links render inline.
+- Body voice matches the commit voice: plain prose and bullets, decisions in
+  domain language, no heading stacks beyond the template's sections.
+
 ## Verification
 
 There is no test suite. Before any PR:
