@@ -8,6 +8,9 @@ import { useEffect, useRef } from 'react'
 
 const WALL_FACE_X = 0.18
 
+// `position` and `target` are both in the parent fixture group's local
+// space; the target object is parented to the same group, so world-space
+// values here would be transformed twice (caught by Codex review).
 function AnchoredSpot({ angle = 0.62, color, decay = 2, distance = 7, intensity, penumbra = 0.85, position, target }) {
   const lightRef = useRef()
 
@@ -66,8 +69,8 @@ function CylinderSconce({ angle, color, height, intensity, z }) {
       </mesh>
       {/* Beams originate at the emissive caps and hug the wall, so each
           pool's apex touches the aperture that claims to produce it. */}
-      <AnchoredSpot angle={angle} color={color} intensity={intensity} position={[0.015, 0.17, 0]} target={[WALL_FACE_X, height + 1.7, z]} />
-      <AnchoredSpot angle={angle} color={color} intensity={intensity * 0.8} position={[0.015, -0.17, 0]} target={[WALL_FACE_X, 0.05, z]} />
+      <AnchoredSpot angle={angle} color={color} intensity={intensity} position={[0.015, 0.17, 0]} target={[WALL_FACE_X - x, 1.7, 0]} />
+      <AnchoredSpot angle={angle} color={color} intensity={intensity * 0.8} position={[0.015, -0.17, 0]} target={[WALL_FACE_X - x, 0.05 - height, 0]} />
     </group>
   )
 }
@@ -85,15 +88,15 @@ function BandSconce({ angle, color, height, intensity, z }) {
         <boxGeometry args={[0.05, 0.1, 0.14]} />
         <Aperture color={color} />
       </mesh>
-      <AnchoredSpot angle={angle} color={color} intensity={intensity} position={[0.03, 0.22, 0]} target={[WALL_FACE_X, height + 1.7, z]} />
-      <AnchoredSpot angle={angle} color={color} intensity={intensity * 0.8} position={[0.03, -0.22, 0]} target={[WALL_FACE_X, 0.05, z]} />
+      <AnchoredSpot angle={angle} color={color} intensity={intensity} position={[0.03, 0.22, 0]} target={[WALL_FACE_X - x, 1.7, 0]} />
+      <AnchoredSpot angle={angle} color={color} intensity={intensity * 0.8} position={[0.03, -0.22, 0]} target={[WALL_FACE_X - x, 0.05 - height, 0]} />
     </group>
   )
 }
 
-function PortalSlot({ color, intensity, z }) {
+function PortalSlot({ angle, color, height, intensity, z }) {
   const x = WALL_FACE_X + 0.02
-  const centerY = 2.05
+  const centerY = height + 0.4
 
   return (
     <group position={[x, centerY, z]}>
@@ -106,18 +109,18 @@ function PortalSlot({ color, intensity, z }) {
         <Aperture color={color} />
       </mesh>
       <AnchoredSpot
-        angle={0.5}
+        angle={angle}
         color={color}
         intensity={intensity * 0.7}
         position={[0.1, 0.9, 0]}
-        target={[WALL_FACE_X, centerY + 2.2, z]}
+        target={[WALL_FACE_X - x, 2.2, 0]}
       />
       <AnchoredSpot
-        angle={0.5}
+        angle={angle}
         color={color}
         intensity={intensity * 0.55}
         position={[0.1, -0.9, 0]}
-        target={[WALL_FACE_X, 0, z]}
+        target={[WALL_FACE_X - x, -centerY, 0]}
       />
     </group>
   )
@@ -135,8 +138,8 @@ export default function HallPracticals({ tuning }) {
   if (style === 'slots') {
     return (
       <group>
-        <PortalSlot color={color} intensity={intensity} z={1.95} />
-        <PortalSlot color={color} intensity={intensity} z={-1.95} />
+        <PortalSlot angle={angle} color={color} height={height} intensity={intensity} z={1.95} />
+        <PortalSlot angle={angle} color={color} height={height} intensity={intensity} z={-1.95} />
       </group>
     )
   }

@@ -885,8 +885,7 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
         ))}
       </div>
 
-      {labTab === 'scene' && (
-      <div className="tuning-grid">
+      <div className="tuning-grid" hidden={labTab !== 'scene'}>
         <label className="tuning-field">
           <span>HDRI preset</span>
           <select value={tuning.environment} onChange={(event) => updateTuning('environment', event.target.value)}>
@@ -937,10 +936,8 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           value={tuning.metalRoughness}
         />
       </div>
-      )}
 
-      {labTab === 'motion' && (
-      <div className="tuning-grid">
+      <div className="tuning-grid" hidden={labTab !== 'motion'}>
         <TuningSlider
           label="Camera smooth"
           max={8}
@@ -1029,10 +1026,8 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           value={tuning.doorOpen}
         />
       </div>
-      )}
 
-      {labTab === 'render' && (
-      <div className="tuning-grid">
+      <div className="tuning-grid" hidden={labTab !== 'render'}>
         <div className="tuning-section">
           <div className="tuning-section__header">
             <span>Render</span>
@@ -1075,10 +1070,8 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           />
         </div>
       </div>
-      )}
 
-      {labTab === 'hall' && (
-      <div className="tuning-grid">
+      <div className="tuning-grid" hidden={labTab !== 'hall'}>
         <div className="tuning-section">
           <div className="tuning-section__header">
             <span>Practicals</span>
@@ -1151,10 +1144,8 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           </label>
         </div>
       </div>
-      )}
 
-      {labTab === 'fx' && (
-      <div className="tuning-grid">
+      <div className="tuning-grid" hidden={labTab !== 'fx'}>
         <div className="tuning-section">
           <div className="tuning-section__header">
             <span>Mirror FX</span>
@@ -1382,10 +1373,8 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           />
         </div>
       </div>
-      )}
 
-      {labTab === 'camera' && (
-      <div className="camera-tools">
+      <div className="camera-tools" hidden={labTab !== 'camera'}>
         <label className="tuning-field">
           <span>Selected shot</span>
           <select value={shotName} onChange={(event) => setShotName(event.target.value)}>
@@ -1467,7 +1456,6 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           </button>
         </div>
       </div>
-      )}
 
       <div className="lighting-lab__actions">
         <button onClick={() => setTuning(mergeTuning())} type="button">
