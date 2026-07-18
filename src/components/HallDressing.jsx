@@ -17,26 +17,32 @@ const PLANTER_FINISHES = {
   white: { color: '#e6e0d6', metalness: 0.05, roughness: 0.42 },
 }
 
+// The terracotta-tinted angular vase is Ed's pick; plant_01's pot is
+// wider than the vase mouth, so each vase carries potted_plant_02's
+// foliage only (its canopy droops below its origin and spills over the
+// rim, hiding the mouth without soil or trunk geometry).
+const TERRACOTTA = { color: '#8a4d33', metalness: 0.05, roughness: 0.7 }
+
 const SET_DRESSING = [
-  {
-    url: '/models/props/potted_plant_01.glb',
-    position: [0.55, 0, 2.55],
-    rotation: [0, -0.6, 0],
-    scale: 1.15,
-  },
-  {
-    url: '/models/props/potted_plant_01.glb',
-    position: [0.55, 0, -2.55],
-    rotation: [0, 2.4, 0],
-    scale: 1.15,
-  },
+  { url: '/models/props/ceramic_vase_03.glb', position: [0.55, 0, 2.55], rotation: [0, 0, 0], scale: 2.4, tint: TERRACOTTA, soilCap: { radius: 0.046, y: 0.402 } },
   {
     url: '/models/props/potted_plant_02.glb',
-    position: [0.92, 0, 2.05],
+    position: [0.62, 0.66, 2.6],
     rotation: [0, 0.9, 0],
-    scale: 1,
+    scale: 1.2,
+    hideMaterials: ['potted_plant_02_pot'],
+  },
+  { url: '/models/props/ceramic_vase_03.glb', position: [0.55, 0, -2.55], rotation: [0, 0, 0], scale: 2.4, tint: TERRACOTTA, soilCap: { radius: 0.046, y: 0.402 } },
+  {
+    url: '/models/props/potted_plant_02.glb',
+    position: [0.62, 0.66, -2.5],
+    rotation: [0, 2.6, 0],
+    scale: 1.2,
+    hideMaterials: ['potted_plant_02_pot'],
   },
 ]
+
+
 
 
 
@@ -62,7 +68,7 @@ function CachePot({ finish, height, radiusBottom, radiusTop }) {
   )
 }
 
-function Prop({ planter, position, rotation, scale, url }) {
+function Prop({ hideMaterials, planter, position, rotation, scale, soilCap, tint, url }) {
   const { scene } = useGLTF(url, DRACO_PATH)
   // The same GLB appears on both sides of the portal; useGLTF caches one
   // scene object, so each Prop renders its own clone.
@@ -72,13 +78,30 @@ function Prop({ planter, position, rotation, scale, url }) {
     instance.traverse((object) => {
       object.castShadow = true
       object.receiveShadow = true
+
+      if (hideMaterials && object.isMesh && hideMaterials.includes(object.material?.name)) {
+        object.visible = false
+      }
+
+      if (tint && object.isMesh && object.material) {
+        object.material = object.material.clone()
+        object.material.color.set(tint.color)
+        if ('metalness' in object.material) object.material.metalness = tint.metalness ?? object.material.metalness
+        if ('roughness' in object.material) object.material.roughness = tint.roughness ?? object.material.roughness
+      }
     })
-  }, [instance])
+  }, [hideMaterials, instance, tint])
 
   return (
     <group position={position} rotation={rotation} scale={scale}>
       <primitive object={instance} />
       {planter && <CachePot {...planter} />}
+      {soilCap && (
+        <mesh position={[0, soilCap.y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[soilCap.radius, 24]} />
+          <meshStandardMaterial color="#17100a" roughness={1} />
+        </mesh>
+      )}
     </group>
   )
 }
