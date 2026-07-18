@@ -1479,7 +1479,10 @@ export default function ElevatorExperience({ showTools = false }) {
   }))
   const [cameraJumpRequest, setCameraJumpRequest] = useState(null)
   const [modalPhase, setModalPhase] = useState('closed')
-  const [tuning, setTuning] = useState(readStoredTuning)
+  // Tuning storage is a Lab-only concern: without it gated on showTools,
+  // every visitor pins the deploy-time defaults forever, and Lab preview
+  // state (manual door-open, camera mode) leaks into the real experience.
+  const [tuning, setTuning] = useState(() => (showTools ? readStoredTuning() : mergeTuning()))
 
   const openModal = useCallback(() => {
     setModalPhase((current) => (current === 'open' || current === 'opening' ? current : 'opening'))
@@ -1493,6 +1496,8 @@ export default function ElevatorExperience({ showTools = false }) {
   const handleModalClosed = useCallback(() => setModalPhase('closed'), [])
 
   useEffect(() => {
+    if (!showTools) return
+
     window.localStorage.setItem(
       TUNING_STORAGE_KEY,
       JSON.stringify({
@@ -1501,7 +1506,7 @@ export default function ElevatorExperience({ showTools = false }) {
         sequenceRunId: 0,
       }),
     )
-  }, [tuning])
+  }, [showTools, tuning])
 
   return (
     <div className="elevator-experience-shell">
