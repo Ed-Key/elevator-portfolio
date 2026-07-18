@@ -2,6 +2,8 @@ export const ENVIRONMENT_PRESETS = ['custom', 'studio', 'apartment', 'city', 'wa
 
 export const TONE_MAPPING_OPTIONS = ['agx', 'aces', 'neutral']
 
+export const PRACTICAL_STYLE_OPTIONS = ['cylinder', 'band', 'slots', 'off']
+
 export const MODAL_EASE_OPTIONS = ['power1.inOut', 'power2.inOut', 'power2.out', 'power3.out', 'power4.out', 'expo.out', 'sine.inOut', 'none']
 
 export const CAMERA_SHOTS = [
@@ -60,6 +62,10 @@ export const DEFAULT_TUNING = {
   materialLift: 0.18,
   metalPolish: 1,
   metalRoughness: 0.16,
+  practicalStyle: 'cylinder',
+  practicalIntensity: 40,
+  practicalColor: '#ff9d3f',
+  practicalHeight: 1.65,
   mirrorFxAngle: 135,
   mirrorFxColor: '#ffffff',
   mirrorFxDelay: 0,
@@ -117,4 +123,5 @@ export const ORIGINAL_TUNING = {
   materialLift: 0,
   metalPolish: 0,
   metalRoughness: 0,
+  practicalStyle: 'off',
 }
