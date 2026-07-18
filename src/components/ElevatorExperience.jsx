@@ -1,8 +1,11 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { ContactShadows, Environment, OrbitControls, PerspectiveCamera, useAnimations, useGLTF } from '@react-three/drei'
-import { Color, MathUtils, Vector3 } from 'three'
+import { ContactShadows, Environment, Lightformer, OrbitControls, PerspectiveCamera, useAnimations, useGLTF } from '@react-three/drei'
+import { Bloom, EffectComposer, N8AO, ToneMapping, Vignette } from '@react-three/postprocessing'
+import { ToneMappingMode } from 'postprocessing'
+import { Box3, Color, MathUtils, Vector3 } from 'three'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ElevatorCallButton from './ElevatorCallButton'
+import HallPracticals from './HallPracticals'
 import MirrorShimmerPlane from './MirrorShimmerPlane'
 
 // The modal loads through a plain dynamic import so gsap and the portfolio
@@ -58,7 +61,7 @@ function PortfolioModalLoader({ phase, ...modalProps }) {
 
   return null
 }
-import { CAMERA_SHOTS, DEFAULT_CAMERA_SHOTS, DEFAULT_TUNING, ENVIRONMENT_PRESETS, MODAL_EASE_OPTIONS, ORIGINAL_TUNING } from '../config/elevatorSetup'
+import { CAMERA_SHOTS, DEFAULT_CAMERA_SHOTS, DEFAULT_TUNING, ENVIRONMENT_PRESETS, MODAL_EASE_OPTIONS, ORIGINAL_TUNING, PRACTICAL_STYLE_OPTIONS, TONE_MAPPING_OPTIONS } from '../config/elevatorSetup'
 import './ElevatorExperience.css'
 
 const DOOR_OPEN_CLIP_TIME = 3
@@ -69,6 +72,39 @@ const CAMERA_SAMPLE_INTERVAL = 0.12
 const outsideShot = DEFAULT_CAMERA_SHOTS.outsideShot
 
 const METAL_MATERIALS = new Set(['Metal', 'DarkerMetal', 'Mirror'])
+
+const LAB_TABS = ['scene', 'render', 'hall', 'motion', 'fx', 'camera']
+
+const TONE_MAPPING_MODES = {
+  aces: ToneMappingMode.ACES_FILMIC,
+  agx: ToneMappingMode.AGX,
+  neutral: ToneMappingMode.NEUTRAL,
+}
+
+// A purpose-built reflection environment: the metal cab reflects whatever
+// surrounds it, and the stock outdoor HDRIs put a bright ground under a dark
+// room. Dark lower hemisphere, warm ceiling panels roughly where the hall
+// practicals will hang, and a faint cool strip behind the camera for door
+// rim glints.
+function HallEnvironment({ intensity, preset }) {
+  if (preset !== 'custom') {
+    return <Environment environmentIntensity={intensity} preset={preset} />
+  }
+
+  return (
+    <Environment environmentIntensity={intensity} frames={1} resolution={256}>
+      <color attach="background" args={['#050302']} />
+      {/* soft warm ceiling panels flanking the hall, sized large so their
+          mirror reflections blur into sheen instead of hard slashes */}
+      <Lightformer color="#ffa957" form="rect" intensity={2.6} position={[1.1, 5.2, 2.7]} rotation-x={Math.PI / 2} scale={[4.5, 3, 1]} />
+      <Lightformer color="#ffa957" form="rect" intensity={2.6} position={[1.1, 5.2, -2.7]} rotation-x={Math.PI / 2} scale={[4.5, 3, 1]} />
+      {/* tall warm wash behind the camera: this is what puts the bronze
+          gradient back on the door faces */}
+      <Lightformer color="#ffa14f" form="rect" intensity={4.2} position={[9, 4.5, 0]} rotation-y={-Math.PI / 2} scale={[9, 5, 1]} />
+      <Lightformer color="#bcd3ff" form="rect" intensity={0.8} position={[8, 1.4, 0]} rotation-y={-Math.PI / 2} scale={[6, 0.7, 1]} />
+    </Environment>
+  )
+}
 
 function easeBetween(time, start, end) {
   const raw = MathUtils.clamp((time - start) / (end - start), 0, 1)
@@ -193,7 +229,9 @@ function getExportableSetup(tuning) {
     cameraShots: getCameraShots(currentTuning),
     tuning: {
       ambient: currentTuning.ambient,
+      aoIntensity: currentTuning.aoIntensity,
       background: currentTuning.background,
+      bloomIntensity: currentTuning.bloomIntensity,
       cabin: currentTuning.cabin,
       cameraFov: currentTuning.cameraFov,
       cameraSmooth: currentTuning.cameraSmooth,
@@ -207,8 +245,10 @@ function getExportableSetup(tuning) {
       environment: currentTuning.environment,
       environmentIntensity: currentTuning.environmentIntensity,
       exposure: currentTuning.exposure,
+      floorColor: currentTuning.floorColor,
       key: currentTuning.key,
       materialLift: currentTuning.materialLift,
+      metalPolish: currentTuning.metalPolish,
       metalRoughness: currentTuning.metalRoughness,
       mirrorFxAngle: currentTuning.mirrorFxAngle,
       mirrorFxColor: currentTuning.mirrorFxColor,
@@ -238,9 +278,17 @@ function getExportableSetup(tuning) {
       modalRevealSeconds: currentTuning.modalRevealSeconds,
       openDelay: currentTuning.openDelay,
       openSeconds: currentTuning.openSeconds,
+      practicalAngle: currentTuning.practicalAngle,
+      practicalColor: currentTuning.practicalColor,
+      practicalHeight: currentTuning.practicalHeight,
+      practicalIntensity: currentTuning.practicalIntensity,
+      practicalStyle: currentTuning.practicalStyle,
       previewMode: currentTuning.previewMode,
       sequenceSpeed: currentTuning.sequenceSpeed,
+      toneMapping: currentTuning.toneMapping,
       turnSeconds: currentTuning.turnSeconds,
+      vignetteDarkness: currentTuning.vignetteDarkness,
+      wallColor: currentTuning.wallColor,
     },
   }
 }
@@ -348,6 +396,8 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
 
   useEffect(() => {
     const baselines = new Map()
+    const originalMaterials = new Map()
+    const clonedMaterials = []
 
     scene.traverse((object) => {
       object.castShadow = true
@@ -355,8 +405,20 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
 
       if (!object.isMesh || !object.material) return
 
+      originalMaterials.set(object, object.material)
+
       const cloneMaterial = (material) => {
         const cloned = material.clone()
+
+        clonedMaterials.push(cloned)
+
+        // The GLB uses one 'Wall' material for both the hall wall and the
+        // floor; tell them apart by shape so each can take its own tint.
+        if (cloned.name === 'Wall') {
+          const bounds = new Box3().setFromObject(object)
+
+          cloned.userData.hallRole = bounds.max.y - bounds.min.y < 0.5 ? 'floor' : 'wall'
+        }
 
         baselines.set(cloned.uuid, {
           color: cloned.color?.clone(),
@@ -372,6 +434,18 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
     })
 
     materialBaselinesRef.current = baselines
+
+    // useGLTF caches the scene, so a remount (Strict Mode's double-invoke,
+    // HMR) traverses the same objects again. Without restoring the pristine
+    // materials here, the second pass would clone the tinted clones and
+    // record the tint as "baseline", breaking the null-means-shipped-gray
+    // contract.
+    return () => {
+      originalMaterials.forEach((material, object) => {
+        object.material = material
+      })
+      clonedMaterials.forEach((material) => material.dispose())
+    }
   }, [scene])
 
   useEffect(() => {
@@ -411,6 +485,14 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
           material.color.copy(baseline.color)
         }
 
+        if (material.userData.hallRole === 'wall' && tuning.wallColor) {
+          material.color.set(tuning.wallColor)
+        }
+
+        if (material.userData.hallRole === 'floor' && tuning.floorColor) {
+          material.color.set(tuning.floorColor)
+        }
+
         if ('envMapIntensity' in material) {
           material.envMapIntensity = (baseline.envMapIntensity ?? 1) * tuning.environmentIntensity
         }
@@ -421,7 +503,12 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
           }
 
           if ('roughness' in material) {
-            material.roughness = MathUtils.lerp(baseline.roughness ?? 0.5, tuning.metalRoughness, tuning.materialLift)
+            // Polish is deliberately decoupled from materialLift: lift drags
+            // the metal color toward neutral gray, so riding roughness on it
+            // meant sharp reflections were only reachable by killing the
+            // bronze. Polish blends roughness toward the Metal rough target
+            // on its own axis.
+            material.roughness = MathUtils.lerp(baseline.roughness ?? 0.5, tuning.metalRoughness, tuning.metalPolish ?? tuning.materialLift)
           }
 
           if ('metalness' in material && typeof baseline.metalness === 'number') {
@@ -429,10 +516,17 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
           }
         }
 
+        // The mirror near roughness 0 reflects the environment panels as
+        // hard slashes; a floor blurs them into a sheen that matches the
+        // shimmer motif instead of reading as a glitch.
+        if (material.name === 'Mirror' && 'roughness' in material) {
+          material.roughness = Math.max(material.roughness, 0.42)
+        }
+
         material.needsUpdate = true
       })
     })
-  }, [scene, tuning.environmentIntensity, tuning.materialLift, tuning.metalRoughness])
+  }, [scene, tuning.environmentIntensity, tuning.floorColor, tuning.materialLift, tuning.metalPolish, tuning.metalRoughness, tuning.wallColor])
 
   useFrame((_, delta) => {
     const camera = cameraRef.current
@@ -599,6 +693,7 @@ function ShotOffsetInput({ axis, label, onChange }) {
 function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, setCameraJumpRequest, setTuning, tuning }) {
   const [collapsed, setCollapsed] = useState(false)
   const [copyStatus, setCopyStatus] = useState('')
+  const [labTab, setLabTab] = useState('scene')
   const [jumpStatus, setJumpStatus] = useState('')
   const [saveStatus, setSaveStatus] = useState('')
   const [shotName, setShotName] = useState('outsideShot')
@@ -777,7 +872,20 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
         </button>
       </div>
 
-      <div className="tuning-grid">
+      <div className="lighting-lab__tabs" role="tablist">
+        {LAB_TABS.map((tab) => (
+          <button
+            key={tab}
+            className={labTab === tab ? 'is-active' : ''}
+            onClick={() => setLabTab(tab)}
+            type="button"
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      <div className="tuning-grid" hidden={labTab !== 'scene'}>
         <label className="tuning-field">
           <span>HDRI preset</span>
           <select value={tuning.environment} onChange={(event) => updateTuning('environment', event.target.value)}>
@@ -814,12 +922,22 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           value={tuning.materialLift}
         />
         <TuningSlider
+          label="Metal polish"
+          max={1}
+          min={0}
+          onChange={(value) => updateTuning('metalPolish', value)}
+          value={tuning.metalPolish}
+        />
+        <TuningSlider
           label="Metal rough"
           max={1}
           min={0}
           onChange={(value) => updateTuning('metalRoughness', value)}
           value={tuning.metalRoughness}
         />
+      </div>
+
+      <div className="tuning-grid" hidden={labTab !== 'motion'}>
         <TuningSlider
           label="Camera smooth"
           max={8}
@@ -907,7 +1025,127 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           onChange={(value) => updateTuning('doorOpen', value)}
           value={tuning.doorOpen}
         />
+      </div>
 
+      <div className="tuning-grid" hidden={labTab !== 'render'}>
+        <div className="tuning-section">
+          <div className="tuning-section__header">
+            <span>Render</span>
+          </div>
+
+          <label className="tuning-field">
+            <span>Tone mapping</span>
+            <select value={tuning.toneMapping} onChange={(event) => updateTuning('toneMapping', event.target.value)}>
+              {TONE_MAPPING_OPTIONS.map((mode) => (
+                <option key={mode} value={mode}>
+                  {mode}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <TuningSlider
+            label="AO intensity"
+            max={6}
+            min={0}
+            onChange={(value) => updateTuning('aoIntensity', value)}
+            step={0.1}
+            value={tuning.aoIntensity}
+          />
+          <TuningSlider
+            label="Bloom"
+            max={2}
+            min={0}
+            onChange={(value) => updateTuning('bloomIntensity', value)}
+            step={0.05}
+            value={tuning.bloomIntensity}
+          />
+          <TuningSlider
+            label="Vignette"
+            max={1}
+            min={0}
+            onChange={(value) => updateTuning('vignetteDarkness', value)}
+            step={0.05}
+            value={tuning.vignetteDarkness}
+          />
+        </div>
+      </div>
+
+      <div className="tuning-grid" hidden={labTab !== 'hall'}>
+        <div className="tuning-section">
+          <div className="tuning-section__header">
+            <span>Practicals</span>
+          </div>
+
+          <label className="tuning-field">
+            <span>Fixture style</span>
+            <select value={tuning.practicalStyle} onChange={(event) => updateTuning('practicalStyle', event.target.value)}>
+              {PRACTICAL_STYLE_OPTIONS.map((style) => (
+                <option key={style} value={style}>
+                  {style}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="tuning-field">
+            <span>Fixture color</span>
+            <input
+              type="color"
+              value={tuning.practicalColor}
+              onChange={(event) => updateTuning('practicalColor', event.target.value)}
+            />
+          </label>
+
+          <TuningSlider
+            label="Fixture power"
+            max={120}
+            min={0}
+            onChange={(value) => updateTuning('practicalIntensity', value)}
+            step={1}
+            value={tuning.practicalIntensity}
+          />
+          <TuningSlider
+            label="Beam angle"
+            max={1.1}
+            min={0.2}
+            onChange={(value) => updateTuning('practicalAngle', value)}
+            value={tuning.practicalAngle}
+          />
+          <TuningSlider
+            label="Mount height"
+            max={2.2}
+            min={1.2}
+            onChange={(value) => updateTuning('practicalHeight', value)}
+            step={0.01}
+            value={tuning.practicalHeight}
+          />
+        </div>
+
+        <div className="tuning-section">
+          <div className="tuning-section__header">
+            <span>Hall</span>
+          </div>
+
+          <label className="tuning-field">
+            <span>Wall color</span>
+            <input
+              type="color"
+              value={tuning.wallColor ?? '#e6e6e6'}
+              onChange={(event) => updateTuning('wallColor', event.target.value)}
+            />
+          </label>
+          <label className="tuning-field">
+            <span>Floor color</span>
+            <input
+              type="color"
+              value={tuning.floorColor ?? '#e6e6e6'}
+              onChange={(event) => updateTuning('floorColor', event.target.value)}
+            />
+          </label>
+        </div>
+      </div>
+
+      <div className="tuning-grid" hidden={labTab !== 'fx'}>
         <div className="tuning-section">
           <div className="tuning-section__header">
             <span>Mirror FX</span>
@@ -1136,7 +1374,7 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
         </div>
       </div>
 
-      <div className="camera-tools">
+      <div className="camera-tools" hidden={labTab !== 'camera'}>
         <label className="tuning-field">
           <span>Selected shot</span>
           <select value={shotName} onChange={(event) => setShotName(event.target.value)}>
@@ -1271,7 +1509,19 @@ export default function ElevatorExperience({ showTools = false }) {
         <RendererTuning exposure={tuning.exposure} />
         <color attach="background" args={[tuning.background]} />
         <ambientLight intensity={tuning.ambient} />
-        <directionalLight position={[6, 7, 5]} intensity={tuning.key} castShadow />
+        <directionalLight
+          position={[6, 7, 5]}
+          intensity={tuning.key}
+          castShadow
+          shadow-mapSize={[2048, 2048]}
+          shadow-normalBias={0.02}
+          shadow-camera-left={-6}
+          shadow-camera-right={6}
+          shadow-camera-top={6}
+          shadow-camera-bottom={-2}
+          shadow-camera-near={1}
+          shadow-camera-far={25}
+        />
         <pointLight position={[3, 2.7, -2.6]} intensity={tuning.cyan} color="#7dd3fc" />
         <pointLight position={[-1.6, 2.2, -1.1]} intensity={tuning.cabin} color="#f8fafc" />
         <ElevatorAssetSequence
@@ -1281,8 +1531,15 @@ export default function ElevatorExperience({ showTools = false }) {
           showTools={showTools}
           tuning={tuning}
         />
+        <HallPracticals tuning={tuning} />
         <ContactShadows position={[0, 0.02, 0]} opacity={tuning.contactShadow} scale={12} blur={2.6} far={5} />
-        <Environment environmentIntensity={tuning.environmentIntensity} preset={tuning.environment} />
+        <HallEnvironment intensity={tuning.environmentIntensity} preset={tuning.environment} />
+        <EffectComposer multisampling={4}>
+          <N8AO aoRadius={0.4} distanceFalloff={0.75} halfRes intensity={tuning.aoIntensity} />
+          <Bloom intensity={tuning.bloomIntensity} luminanceThreshold={1} mipmapBlur radius={0.7} />
+          <Vignette darkness={tuning.vignetteDarkness} eskil={false} offset={0.15} />
+          <ToneMapping mode={TONE_MAPPING_MODES[tuning.toneMapping] ?? ToneMappingMode.AGX} />
+        </EffectComposer>
       </Canvas>
       <PortfolioModalLoader
         onClosed={handleModalClosed}

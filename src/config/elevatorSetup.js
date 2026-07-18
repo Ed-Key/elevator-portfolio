@@ -1,4 +1,8 @@
-export const ENVIRONMENT_PRESETS = ['studio', 'apartment', 'city', 'warehouse', 'lobby', 'park', 'forest', 'sunset', 'dawn', 'night']
+export const ENVIRONMENT_PRESETS = ['custom', 'studio', 'apartment', 'city', 'warehouse', 'lobby', 'park', 'forest', 'sunset', 'dawn', 'night']
+
+export const TONE_MAPPING_OPTIONS = ['agx', 'aces', 'neutral']
+
+export const PRACTICAL_STYLE_OPTIONS = ['cylinder', 'band', 'slots', 'off']
 
 export const MODAL_EASE_OPTIONS = ['power1.inOut', 'power2.inOut', 'power2.out', 'power3.out', 'power4.out', 'expo.out', 'sine.inOut', 'none']
 
@@ -35,12 +39,18 @@ export const DEFAULT_CAMERA_SHOTS = {
 export const DEFAULT_TUNING = {
   previewMode: 'sequence',
   cameraShots: DEFAULT_CAMERA_SHOTS,
-  environment: 'night',
+  environment: 'custom',
   background: '#000000',
+  wallColor: '#2e261d',
+  floorColor: '#191410',
+  toneMapping: 'agx',
+  aoIntensity: 5.3,
+  bloomIntensity: 0.25,
+  vignetteDarkness: 1,
   exposure: 1.79,
   environmentIntensity: 1.23,
   ambient: 0.8,
-  key: 0.39,
+  key: 0.28,
   cyan: 0,
   cabin: 0,
   contactShadow: 0.32,
@@ -49,8 +59,14 @@ export const DEFAULT_TUNING = {
   cameraSmooth: 4.2,
   cameraFov: 52,
   doorOpen: 0,
-  materialLift: 0.12,
-  metalRoughness: 1,
+  materialLift: 0.18,
+  metalPolish: 1,
+  metalRoughness: 0.16,
+  practicalStyle: 'cylinder',
+  practicalAngle: 0.55,
+  practicalIntensity: 40,
+  practicalColor: '#ff9d3f',
+  practicalHeight: 1.65,
   mirrorFxAngle: 135,
   mirrorFxColor: '#ffffff',
   mirrorFxDelay: 0,
@@ -91,6 +107,12 @@ export const ORIGINAL_TUNING = {
   ...DEFAULT_TUNING,
   environment: 'studio',
   background: '#11141b',
+  wallColor: null,
+  floorColor: null,
+  toneMapping: 'aces',
+  aoIntensity: 0,
+  bloomIntensity: 0,
+  vignetteDarkness: 0,
   exposure: 1,
   environmentIntensity: 1,
   ambient: 0.62,
@@ -100,5 +122,7 @@ export const ORIGINAL_TUNING = {
   cameraFov: 44,
   doorOpen: 0,
   materialLift: 0,
+  metalPolish: 0,
   metalRoughness: 0,
+  practicalStyle: 'off',
 }
