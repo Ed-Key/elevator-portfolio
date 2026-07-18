@@ -56,11 +56,16 @@ export const PROJECTS = [
     tech: [TECH.react, TECH.threejs, TECH.supabase, TECH.claude],
     links: [{ label: 'Demo', url: 'https://pageaura.app/' }],
     media: {
-      video: null,
+      video: '/media/projects/pageaura-demo.mp4',
       poster: '/media/projects/pageaura-shelf.png',
       logo: '/media/projects/pageaura-book.svg',
       model: null,
       stageMark: 'pageauraSparkles',
+      backdrop: '/media/projects/pageaura-teaser.mp4',
+      prop: [
+        '/media/projects/pageaura-cover-sorcerers-stone.jpg',
+        '/media/projects/pageaura-cover-homegoing.jpg',
+      ],
     },
   },
   {
