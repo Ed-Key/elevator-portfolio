@@ -17,7 +17,7 @@ export default defineConfig({
           groups: [
             { name: 'react', test: /node_modules[\\/](?:react|react-dom|scheduler)[\\/]/ },
             { name: 'three', test: /node_modules[\\/]three[\\/]/ },
-            { name: 'r3f', test: /node_modules[\\/](?:three-stdlib|@react-three|@monogrid)[\\/]/ },
+            { name: 'r3f', test: /node_modules[\\/](?:three-stdlib|@react-three|@monogrid|postprocessing|n8ao)[\\/]/ },
           ],
         },
       },
