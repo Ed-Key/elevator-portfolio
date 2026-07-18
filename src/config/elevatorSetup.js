@@ -67,7 +67,7 @@ export const DEFAULT_TUNING = {
   practicalAngle: 0.55,
   practicalIntensity: 40,
   practicalColor: '#ff9d3f',
-  practicalHeight: 1.65,
+  practicalHeight: 1.82,
   mirrorFxAngle: 135,
   mirrorFxColor: '#ffffff',
   mirrorFxDelay: 0,
