@@ -24,22 +24,20 @@ const PLANTER_FINISHES = {
 const TERRACOTTA = { color: '#8a4d33', metalness: 0.05, roughness: 0.7 }
 
 const SET_DRESSING = [
-  { url: '/models/props/ceramic_vase_03.glb', position: [0.55, 0, 2.55], rotation: [0, 0, 0], scale: 2.4, tint: TERRACOTTA, soilCap: { radius: 0.046, y: 0.402 } },
+  { url: '/models/props/ceramic_vase_03.glb', position: [0.55, 0, 2.95], rotation: [0, 0, 0], scale: 2.4, tint: TERRACOTTA, soilCap: { radius: 0.046, y: 0.402 } },
   {
-    url: '/models/props/potted_plant_02.glb',
-    position: [0.6, 0, 2.52],
-    rotation: [0, 0.9, 0],
+    url: '/models/props/pachira_aquatica_01.glb',
+    position: [0.55, 0, 2.95],
+    rotation: [0, Math.PI - 0.25, 0],
     scale: 1,
-    hideMaterials: ['potted_plant_02_pot'],
     kind: 'foliage',
   },
-  { url: '/models/props/ceramic_vase_03.glb', position: [0.55, 0, -2.55], rotation: [0, 0, 0], scale: 2.4, tint: TERRACOTTA, soilCap: { radius: 0.046, y: 0.402 } },
+  { url: '/models/props/ceramic_vase_03.glb', position: [0.55, 0, -2.95], rotation: [0, 0, 0], scale: 2.4, tint: TERRACOTTA, soilCap: { radius: 0.046, y: 0.402 } },
   {
-    url: '/models/props/potted_plant_02.glb',
-    position: [0.6, 0, -2.52],
-    rotation: [0, 2.24, 0],
+    url: '/models/props/pachira_aquatica_01.glb',
+    position: [0.55, 0, -2.95],
+    rotation: [0, Math.PI + 0.2, 0],
     scale: 1,
-    hideMaterials: ['potted_plant_02_pot'],
     kind: 'foliage',
   },
 ]
