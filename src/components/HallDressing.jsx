@@ -17,26 +17,30 @@ const PLANTER_FINISHES = {
   white: { color: '#e6e0d6', metalness: 0.05, roughness: 0.42 },
 }
 
-// The terracotta-tinted angular vase is Ed's pick; plant_01's pot is
-// wider than the vase mouth, so each vase carries potted_plant_02's
-// foliage only (its canopy droops below its origin and spills over the
-// rim, hiding the mouth without soil or trunk geometry).
-const TERRACOTTA = { color: '#8a4d33', metalness: 0.05, roughness: 0.7 }
+// Ed's chosen composition: the scanned terracotta plants themselves,
+// mirrored tall plant each side of the portal with a bowl companion on
+// the left. The vase/cachepot machinery below (tint, hideMaterials,
+// planter, soilCap) stays for future props.
 
 const SET_DRESSING = [
-  { url: '/models/props/ceramic_vase_03.glb', position: [0.55, 0, 2.95], rotation: [0, 0, 0], scale: 2.4, tint: TERRACOTTA, soilCap: { radius: 0.046, y: 0.402 } },
   {
-    url: '/models/props/pachira_aquatica_01.glb',
-    position: [0.55, 0, 2.95],
-    rotation: [0, Math.PI - 0.25, 0],
-    scale: 1,
+    url: '/models/props/potted_plant_01.glb',
+    position: [0.55, 0, 2.55],
+    rotation: [0, -0.6, 0],
+    scale: 1.15,
     kind: 'foliage',
   },
-  { url: '/models/props/ceramic_vase_03.glb', position: [0.55, 0, -2.95], rotation: [0, 0, 0], scale: 2.4, tint: TERRACOTTA, soilCap: { radius: 0.046, y: 0.402 } },
   {
-    url: '/models/props/pachira_aquatica_01.glb',
-    position: [0.55, 0, -2.95],
-    rotation: [0, Math.PI + 0.2, 0],
+    url: '/models/props/potted_plant_01.glb',
+    position: [0.55, 0, -2.55],
+    rotation: [0, 2.4, 0],
+    scale: 1.15,
+    kind: 'foliage',
+  },
+  {
+    url: '/models/props/potted_plant_02.glb',
+    position: [0.92, 0, 2.05],
+    rotation: [0, 0.9, 0],
     scale: 1,
     kind: 'foliage',
   },
@@ -135,12 +139,12 @@ export default function HallDressing({ tuning, visible }) {
         const resolved = prop.kind === 'foliage'
           ? {
               ...prop,
-              position: [prop.position[0], tuning.dressingFoliageHeight ?? 0.62, prop.position[2]],
+              position: [prop.position[0], prop.position[1] + (tuning.dressingFoliageHeight ?? 0), prop.position[2]],
               rotation: [0, prop.rotation[1] + (tuning.dressingFoliageTurn ?? 0), 0],
               scale: [
-                tuning.dressingFoliageScale ?? 1.45,
-                (tuning.dressingFoliageScale ?? 1.45) * (tuning.dressingFoliageStretch ?? 1),
-                tuning.dressingFoliageScale ?? 1.45,
+                prop.scale * (tuning.dressingFoliageScale ?? 1),
+                prop.scale * (tuning.dressingFoliageScale ?? 1) * (tuning.dressingFoliageStretch ?? 1),
+                prop.scale * (tuning.dressingFoliageScale ?? 1),
               ],
             }
           : prop

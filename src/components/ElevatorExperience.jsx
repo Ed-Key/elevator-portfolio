@@ -1226,8 +1226,8 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
 
           <TuningSlider
             label="Foliage height"
-            max={1.4}
-            min={0.2}
+            max={0.8}
+            min={-0.3}
             onChange={(value) => updateTuning('dressingFoliageHeight', value)}
             value={tuning.dressingFoliageHeight}
           />
