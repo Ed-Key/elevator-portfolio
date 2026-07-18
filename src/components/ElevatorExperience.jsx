@@ -1,6 +1,6 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { ContactShadows, Environment, OrbitControls, PerspectiveCamera, useAnimations, useGLTF } from '@react-three/drei'
-import { Color, MathUtils, Vector3 } from 'three'
+import { Box3, Color, MathUtils, Vector3 } from 'three'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ElevatorCallButton from './ElevatorCallButton'
 import MirrorShimmerPlane from './MirrorShimmerPlane'
@@ -207,6 +207,7 @@ function getExportableSetup(tuning) {
       environment: currentTuning.environment,
       environmentIntensity: currentTuning.environmentIntensity,
       exposure: currentTuning.exposure,
+      floorColor: currentTuning.floorColor,
       key: currentTuning.key,
       materialLift: currentTuning.materialLift,
       metalRoughness: currentTuning.metalRoughness,
@@ -241,6 +242,7 @@ function getExportableSetup(tuning) {
       previewMode: currentTuning.previewMode,
       sequenceSpeed: currentTuning.sequenceSpeed,
       turnSeconds: currentTuning.turnSeconds,
+      wallColor: currentTuning.wallColor,
     },
   }
 }
@@ -358,6 +360,14 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
       const cloneMaterial = (material) => {
         const cloned = material.clone()
 
+        // The GLB uses one 'Wall' material for both the hall wall and the
+        // floor; tell them apart by shape so each can take its own tint.
+        if (cloned.name === 'Wall') {
+          const bounds = new Box3().setFromObject(object)
+
+          cloned.userData.hallRole = bounds.max.y - bounds.min.y < 0.5 ? 'floor' : 'wall'
+        }
+
         baselines.set(cloned.uuid, {
           color: cloned.color?.clone(),
           envMapIntensity: cloned.envMapIntensity,
@@ -411,6 +421,14 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
           material.color.copy(baseline.color)
         }
 
+        if (material.userData.hallRole === 'wall' && tuning.wallColor) {
+          material.color.set(tuning.wallColor)
+        }
+
+        if (material.userData.hallRole === 'floor' && tuning.floorColor) {
+          material.color.set(tuning.floorColor)
+        }
+
         if ('envMapIntensity' in material) {
           material.envMapIntensity = (baseline.envMapIntensity ?? 1) * tuning.environmentIntensity
         }
@@ -432,7 +450,7 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
         material.needsUpdate = true
       })
     })
-  }, [scene, tuning.environmentIntensity, tuning.materialLift, tuning.metalRoughness])
+  }, [scene, tuning.environmentIntensity, tuning.floorColor, tuning.materialLift, tuning.metalRoughness, tuning.wallColor])
 
   useFrame((_, delta) => {
     const camera = cameraRef.current
@@ -907,6 +925,29 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           onChange={(value) => updateTuning('doorOpen', value)}
           value={tuning.doorOpen}
         />
+
+        <div className="tuning-section">
+          <div className="tuning-section__header">
+            <span>Hall</span>
+          </div>
+
+          <label className="tuning-field">
+            <span>Wall color</span>
+            <input
+              type="color"
+              value={tuning.wallColor ?? '#e6e6e6'}
+              onChange={(event) => updateTuning('wallColor', event.target.value)}
+            />
+          </label>
+          <label className="tuning-field">
+            <span>Floor color</span>
+            <input
+              type="color"
+              value={tuning.floorColor ?? '#e6e6e6'}
+              onChange={(event) => updateTuning('floorColor', event.target.value)}
+            />
+          </label>
+        </div>
 
         <div className="tuning-section">
           <div className="tuning-section__header">
