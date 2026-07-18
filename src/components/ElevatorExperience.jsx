@@ -97,7 +97,7 @@ function HallEnvironment({ intensity, preset }) {
       <Lightformer color="#ffa957" form="rect" intensity={2.6} position={[1.1, 5.2, -2.7]} rotation-x={Math.PI / 2} scale={[4.5, 3, 1]} />
       {/* tall warm wash behind the camera: this is what puts the bronze
           gradient back on the door faces */}
-      <Lightformer color="#ffb46b" form="rect" intensity={2.2} position={[9, 4.5, 0]} rotation-y={-Math.PI / 2} scale={[9, 5, 1]} />
+      <Lightformer color="#ffa14f" form="rect" intensity={4.2} position={[9, 4.5, 0]} rotation-y={-Math.PI / 2} scale={[9, 5, 1]} />
       <Lightformer color="#bcd3ff" form="rect" intensity={0.8} position={[8, 1.4, 0]} rotation-y={-Math.PI / 2} scale={[6, 0.7, 1]} />
     </Environment>
   )
