@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo } from 'react'
+import { Component, Suspense, useEffect, useMemo } from 'react'
 import { useGLTF } from '@react-three/drei'
 
 // Set dressing loads after the elevator is interactive: Suspense with a
@@ -83,16 +83,38 @@ function Prop({ planter, position, rotation, scale, url }) {
   )
 }
 
+// useGLTF rejections (a 404'd model or decoder) throw past Suspense, and
+// an unhandled throw inside the Canvas takes the whole elevator down, the
+// same failure shape the modal loader guards against. Decorative props
+// must never cost the core experience: each prop gets its own boundary so
+// one bad file silently disappears instead.
+class PropBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { failed: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children
+  }
+}
+
 export default function HallDressing({ visible }) {
   if (!visible) return null
 
   return (
-    <Suspense fallback={null}>
-      <group>
-        {SET_DRESSING.map((prop) => (
-          <Prop key={`${prop.url}@${prop.position.join(',')}`} {...prop} />
-        ))}
-      </group>
-    </Suspense>
+    <group>
+      {SET_DRESSING.map((prop) => (
+        <PropBoundary key={`${prop.url}@${prop.position.join(',')}`}>
+          <Suspense fallback={null}>
+            <Prop {...prop} />
+          </Suspense>
+        </PropBoundary>
+      ))}
+    </group>
   )
 }

@@ -248,6 +248,7 @@ function getExportableSetup(tuning) {
       environmentIntensity: currentTuning.environmentIntensity,
       exposure: currentTuning.exposure,
       floorColor: currentTuning.floorColor,
+      hallDressing: currentTuning.hallDressing,
       key: currentTuning.key,
       materialLift: currentTuning.materialLift,
       metalPolish: currentTuning.metalPolish,
@@ -341,7 +342,7 @@ function getMaterials(material) {
   return Array.isArray(material) ? material : [material]
 }
 
-function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCameraDraft, showTools, tuning }) {
+function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, onStageReady, setCameraDraft, showTools, tuning }) {
   const autoRevealFiredRef = useRef(false)
   const cameraRef = useRef()
   const currentLookAtRef = useRef(new Vector3(...outsideShot.lookAt))
@@ -350,6 +351,7 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
   const materialBaselinesRef = useRef(new Map())
   const orbitRef = useRef()
   const sampleElapsedRef = useRef(0)
+  const stageReadyFiredRef = useRef(false)
   const targetLookAtRef = useRef(new Vector3())
   const targetPositionRef = useRef(new Vector3())
   const { animations, scene } = useGLTF('/models/elevator.glb')
@@ -533,6 +535,14 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
   useFrame((_, delta) => {
     const camera = cameraRef.current
     if (!camera) return
+
+    // First rendered frame means the elevator GLB is decoded and on
+    // screen; only then is it safe to start fetching decorative props
+    // without competing with the critical path (Codex review of phase 4).
+    if (!stageReadyFiredRef.current) {
+      stageReadyFiredRef.current = true
+      onStageReady?.()
+    }
 
     if (tuning.previewMode === 'camera') {
       const clipTime = MathUtils.lerp(0, DOOR_OPEN_CLIP_TIME, tuning.doorOpen)
@@ -1481,6 +1491,7 @@ export default function ElevatorExperience({ showTools = false }) {
   }))
   const [cameraJumpRequest, setCameraJumpRequest] = useState(null)
   const [modalPhase, setModalPhase] = useState('closed')
+  const [stageReady, setStageReady] = useState(false)
   // Tuning storage is a Lab-only concern: without it gated on showTools,
   // every visitor pins the deploy-time defaults forever, and Lab preview
   // state (manual door-open, camera mode) leaks into the real experience.
@@ -1495,6 +1506,7 @@ export default function ElevatorExperience({ showTools = false }) {
   }, [])
 
   const handleModalOpened = useCallback(() => setModalPhase('open'), [])
+  const handleStageReady = useCallback(() => setStageReady(true), [])
   const handleModalClosed = useCallback(() => setModalPhase('closed'), [])
 
   useEffect(() => {
@@ -1534,12 +1546,13 @@ export default function ElevatorExperience({ showTools = false }) {
         <ElevatorAssetSequence
           cameraJumpRequest={cameraJumpRequest}
           onRequestModalOpen={openModal}
+          onStageReady={handleStageReady}
           setCameraDraft={setCameraDraft}
           showTools={showTools}
           tuning={tuning}
         />
         <HallPracticals tuning={tuning} />
-        <HallDressing visible={tuning.hallDressing !== false} />
+        <HallDressing visible={stageReady && tuning.hallDressing !== false} />
         <HallArchitecture visible={tuning.hallDressing !== false} />
         <ContactShadows position={[0, 0.02, 0]} opacity={tuning.contactShadow} scale={12} blur={2.6} far={5} />
         <HallEnvironment intensity={tuning.environmentIntensity} preset={tuning.environment} />
