@@ -65,6 +65,7 @@ export const DEFAULT_TUNING = {
   hallDressing: true,
   dressingFoliageHeight: 0.7,
   dressingFoliageScale: 1.5,
+  dressingFoliageStretch: 1,
   dressingFoliageTurn: 0,
   practicalStyle: 'cylinder',
   practicalAngle: 0.55,

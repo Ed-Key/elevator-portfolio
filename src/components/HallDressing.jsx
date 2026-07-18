@@ -137,7 +137,11 @@ export default function HallDressing({ tuning, visible }) {
               ...prop,
               position: [prop.position[0], tuning.dressingFoliageHeight ?? 0.62, prop.position[2]],
               rotation: [0, prop.rotation[1] + (tuning.dressingFoliageTurn ?? 0), 0],
-              scale: tuning.dressingFoliageScale ?? 1.45,
+              scale: [
+                tuning.dressingFoliageScale ?? 1.45,
+                (tuning.dressingFoliageScale ?? 1.45) * (tuning.dressingFoliageStretch ?? 1),
+                tuning.dressingFoliageScale ?? 1.45,
+              ],
             }
           : prop
 
