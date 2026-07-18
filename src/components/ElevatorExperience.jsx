@@ -5,6 +5,7 @@ import { ToneMappingMode } from 'postprocessing'
 import { Box3, Color, MathUtils, Vector3 } from 'three'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ElevatorCallButton from './ElevatorCallButton'
+import HallArchitecture from './HallArchitecture'
 import HallDressing from './HallDressing'
 import HallPracticals from './HallPracticals'
 import MirrorShimmerPlane from './MirrorShimmerPlane'
@@ -1539,6 +1540,7 @@ export default function ElevatorExperience({ showTools = false }) {
         />
         <HallPracticals tuning={tuning} />
         <HallDressing visible={tuning.hallDressing !== false} />
+        <HallArchitecture visible={tuning.hallDressing !== false} />
         <ContactShadows position={[0, 0.02, 0]} opacity={tuning.contactShadow} scale={12} blur={2.6} far={5} />
         <HallEnvironment intensity={tuning.environmentIntensity} preset={tuning.environment} />
         <EffectComposer multisampling={4}>
