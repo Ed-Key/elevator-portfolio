@@ -73,6 +73,13 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.lighting-lab__header.is-dragging {
+  cursor: grabbing;
 }
 
 .lighting-lab--collapsed {

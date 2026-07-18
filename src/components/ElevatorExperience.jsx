@@ -3,7 +3,7 @@ import { ContactShadows, Environment, Lightformer, OrbitControls, PerspectiveCam
 import { Bloom, EffectComposer, N8AO, ToneMapping, Vignette } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
 import { Box3, Color, MathUtils, Vector3 } from 'three'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import ElevatorCallButton from './ElevatorCallButton'
 import HallArchitecture from './HallArchitecture'
 import HallDressing from './HallDressing'
@@ -708,15 +708,86 @@ function ShotOffsetInput({ axis, label, onChange }) {
 function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, setCameraJumpRequest, setTuning, tuning }) {
   const [collapsed, setCollapsed] = useState(false)
   const [copyStatus, setCopyStatus] = useState('')
+  const [dragging, setDragging] = useState(false)
   const [labTab, setLabTab] = useState('scene')
+  const [labOffset, setLabOffset] = useState({ x: 0, y: 0 })
   const [jumpStatus, setJumpStatus] = useState('')
   const [saveStatus, setSaveStatus] = useState('')
   const [shotName, setShotName] = useState('outsideShot')
+  const dragStateRef = useRef(null)
+  const headerRef = useRef(null)
   const savedCameraShots = getCameraShots(tuning)
+
+  // Collapsing re-anchors the bottom-fixed panel, which can teleport a
+  // dragged header off screen; re-clamp the offset whenever the layout
+  // mode changes so the handle always stays reachable.
+  useLayoutEffect(() => {
+    const header = headerRef.current
+
+    if (!header) return
+
+    const bounds = header.getBoundingClientRect()
+    let dx = 0
+    let dy = 0
+
+    if (bounds.left < 0) dx = -bounds.left
+    else if (bounds.right > window.innerWidth) dx = window.innerWidth - bounds.right
+    if (bounds.top < 0) dy = -bounds.top
+    else if (bounds.bottom > window.innerHeight) dy = window.innerHeight - bounds.bottom
+
+    if (dx !== 0 || dy !== 0) {
+      setLabOffset((current) => ({ x: current.x + dx, y: current.y + dy }))
+    }
+  }, [collapsed])
   const selectedSavedShot = savedCameraShots[shotName]
   const cameraSnippet = formatCameraSnippet(shotName, cameraDraft)
   const fullSetupSnippet = formatFullSetupSnippet(tuning)
   const savedShotsSnippet = formatCameraShotsSnippet(savedCameraShots)
+
+  const startLabDrag = (event) => {
+    if (event.target.closest('button')) return
+
+    const headerBounds = event.currentTarget.getBoundingClientRect()
+
+    dragStateRef.current = {
+      headerBounds,
+      offset: labOffset,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+    setDragging(true)
+  }
+
+  const moveLab = (event) => {
+    const dragState = dragStateRef.current
+
+    if (!dragState || dragState.pointerId !== event.pointerId) return
+
+    const deltaX = MathUtils.clamp(
+      event.clientX - dragState.startX,
+      -dragState.headerBounds.left,
+      window.innerWidth - dragState.headerBounds.right,
+    )
+    const deltaY = MathUtils.clamp(
+      event.clientY - dragState.startY,
+      -dragState.headerBounds.top,
+      window.innerHeight - dragState.headerBounds.bottom,
+    )
+
+    setLabOffset({
+      x: dragState.offset.x + deltaX,
+      y: dragState.offset.y + deltaY,
+    })
+  }
+
+  const endLabDrag = (event) => {
+    if (dragStateRef.current?.pointerId !== event.pointerId) return
+
+    dragStateRef.current = null
+    setDragging(false)
+  }
 
   const updateTuning = (key, value) => {
     setTuning((current) => ({
@@ -845,8 +916,19 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
   }
 
   return (
-    <aside className={collapsed ? 'lighting-lab lighting-lab--collapsed' : 'lighting-lab'} data-preview-ui>
-      <div className="lighting-lab__header">
+    <aside
+      className={collapsed ? 'lighting-lab lighting-lab--collapsed' : 'lighting-lab'}
+      data-preview-ui
+      style={{ transform: `translate(${labOffset.x}px, ${labOffset.y}px)` }}
+    >
+      <div
+        ref={headerRef}
+        className={dragging ? 'lighting-lab__header is-dragging' : 'lighting-lab__header'}
+        onPointerCancel={endLabDrag}
+        onPointerDown={startLabDrag}
+        onPointerMove={moveLab}
+        onPointerUp={endLabDrag}
+      >
         <div>
           <p>Lighting Lab</p>
           <span>Elevator scene tools</span>
