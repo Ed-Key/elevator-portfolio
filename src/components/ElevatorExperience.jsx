@@ -247,6 +247,9 @@ function getExportableSetup(tuning) {
       environment: currentTuning.environment,
       environmentIntensity: currentTuning.environmentIntensity,
       exposure: currentTuning.exposure,
+      dressingFoliageHeight: currentTuning.dressingFoliageHeight,
+      dressingFoliageScale: currentTuning.dressingFoliageScale,
+      dressingFoliageTurn: currentTuning.dressingFoliageTurn,
       floorColor: currentTuning.floorColor,
       hallDressing: currentTuning.hallDressing,
       key: currentTuning.key,
@@ -1135,6 +1138,34 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
 
         <div className="tuning-section">
           <div className="tuning-section__header">
+            <span>Dressing</span>
+          </div>
+
+          <TuningSlider
+            label="Foliage height"
+            max={1.4}
+            min={0.2}
+            onChange={(value) => updateTuning('dressingFoliageHeight', value)}
+            value={tuning.dressingFoliageHeight}
+          />
+          <TuningSlider
+            label="Foliage size"
+            max={2.2}
+            min={0.8}
+            onChange={(value) => updateTuning('dressingFoliageScale', value)}
+            value={tuning.dressingFoliageScale}
+          />
+          <TuningSlider
+            label="Foliage turn"
+            max={3.14}
+            min={-3.14}
+            onChange={(value) => updateTuning('dressingFoliageTurn', value)}
+            value={tuning.dressingFoliageTurn}
+          />
+        </div>
+
+        <div className="tuning-section">
+          <div className="tuning-section__header">
             <span>Hall</span>
           </div>
 
@@ -1552,7 +1583,7 @@ export default function ElevatorExperience({ showTools = false }) {
           tuning={tuning}
         />
         <HallPracticals tuning={tuning} />
-        <HallDressing visible={stageReady && tuning.hallDressing !== false} />
+        <HallDressing tuning={tuning} visible={stageReady && tuning.hallDressing !== false} />
         <HallArchitecture visible={tuning.hallDressing !== false} />
         <ContactShadows position={[0, 0.02, 0]} opacity={tuning.contactShadow} scale={12} blur={2.6} far={5} />
         <HallEnvironment intensity={tuning.environmentIntensity} preset={tuning.environment} />

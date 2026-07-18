@@ -27,18 +27,20 @@ const SET_DRESSING = [
   { url: '/models/props/ceramic_vase_03.glb', position: [0.55, 0, 2.55], rotation: [0, 0, 0], scale: 2.4, tint: TERRACOTTA, soilCap: { radius: 0.046, y: 0.402 } },
   {
     url: '/models/props/potted_plant_02.glb',
-    position: [0.6, 0.42, 2.52],
+    position: [0.6, 0, 2.52],
     rotation: [0, 0.9, 0],
-    scale: 1.45,
+    scale: 1,
     hideMaterials: ['potted_plant_02_pot'],
+    kind: 'foliage',
   },
   { url: '/models/props/ceramic_vase_03.glb', position: [0.55, 0, -2.55], rotation: [0, 0, 0], scale: 2.4, tint: TERRACOTTA, soilCap: { radius: 0.046, y: 0.402 } },
   {
     url: '/models/props/potted_plant_02.glb',
-    position: [0.6, 0.42, -2.52],
+    position: [0.6, 0, -2.52],
     rotation: [0, 2.24, 0],
-    scale: 1.45,
+    scale: 1,
     hideMaterials: ['potted_plant_02_pot'],
+    kind: 'foliage',
   },
 ]
 
@@ -126,18 +128,29 @@ class PropBoundary extends Component {
   }
 }
 
-export default function HallDressing({ visible }) {
+export default function HallDressing({ tuning, visible }) {
   if (!visible) return null
 
   return (
     <group>
-      {SET_DRESSING.map((prop) => (
-        <PropBoundary key={`${prop.url}@${prop.position.join(',')}`}>
-          <Suspense fallback={null}>
-            <Prop {...prop} />
-          </Suspense>
-        </PropBoundary>
-      ))}
+      {SET_DRESSING.map((prop) => {
+        const resolved = prop.kind === 'foliage'
+          ? {
+              ...prop,
+              position: [prop.position[0], tuning.dressingFoliageHeight ?? 0.62, prop.position[2]],
+              rotation: [0, prop.rotation[1] + (tuning.dressingFoliageTurn ?? 0), 0],
+              scale: tuning.dressingFoliageScale ?? 1.45,
+            }
+          : prop
+
+        return (
+          <PropBoundary key={`${prop.url}@${prop.position.join(',')}`}>
+            <Suspense fallback={null}>
+              <Prop {...resolved} />
+            </Suspense>
+          </PropBoundary>
+        )
+      })}
     </group>
   )
 }

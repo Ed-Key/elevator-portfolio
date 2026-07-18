@@ -374,3 +374,9 @@
   color: #0f172a;
   background: #e2e8f0;
 }
+
+/* The tab panels' own display rules (grid/flex) would otherwise defeat
+   the hidden attribute, leaving every tab's content stacked. */
+.lighting-lab [hidden] {
+  display: none !important;
+}
