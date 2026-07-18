@@ -23,23 +23,22 @@ const SET_DRESSING = [
     position: [0.55, 0, 2.55],
     rotation: [0, -0.6, 0],
     scale: 1.15,
-    planter: { finish: 'white', radiusTop: 0.25, radiusBottom: 0.19, height: 0.66 },
   },
   {
     url: '/models/props/potted_plant_01.glb',
     position: [0.55, 0, -2.55],
     rotation: [0, 2.4, 0],
     scale: 1.15,
-    planter: { finish: 'white', radiusTop: 0.25, radiusBottom: 0.19, height: 0.66 },
   },
   {
     url: '/models/props/potted_plant_02.glb',
     position: [0.92, 0, 2.05],
     rotation: [0, 0.9, 0],
     scale: 1,
-    planter: { finish: 'white', radiusTop: 0.28, radiusBottom: 0.24, height: 0.48 },
   },
 ]
+
+
 
 function CachePot({ finish, height, radiusBottom, radiusTop }) {
   const material = PLANTER_FINISHES[finish]
