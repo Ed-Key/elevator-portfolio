@@ -43,7 +43,7 @@ function Aperture({ color }) {
   return <meshStandardMaterial color="#000000" emissive={color} emissiveIntensity={3.2} toneMapped={false} />
 }
 
-function CylinderSconce({ color, height, intensity, z }) {
+function CylinderSconce({ angle, color, height, intensity, z }) {
   const x = WALL_FACE_X + 0.08
 
   return (
@@ -64,13 +64,15 @@ function CylinderSconce({ color, height, intensity, z }) {
         <cylinderGeometry args={[0.02, 0.02, 0.06, 12]} />
         <meshStandardMaterial color="#4a3a2a" metalness={0.85} roughness={0.35} />
       </mesh>
-      <AnchoredSpot color={color} intensity={intensity} position={[0.06, 0.18, 0]} target={[WALL_FACE_X, height + 2.4, z]} />
-      <AnchoredSpot color={color} intensity={intensity * 0.8} position={[0.06, -0.18, 0]} target={[WALL_FACE_X, 0, z]} />
+      {/* Beams originate at the emissive caps and hug the wall, so each
+          pool's apex touches the aperture that claims to produce it. */}
+      <AnchoredSpot angle={angle} color={color} intensity={intensity} position={[0.015, 0.17, 0]} target={[WALL_FACE_X, height + 1.7, z]} />
+      <AnchoredSpot angle={angle} color={color} intensity={intensity * 0.8} position={[0.015, -0.17, 0]} target={[WALL_FACE_X, 0.05, z]} />
     </group>
   )
 }
 
-function BandSconce({ color, height, intensity, z }) {
+function BandSconce({ angle, color, height, intensity, z }) {
   const x = WALL_FACE_X + 0.035
 
   return (
@@ -83,8 +85,8 @@ function BandSconce({ color, height, intensity, z }) {
         <boxGeometry args={[0.05, 0.1, 0.14]} />
         <Aperture color={color} />
       </mesh>
-      <AnchoredSpot color={color} intensity={intensity} position={[0.06, 0.24, 0]} target={[WALL_FACE_X, height + 2.4, z]} />
-      <AnchoredSpot color={color} intensity={intensity * 0.8} position={[0.06, -0.24, 0]} target={[WALL_FACE_X, 0, z]} />
+      <AnchoredSpot angle={angle} color={color} intensity={intensity} position={[0.03, 0.22, 0]} target={[WALL_FACE_X, height + 1.7, z]} />
+      <AnchoredSpot angle={angle} color={color} intensity={intensity * 0.8} position={[0.03, -0.22, 0]} target={[WALL_FACE_X, 0.05, z]} />
     </group>
   )
 }
@@ -122,6 +124,7 @@ function PortalSlot({ color, intensity, z }) {
 }
 
 export default function HallPracticals({ tuning }) {
+  const angle = tuning.practicalAngle
   const color = tuning.practicalColor
   const height = tuning.practicalHeight
   const intensity = tuning.practicalIntensity
@@ -142,8 +145,8 @@ export default function HallPracticals({ tuning }) {
 
   return (
     <group>
-      <Sconce color={color} height={height} intensity={intensity} z={2.45} />
-      <Sconce color={color} height={height} intensity={intensity} z={-2.45} />
+      <Sconce angle={angle} color={color} height={height} intensity={intensity} z={2.45} />
+      <Sconce angle={angle} color={color} height={height} intensity={intensity} z={-2.45} />
     </group>
   )
 }

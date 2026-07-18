@@ -73,6 +73,8 @@ const outsideShot = DEFAULT_CAMERA_SHOTS.outsideShot
 
 const METAL_MATERIALS = new Set(['Metal', 'DarkerMetal', 'Mirror'])
 
+const LAB_TABS = ['scene', 'render', 'hall', 'motion', 'fx', 'camera']
+
 const TONE_MAPPING_MODES = {
   aces: ToneMappingMode.ACES_FILMIC,
   agx: ToneMappingMode.AGX,
@@ -276,6 +278,7 @@ function getExportableSetup(tuning) {
       modalRevealSeconds: currentTuning.modalRevealSeconds,
       openDelay: currentTuning.openDelay,
       openSeconds: currentTuning.openSeconds,
+      practicalAngle: currentTuning.practicalAngle,
       practicalColor: currentTuning.practicalColor,
       practicalHeight: currentTuning.practicalHeight,
       practicalIntensity: currentTuning.practicalIntensity,
@@ -690,6 +693,7 @@ function ShotOffsetInput({ axis, label, onChange }) {
 function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, setCameraJumpRequest, setTuning, tuning }) {
   const [collapsed, setCollapsed] = useState(false)
   const [copyStatus, setCopyStatus] = useState('')
+  const [labTab, setLabTab] = useState('scene')
   const [jumpStatus, setJumpStatus] = useState('')
   const [saveStatus, setSaveStatus] = useState('')
   const [shotName, setShotName] = useState('outsideShot')
@@ -868,6 +872,20 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
         </button>
       </div>
 
+      <div className="lighting-lab__tabs" role="tablist">
+        {LAB_TABS.map((tab) => (
+          <button
+            key={tab}
+            className={labTab === tab ? 'is-active' : ''}
+            onClick={() => setLabTab(tab)}
+            type="button"
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {labTab === 'scene' && (
       <div className="tuning-grid">
         <label className="tuning-field">
           <span>HDRI preset</span>
@@ -918,6 +936,11 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           onChange={(value) => updateTuning('metalRoughness', value)}
           value={tuning.metalRoughness}
         />
+      </div>
+      )}
+
+      {labTab === 'motion' && (
+      <div className="tuning-grid">
         <TuningSlider
           label="Camera smooth"
           max={8}
@@ -1005,7 +1028,11 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           onChange={(value) => updateTuning('doorOpen', value)}
           value={tuning.doorOpen}
         />
+      </div>
+      )}
 
+      {labTab === 'render' && (
+      <div className="tuning-grid">
         <div className="tuning-section">
           <div className="tuning-section__header">
             <span>Render</span>
@@ -1047,7 +1074,11 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
             value={tuning.vignetteDarkness}
           />
         </div>
+      </div>
+      )}
 
+      {labTab === 'hall' && (
+      <div className="tuning-grid">
         <div className="tuning-section">
           <div className="tuning-section__header">
             <span>Practicals</span>
@@ -1081,6 +1112,13 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
             value={tuning.practicalIntensity}
           />
           <TuningSlider
+            label="Beam angle"
+            max={1.1}
+            min={0.2}
+            onChange={(value) => updateTuning('practicalAngle', value)}
+            value={tuning.practicalAngle}
+          />
+          <TuningSlider
             label="Mount height"
             max={2.2}
             min={1.2}
@@ -1112,7 +1150,11 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
             />
           </label>
         </div>
+      </div>
+      )}
 
+      {labTab === 'fx' && (
+      <div className="tuning-grid">
         <div className="tuning-section">
           <div className="tuning-section__header">
             <span>Mirror FX</span>
@@ -1340,7 +1382,9 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           />
         </div>
       </div>
+      )}
 
+      {labTab === 'camera' && (
       <div className="camera-tools">
         <label className="tuning-field">
           <span>Selected shot</span>
@@ -1423,6 +1467,7 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           </button>
         </div>
       </div>
+      )}
 
       <div className="lighting-lab__actions">
         <button onClick={() => setTuning(mergeTuning())} type="button">

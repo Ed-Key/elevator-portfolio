@@ -63,6 +63,7 @@ export const DEFAULT_TUNING = {
   metalPolish: 1,
   metalRoughness: 0.16,
   practicalStyle: 'cylinder',
+  practicalAngle: 0.55,
   practicalIntensity: 40,
   practicalColor: '#ff9d3f',
   practicalHeight: 1.65,
