@@ -387,6 +387,8 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
 
   useEffect(() => {
     const baselines = new Map()
+    const originalMaterials = new Map()
+    const clonedMaterials = []
 
     scene.traverse((object) => {
       object.castShadow = true
@@ -394,8 +396,12 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
 
       if (!object.isMesh || !object.material) return
 
+      originalMaterials.set(object, object.material)
+
       const cloneMaterial = (material) => {
         const cloned = material.clone()
+
+        clonedMaterials.push(cloned)
 
         // The GLB uses one 'Wall' material for both the hall wall and the
         // floor; tell them apart by shape so each can take its own tint.
@@ -419,6 +425,18 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
     })
 
     materialBaselinesRef.current = baselines
+
+    // useGLTF caches the scene, so a remount (Strict Mode's double-invoke,
+    // HMR) traverses the same objects again. Without restoring the pristine
+    // materials here, the second pass would clone the tinted clones and
+    // record the tint as "baseline", breaking the null-means-shipped-gray
+    // contract.
+    return () => {
+      originalMaterials.forEach((material, object) => {
+        object.material = material
+      })
+      clonedMaterials.forEach((material) => material.dispose())
+    }
   }, [scene])
 
   useEffect(() => {
