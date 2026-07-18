@@ -207,6 +207,7 @@ function getExportableSetup(tuning) {
       environment: currentTuning.environment,
       environmentIntensity: currentTuning.environmentIntensity,
       exposure: currentTuning.exposure,
+      floorColor: currentTuning.floorColor,
       key: currentTuning.key,
       materialLift: currentTuning.materialLift,
       metalRoughness: currentTuning.metalRoughness,
@@ -241,6 +242,7 @@ function getExportableSetup(tuning) {
       previewMode: currentTuning.previewMode,
       sequenceSpeed: currentTuning.sequenceSpeed,
       turnSeconds: currentTuning.turnSeconds,
+      wallColor: currentTuning.wallColor,
     },
   }
 }
@@ -923,6 +925,29 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           onChange={(value) => updateTuning('doorOpen', value)}
           value={tuning.doorOpen}
         />
+
+        <div className="tuning-section">
+          <div className="tuning-section__header">
+            <span>Hall</span>
+          </div>
+
+          <label className="tuning-field">
+            <span>Wall color</span>
+            <input
+              type="color"
+              value={tuning.wallColor ?? '#e6e6e6'}
+              onChange={(event) => updateTuning('wallColor', event.target.value)}
+            />
+          </label>
+          <label className="tuning-field">
+            <span>Floor color</span>
+            <input
+              type="color"
+              value={tuning.floorColor ?? '#e6e6e6'}
+              onChange={(event) => updateTuning('floorColor', event.target.value)}
+            />
+          </label>
+        </div>
 
         <div className="tuning-section">
           <div className="tuning-section__header">
