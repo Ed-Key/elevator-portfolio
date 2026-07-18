@@ -62,6 +62,7 @@ export const DEFAULT_TUNING = {
   materialLift: 0.18,
   metalPolish: 1,
   metalRoughness: 0.16,
+  hallDressing: true,
   practicalStyle: 'cylinder',
   practicalAngle: 0.55,
   practicalIntensity: 40,
@@ -125,4 +126,5 @@ export const ORIGINAL_TUNING = {
   metalPolish: 0,
   metalRoughness: 0,
   practicalStyle: 'off',
+  hallDressing: false,
 }
