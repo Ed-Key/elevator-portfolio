@@ -562,9 +562,11 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, onStageR
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
     const onMove = (event) => {
+      // Negated: the camera leans counter to the cursor so the scene
+      // appears to follow the pointer rather than shift away from it.
       pointerTargetRef.current = {
-        x: (event.clientX / window.innerWidth) * 2 - 1,
-        y: -((event.clientY / window.innerHeight) * 2 - 1),
+        x: -((event.clientX / window.innerWidth) * 2 - 1),
+        y: (event.clientY / window.innerHeight) * 2 - 1,
       }
     }
 
