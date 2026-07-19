@@ -1,5 +1,6 @@
-import { Component, Suspense, useEffect, useMemo } from 'react'
+import { Component, Suspense, useEffect, useMemo, useRef } from 'react'
 import { useGLTF } from '@react-three/drei'
+import { Plane, Vector3 } from 'three'
 
 // Set dressing loads after the elevator is interactive: Suspense with a
 // null fallback keeps the props off the critical path, and the draco
@@ -17,26 +18,37 @@ const PLANTER_FINISHES = {
   white: { color: '#e6e0d6', metalness: 0.05, roughness: 0.42 },
 }
 
+// Ed's chosen composition: the terracotta-tinted angular vases carrying
+// the scanned plants' own foliage. The plant's pot and trunk share one
+// mesh, so a clipping plane slices away everything below the trunk base;
+// the cut hides inside the vase under the soil cap.
+const TERRACOTTA = { color: '#8a4d33', metalness: 0.05, roughness: 0.7 }
+
 const SET_DRESSING = [
+  { url: '/models/props/ceramic_vase_03.glb', position: [0.55, 0, 2.55], rotation: [0, 0, 0], scale: 2.4, tint: TERRACOTTA, soilCap: { radius: 0.046, y: 0.402 } },
   {
     url: '/models/props/potted_plant_01.glb',
-    position: [0.55, 0, 2.55],
+    position: [0.55, 0.31, 2.55],
+    seatY: 0.9655,
     rotation: [0, -0.6, 0],
     scale: 1.15,
+    clipBelow: 0.57,
+    kind: 'foliage',
   },
+  { url: '/models/props/ceramic_vase_03.glb', position: [0.55, 0, -2.55], rotation: [0, 0, 0], scale: 2.4, tint: TERRACOTTA, soilCap: { radius: 0.046, y: 0.402 } },
   {
     url: '/models/props/potted_plant_01.glb',
-    position: [0.55, 0, -2.55],
+    position: [0.55, 0.31, -2.55],
+    seatY: 0.9655,
     rotation: [0, 2.4, 0],
     scale: 1.15,
-  },
-  {
-    url: '/models/props/potted_plant_02.glb',
-    position: [0.92, 0, 2.05],
-    rotation: [0, 0.9, 0],
-    scale: 1,
+    clipBelow: 0.57,
+    kind: 'foliage',
   },
 ]
+
+
+
 
 
 
@@ -62,23 +74,73 @@ function CachePot({ finish, height, radiusBottom, radiusTop }) {
   )
 }
 
-function Prop({ planter, position, rotation, scale, url }) {
+function Prop({ clipBelow, hideMaterials, planter, position, rotation, scale, soilCap, tint, url }) {
   const { scene } = useGLTF(url, DRACO_PATH)
   // The same GLB appears on both sides of the portal; useGLTF caches one
   // scene object, so each Prop renders its own clone.
   const instance = useMemo(() => scene.clone(true), [scene])
+  const scaleY = Array.isArray(scale) ? scale[1] : scale
+  const positionY = position[1]
+  // One stable clipping plane per prop: the materials hold a reference to
+  // it and the height effect mutates its constant, so slider ticks never
+  // re-clone materials (which leaked clones and program state).
+  const clipPlaneRef = useRef(clipBelow === undefined ? null : new Plane(new Vector3(0, 1, 0), 0))
 
+  // Clone each source material once, tint and wire the shared clip plane,
+  // then dispose the clones on unmount.
   useEffect(() => {
+    const clipPlane = clipPlaneRef.current
+    const ownedMaterials = []
+
     instance.traverse((object) => {
       object.castShadow = true
       object.receiveShadow = true
+
+      if (hideMaterials && object.isMesh && hideMaterials.includes(object.material?.name)) {
+        object.visible = false
+      }
+
+      if ((tint || clipPlane) && object.isMesh && object.material) {
+        object.material = object.material.clone()
+        ownedMaterials.push(object.material)
+
+        if (tint) {
+          object.material.color.set(tint.color)
+          if ('metalness' in object.material) object.material.metalness = tint.metalness ?? object.material.metalness
+          if ('roughness' in object.material) object.material.roughness = tint.roughness ?? object.material.roughness
+        }
+
+        if (clipPlane) {
+          object.material.clippingPlanes = [clipPlane]
+        }
+      }
     })
-  }, [instance])
+
+    return () => {
+      ownedMaterials.forEach((material) => material.dispose())
+    }
+  }, [hideMaterials, instance, tint])
+
+  // Clipping planes are world-space; keep the cut riding the prop's own
+  // transform (scalar deps so it only fires when the height truly moves).
+  useEffect(() => {
+    const clipPlane = clipPlaneRef.current
+
+    if (!clipPlane || clipBelow === undefined) return
+
+    clipPlane.constant = -(positionY + clipBelow * scaleY)
+  }, [clipBelow, positionY, scaleY])
 
   return (
     <group position={position} rotation={rotation} scale={scale}>
       <primitive object={instance} />
       {planter && <CachePot {...planter} />}
+      {soilCap && (
+        <mesh position={[0, soilCap.y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[soilCap.radius, 24]} />
+          <meshStandardMaterial color="#17100a" roughness={1} />
+        </mesh>
+      )}
     </group>
   )
 }
@@ -103,18 +165,48 @@ class PropBoundary extends Component {
   }
 }
 
-export default function HallDressing({ visible }) {
+export default function HallDressing({ tuning, visible }) {
   if (!visible) return null
 
   return (
     <group>
-      {SET_DRESSING.map((prop) => (
-        <PropBoundary key={`${prop.url}@${prop.position.join(',')}`}>
-          <Suspense fallback={null}>
-            <Prop {...prop} />
-          </Suspense>
-        </PropBoundary>
-      ))}
+      {SET_DRESSING.map((prop) => {
+        // Spread pushes every flanking piece outboard along z (away from the
+        // portal), symmetric by side, so vases and plants move together.
+        const spread = Math.sign(prop.position[2]) * (tuning.dressingFoliageSpread ?? 0)
+        const posZ = prop.position[2] + spread
+        let resolved = prop.position[2] === posZ
+          ? prop
+          : { ...prop, position: [prop.position[0], prop.position[1], posZ] }
+
+        if (prop.kind === 'foliage') {
+          const foliageScale = prop.scale * (tuning.dressingFoliageScale ?? 1)
+          const foliageScaleY = foliageScale * (tuning.dressingFoliageStretch ?? 1)
+          const heightOffset = tuning.dressingFoliageHeight ?? 0
+
+          // A clipped plant is pinned by its trunk base to a fixed vase-rim
+          // seat: growing it drops the group origin so the base stays in the
+          // vase and only the canopy rises. Unclipped foliage just offsets.
+          const posY = prop.clipBelow === undefined
+            ? prop.position[1] + heightOffset
+            : (prop.seatY ?? prop.position[1]) + heightOffset - prop.clipBelow * foliageScaleY
+
+          resolved = {
+            ...prop,
+            position: [prop.position[0], posY, posZ],
+            rotation: [0, prop.rotation[1] + (tuning.dressingFoliageTurn ?? 0), 0],
+            scale: [foliageScale, foliageScaleY, foliageScale],
+          }
+        }
+
+        return (
+          <PropBoundary key={`${prop.url}@${prop.position.join(',')}`}>
+            <Suspense fallback={null}>
+              <Prop {...resolved} />
+            </Suspense>
+          </PropBoundary>
+        )
+      })}
     </group>
   )
 }
