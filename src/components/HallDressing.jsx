@@ -29,6 +29,7 @@ const SET_DRESSING = [
   {
     url: '/models/props/potted_plant_01.glb',
     position: [0.55, 0.31, 2.55],
+    seatY: 0.9655,
     rotation: [0, -0.6, 0],
     scale: 1.15,
     clipBelow: 0.57,
@@ -38,6 +39,7 @@ const SET_DRESSING = [
   {
     url: '/models/props/potted_plant_01.glb',
     position: [0.55, 0.31, -2.55],
+    seatY: 0.9655,
     rotation: [0, 2.4, 0],
     scale: 1.15,
     clipBelow: 0.57,
@@ -175,18 +177,27 @@ export default function HallDressing({ tuning, visible }) {
   return (
     <group>
       {SET_DRESSING.map((prop) => {
-        const resolved = prop.kind === 'foliage'
-          ? {
-              ...prop,
-              position: [prop.position[0], prop.position[1] + (tuning.dressingFoliageHeight ?? 0), prop.position[2]],
-              rotation: [0, prop.rotation[1] + (tuning.dressingFoliageTurn ?? 0), 0],
-              scale: [
-                prop.scale * (tuning.dressingFoliageScale ?? 1),
-                prop.scale * (tuning.dressingFoliageScale ?? 1) * (tuning.dressingFoliageStretch ?? 1),
-                prop.scale * (tuning.dressingFoliageScale ?? 1),
-              ],
-            }
-          : prop
+        let resolved = prop
+
+        if (prop.kind === 'foliage') {
+          const foliageScale = prop.scale * (tuning.dressingFoliageScale ?? 1)
+          const foliageScaleY = foliageScale * (tuning.dressingFoliageStretch ?? 1)
+          const heightOffset = tuning.dressingFoliageHeight ?? 0
+
+          // A clipped plant is pinned by its trunk base to a fixed vase-rim
+          // seat: growing it drops the group origin so the base stays in the
+          // vase and only the canopy rises. Unclipped foliage just offsets.
+          const posY = prop.clipBelow === undefined
+            ? prop.position[1] + heightOffset
+            : (prop.seatY ?? prop.position[1]) + heightOffset - prop.clipBelow * foliageScaleY
+
+          resolved = {
+            ...prop,
+            position: [prop.position[0], posY, prop.position[2]],
+            rotation: [0, prop.rotation[1] + (tuning.dressingFoliageTurn ?? 0), 0],
+            scale: [foliageScale, foliageScaleY, foliageScale],
+          }
+        }
 
         return (
           <PropBoundary key={`${prop.url}@${prop.position.join(',')}`}>
