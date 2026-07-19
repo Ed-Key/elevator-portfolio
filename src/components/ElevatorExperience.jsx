@@ -3,8 +3,10 @@ import { ContactShadows, Environment, Lightformer, OrbitControls, PerspectiveCam
 import { Bloom, EffectComposer, N8AO, ToneMapping, Vignette } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
 import { Box3, Color, MathUtils, Vector3 } from 'three'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import ElevatorCallButton from './ElevatorCallButton'
+import HallArchitecture from './HallArchitecture'
+import HallDressing from './HallDressing'
 import HallPracticals from './HallPracticals'
 import MirrorShimmerPlane from './MirrorShimmerPlane'
 
@@ -245,7 +247,13 @@ function getExportableSetup(tuning) {
       environment: currentTuning.environment,
       environmentIntensity: currentTuning.environmentIntensity,
       exposure: currentTuning.exposure,
+      dressingFoliageHeight: currentTuning.dressingFoliageHeight,
+      dressingFoliageScale: currentTuning.dressingFoliageScale,
+      dressingFoliageSpread: currentTuning.dressingFoliageSpread,
+      dressingFoliageStretch: currentTuning.dressingFoliageStretch,
+      dressingFoliageTurn: currentTuning.dressingFoliageTurn,
       floorColor: currentTuning.floorColor,
+      hallDressing: currentTuning.hallDressing,
       key: currentTuning.key,
       materialLift: currentTuning.materialLift,
       metalPolish: currentTuning.metalPolish,
@@ -325,9 +333,12 @@ function RendererTuning({ exposure }) {
   const { gl } = useThree()
 
   useEffect(() => {
-    // R3F exposes Three's mutable renderer object here; exposure is a renderer setting.
+    // R3F exposes Three's mutable renderer object here; exposure and local
+    // clipping (used by the dressing's pot-slicing planes) are renderer
+    // settings.
     // eslint-disable-next-line react-hooks/immutability
     gl.toneMappingExposure = exposure
+    gl.localClippingEnabled = true
   }, [exposure, gl])
 
   return null
@@ -339,7 +350,7 @@ function getMaterials(material) {
   return Array.isArray(material) ? material : [material]
 }
 
-function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCameraDraft, showTools, tuning }) {
+function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, onStageReady, setCameraDraft, showTools, tuning }) {
   const autoRevealFiredRef = useRef(false)
   const cameraRef = useRef()
   const currentLookAtRef = useRef(new Vector3(...outsideShot.lookAt))
@@ -348,6 +359,7 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
   const materialBaselinesRef = useRef(new Map())
   const orbitRef = useRef()
   const sampleElapsedRef = useRef(0)
+  const stageReadyFiredRef = useRef(false)
   const targetLookAtRef = useRef(new Vector3())
   const targetPositionRef = useRef(new Vector3())
   const { animations, scene } = useGLTF('/models/elevator.glb')
@@ -532,6 +544,14 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, setCamer
     const camera = cameraRef.current
     if (!camera) return
 
+    // First rendered frame means the elevator GLB is decoded and on
+    // screen; only then is it safe to start fetching decorative props
+    // without competing with the critical path (Codex review of phase 4).
+    if (!stageReadyFiredRef.current) {
+      stageReadyFiredRef.current = true
+      onStageReady?.()
+    }
+
     if (tuning.previewMode === 'camera') {
       const clipTime = MathUtils.lerp(0, DOOR_OPEN_CLIP_TIME, tuning.doorOpen)
       const target = orbitRef.current?.target ?? currentLookAtRef.current
@@ -693,15 +713,97 @@ function ShotOffsetInput({ axis, label, onChange }) {
 function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, setCameraJumpRequest, setTuning, tuning }) {
   const [collapsed, setCollapsed] = useState(false)
   const [copyStatus, setCopyStatus] = useState('')
+  const [dragging, setDragging] = useState(false)
   const [labTab, setLabTab] = useState('scene')
+  const [labOffset, setLabOffset] = useState({ x: 0, y: 0 })
   const [jumpStatus, setJumpStatus] = useState('')
   const [saveStatus, setSaveStatus] = useState('')
   const [shotName, setShotName] = useState('outsideShot')
+  const dragStateRef = useRef(null)
+  const headerRef = useRef(null)
   const savedCameraShots = getCameraShots(tuning)
+
+  // A dragged panel can be stranded off screen when the layout reflows:
+  // collapsing re-anchors the bottom-fixed panel, and a viewport resize
+  // (especially across the 720px breakpoint) can move the header out of
+  // reach. Re-clamp the offset on both so the handle always stays grabbable.
+  const clampLabIntoView = useCallback(() => {
+    const header = headerRef.current
+
+    if (!header) return
+
+    const bounds = header.getBoundingClientRect()
+    let dx = 0
+    let dy = 0
+
+    if (bounds.left < 0) dx = -bounds.left
+    else if (bounds.right > window.innerWidth) dx = window.innerWidth - bounds.right
+    if (bounds.top < 0) dy = -bounds.top
+    else if (bounds.bottom > window.innerHeight) dy = window.innerHeight - bounds.bottom
+
+    if (dx !== 0 || dy !== 0) {
+      setLabOffset((current) => ({ x: current.x + dx, y: current.y + dy }))
+    }
+  }, [])
+
+  useLayoutEffect(() => {
+    clampLabIntoView()
+  }, [clampLabIntoView, collapsed])
+
+  useEffect(() => {
+    window.addEventListener('resize', clampLabIntoView)
+
+    return () => window.removeEventListener('resize', clampLabIntoView)
+  }, [clampLabIntoView])
   const selectedSavedShot = savedCameraShots[shotName]
   const cameraSnippet = formatCameraSnippet(shotName, cameraDraft)
   const fullSetupSnippet = formatFullSetupSnippet(tuning)
   const savedShotsSnippet = formatCameraShotsSnippet(savedCameraShots)
+
+  const startLabDrag = (event) => {
+    if (event.target.closest('button')) return
+
+    const headerBounds = event.currentTarget.getBoundingClientRect()
+
+    dragStateRef.current = {
+      headerBounds,
+      offset: labOffset,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+    setDragging(true)
+  }
+
+  const moveLab = (event) => {
+    const dragState = dragStateRef.current
+
+    if (!dragState || dragState.pointerId !== event.pointerId) return
+
+    const deltaX = MathUtils.clamp(
+      event.clientX - dragState.startX,
+      -dragState.headerBounds.left,
+      window.innerWidth - dragState.headerBounds.right,
+    )
+    const deltaY = MathUtils.clamp(
+      event.clientY - dragState.startY,
+      -dragState.headerBounds.top,
+      window.innerHeight - dragState.headerBounds.bottom,
+    )
+
+    setLabOffset({
+      x: dragState.offset.x + deltaX,
+      y: dragState.offset.y + deltaY,
+    })
+  }
+
+  const endLabDrag = (event) => {
+    if (dragStateRef.current?.pointerId !== event.pointerId) return
+
+    dragStateRef.current = null
+    setDragging(false)
+  }
 
   const updateTuning = (key, value) => {
     setTuning((current) => ({
@@ -830,8 +932,19 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
   }
 
   return (
-    <aside className={collapsed ? 'lighting-lab lighting-lab--collapsed' : 'lighting-lab'} data-preview-ui>
-      <div className="lighting-lab__header">
+    <aside
+      className={collapsed ? 'lighting-lab lighting-lab--collapsed' : 'lighting-lab'}
+      data-preview-ui
+      style={{ transform: `translate(${labOffset.x}px, ${labOffset.y}px)` }}
+    >
+      <div
+        ref={headerRef}
+        className={dragging ? 'lighting-lab__header is-dragging' : 'lighting-lab__header'}
+        onPointerCancel={endLabDrag}
+        onPointerDown={startLabDrag}
+        onPointerMove={moveLab}
+        onPointerUp={endLabDrag}
+      >
         <div>
           <p>Lighting Lab</p>
           <span>Elevator scene tools</span>
@@ -1118,6 +1231,48 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
             onChange={(value) => updateTuning('practicalHeight', value)}
             step={0.01}
             value={tuning.practicalHeight}
+          />
+        </div>
+
+        <div className="tuning-section">
+          <div className="tuning-section__header">
+            <span>Dressing</span>
+          </div>
+
+          <TuningSlider
+            label="Foliage height"
+            max={0.8}
+            min={-0.3}
+            onChange={(value) => updateTuning('dressingFoliageHeight', value)}
+            value={tuning.dressingFoliageHeight}
+          />
+          <TuningSlider
+            label="Foliage spread"
+            max={2}
+            min={-0.6}
+            onChange={(value) => updateTuning('dressingFoliageSpread', value)}
+            value={tuning.dressingFoliageSpread}
+          />
+          <TuningSlider
+            label="Foliage size"
+            max={2.2}
+            min={0.8}
+            onChange={(value) => updateTuning('dressingFoliageScale', value)}
+            value={tuning.dressingFoliageScale}
+          />
+          <TuningSlider
+            label="Foliage stretch"
+            max={1.6}
+            min={0.8}
+            onChange={(value) => updateTuning('dressingFoliageStretch', value)}
+            value={tuning.dressingFoliageStretch}
+          />
+          <TuningSlider
+            label="Foliage turn"
+            max={3.14}
+            min={-3.14}
+            onChange={(value) => updateTuning('dressingFoliageTurn', value)}
+            value={tuning.dressingFoliageTurn}
           />
         </div>
 
@@ -1479,7 +1634,11 @@ export default function ElevatorExperience({ showTools = false }) {
   }))
   const [cameraJumpRequest, setCameraJumpRequest] = useState(null)
   const [modalPhase, setModalPhase] = useState('closed')
-  const [tuning, setTuning] = useState(readStoredTuning)
+  const [stageReady, setStageReady] = useState(false)
+  // Tuning storage is a Lab-only concern: without it gated on showTools,
+  // every visitor pins the deploy-time defaults forever, and Lab preview
+  // state (manual door-open, camera mode) leaks into the real experience.
+  const [tuning, setTuning] = useState(() => (showTools ? readStoredTuning() : mergeTuning()))
 
   const openModal = useCallback(() => {
     setModalPhase((current) => (current === 'open' || current === 'opening' ? current : 'opening'))
@@ -1490,9 +1649,12 @@ export default function ElevatorExperience({ showTools = false }) {
   }, [])
 
   const handleModalOpened = useCallback(() => setModalPhase('open'), [])
+  const handleStageReady = useCallback(() => setStageReady(true), [])
   const handleModalClosed = useCallback(() => setModalPhase('closed'), [])
 
   useEffect(() => {
+    if (!showTools) return
+
     window.localStorage.setItem(
       TUNING_STORAGE_KEY,
       JSON.stringify({
@@ -1501,7 +1663,7 @@ export default function ElevatorExperience({ showTools = false }) {
         sequenceRunId: 0,
       }),
     )
-  }, [tuning])
+  }, [showTools, tuning])
 
   return (
     <div className="elevator-experience-shell">
@@ -1527,11 +1689,14 @@ export default function ElevatorExperience({ showTools = false }) {
         <ElevatorAssetSequence
           cameraJumpRequest={cameraJumpRequest}
           onRequestModalOpen={openModal}
+          onStageReady={handleStageReady}
           setCameraDraft={setCameraDraft}
           showTools={showTools}
           tuning={tuning}
         />
         <HallPracticals tuning={tuning} />
+        <HallDressing tuning={tuning} visible={stageReady && tuning.hallDressing !== false} />
+        <HallArchitecture visible={tuning.hallDressing !== false} />
         <ContactShadows position={[0, 0.02, 0]} opacity={tuning.contactShadow} scale={12} blur={2.6} far={5} />
         <HallEnvironment intensity={tuning.environmentIntensity} preset={tuning.environment} />
         <EffectComposer multisampling={4}>

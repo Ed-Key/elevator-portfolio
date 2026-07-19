@@ -73,6 +73,13 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.lighting-lab__header.is-dragging {
+  cursor: grabbing;
 }
 
 .lighting-lab--collapsed {
@@ -373,4 +380,10 @@
 .lighting-lab__tabs button.is-active {
   color: #0f172a;
   background: #e2e8f0;
+}
+
+/* The tab panels' own display rules (grid/flex) would otherwise defeat
+   the hidden attribute, leaving every tab's content stacked. */
+.lighting-lab [hidden] {
+  display: none !important;
 }
