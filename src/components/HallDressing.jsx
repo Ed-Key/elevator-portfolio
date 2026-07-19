@@ -45,12 +45,6 @@ const SET_DRESSING = [
     clipBelow: 0.57,
     kind: 'foliage',
   },
-  {
-    url: '/models/props/potted_plant_02.glb',
-    position: [0.92, 0, 2.05],
-    rotation: [0, 0.9, 0],
-    scale: 1,
-  },
 ]
 
 
