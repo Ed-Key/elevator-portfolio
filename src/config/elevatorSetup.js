@@ -54,6 +54,8 @@ export const DEFAULT_TUNING = {
   cyan: 0,
   cabin: 0,
   contactShadow: 0.32,
+  parallaxStrength: 0.14,
+  parallaxSmooth: 3,
   sequenceRunId: 0,
   sequenceSpeed: 1,
   cameraSmooth: 4.2,
@@ -130,6 +132,7 @@ export const ORIGINAL_TUNING = {
   materialLift: 0,
   metalPolish: 0,
   metalRoughness: 0,
+  parallaxStrength: 0,
   practicalStyle: 'off',
   hallDressing: false,
 }
