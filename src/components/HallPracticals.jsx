@@ -132,24 +132,28 @@ export default function HallPracticals({ tuning }) {
   const height = tuning.practicalHeight
   const intensity = tuning.practicalIntensity
   const style = tuning.practicalStyle
+  const spread = tuning.practicalSpread ?? 0
 
   if (!style || style === 'off' || intensity <= 0) return null
 
   if (style === 'slots') {
+    const slotZ = 1.95 + spread
+
     return (
       <group>
-        <PortalSlot angle={angle} color={color} height={height} intensity={intensity} z={1.95} />
-        <PortalSlot angle={angle} color={color} height={height} intensity={intensity} z={-1.95} />
+        <PortalSlot angle={angle} color={color} height={height} intensity={intensity} z={slotZ} />
+        <PortalSlot angle={angle} color={color} height={height} intensity={intensity} z={-slotZ} />
       </group>
     )
   }
 
   const Sconce = style === 'band' ? BandSconce : CylinderSconce
+  const sconceZ = 2.45 + spread
 
   return (
     <group>
-      <Sconce angle={angle} color={color} height={height} intensity={intensity} z={2.45} />
-      <Sconce angle={angle} color={color} height={height} intensity={intensity} z={-2.45} />
+      <Sconce angle={angle} color={color} height={height} intensity={intensity} z={sconceZ} />
+      <Sconce angle={angle} color={color} height={height} intensity={intensity} z={-sconceZ} />
     </group>
   )
 }

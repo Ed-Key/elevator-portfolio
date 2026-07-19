@@ -303,6 +303,7 @@ function getExportableSetup(tuning) {
       practicalColor: currentTuning.practicalColor,
       practicalHeight: currentTuning.practicalHeight,
       practicalIntensity: currentTuning.practicalIntensity,
+      practicalSpread: currentTuning.practicalSpread,
       practicalStyle: currentTuning.practicalStyle,
       previewMode: currentTuning.previewMode,
       sequenceSpeed: currentTuning.sequenceSpeed,
@@ -1313,6 +1314,13 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
             onChange={(value) => updateTuning('practicalHeight', value)}
             step={0.01}
             value={tuning.practicalHeight}
+          />
+          <TuningSlider
+            label="Sconce spread"
+            max={2}
+            min={-1}
+            onChange={(value) => updateTuning('practicalSpread', value)}
+            value={tuning.practicalSpread}
           />
         </div>
 
