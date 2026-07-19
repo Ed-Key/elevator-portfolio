@@ -722,10 +722,11 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
   const headerRef = useRef(null)
   const savedCameraShots = getCameraShots(tuning)
 
-  // Collapsing re-anchors the bottom-fixed panel, which can teleport a
-  // dragged header off screen; re-clamp the offset whenever the layout
-  // mode changes so the handle always stays reachable.
-  useLayoutEffect(() => {
+  // A dragged panel can be stranded off screen when the layout reflows:
+  // collapsing re-anchors the bottom-fixed panel, and a viewport resize
+  // (especially across the 720px breakpoint) can move the header out of
+  // reach. Re-clamp the offset on both so the handle always stays grabbable.
+  const clampLabIntoView = useCallback(() => {
     const header = headerRef.current
 
     if (!header) return
@@ -742,7 +743,17 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
     if (dx !== 0 || dy !== 0) {
       setLabOffset((current) => ({ x: current.x + dx, y: current.y + dy }))
     }
-  }, [collapsed])
+  }, [])
+
+  useLayoutEffect(() => {
+    clampLabIntoView()
+  }, [clampLabIntoView, collapsed])
+
+  useEffect(() => {
+    window.addEventListener('resize', clampLabIntoView)
+
+    return () => window.removeEventListener('resize', clampLabIntoView)
+  }, [clampLabIntoView])
   const selectedSavedShot = savedCameraShots[shotName]
   const cameraSnippet = formatCameraSnippet(shotName, cameraDraft)
   const fullSetupSnippet = formatFullSetupSnippet(tuning)

@@ -1,4 +1,4 @@
-import { Component, Suspense, useEffect, useMemo } from 'react'
+import { Component, Suspense, useEffect, useMemo, useRef } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { Plane, Vector3 } from 'three'
 
@@ -84,15 +84,18 @@ function Prop({ clipBelow, hideMaterials, planter, position, rotation, scale, so
   // scene object, so each Prop renders its own clone.
   const instance = useMemo(() => scene.clone(true), [scene])
   const scaleY = Array.isArray(scale) ? scale[1] : scale
-  // Clipping planes are world-space; the cut height rides the prop's own
-  // transform so the sliders keep working.
-  const clipPlane = useMemo(() => {
-    if (clipBelow === undefined) return null
+  const positionY = position[1]
+  // One stable clipping plane per prop: the materials hold a reference to
+  // it and the height effect mutates its constant, so slider ticks never
+  // re-clone materials (which leaked clones and program state).
+  const clipPlaneRef = useRef(clipBelow === undefined ? null : new Plane(new Vector3(0, 1, 0), 0))
 
-    return new Plane(new Vector3(0, 1, 0), -(position[1] + clipBelow * scaleY))
-  }, [clipBelow, position, scaleY])
-
+  // Clone each source material once, tint and wire the shared clip plane,
+  // then dispose the clones on unmount.
   useEffect(() => {
+    const clipPlane = clipPlaneRef.current
+    const ownedMaterials = []
+
     instance.traverse((object) => {
       object.castShadow = true
       object.receiveShadow = true
@@ -103,6 +106,7 @@ function Prop({ clipBelow, hideMaterials, planter, position, rotation, scale, so
 
       if ((tint || clipPlane) && object.isMesh && object.material) {
         object.material = object.material.clone()
+        ownedMaterials.push(object.material)
 
         if (tint) {
           object.material.color.set(tint.color)
@@ -115,7 +119,21 @@ function Prop({ clipBelow, hideMaterials, planter, position, rotation, scale, so
         }
       }
     })
-  }, [clipPlane, hideMaterials, instance, tint])
+
+    return () => {
+      ownedMaterials.forEach((material) => material.dispose())
+    }
+  }, [hideMaterials, instance, tint])
+
+  // Clipping planes are world-space; keep the cut riding the prop's own
+  // transform (scalar deps so it only fires when the height truly moves).
+  useEffect(() => {
+    const clipPlane = clipPlaneRef.current
+
+    if (!clipPlane || clipBelow === undefined) return
+
+    clipPlane.constant = -(positionY + clipBelow * scaleY)
+  }, [clipBelow, positionY, scaleY])
 
   return (
     <group position={position} rotation={rotation} scale={scale}>
