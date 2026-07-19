@@ -332,9 +332,12 @@ function RendererTuning({ exposure }) {
   const { gl } = useThree()
 
   useEffect(() => {
-    // R3F exposes Three's mutable renderer object here; exposure is a renderer setting.
+    // R3F exposes Three's mutable renderer object here; exposure and local
+    // clipping (used by the dressing's pot-slicing planes) are renderer
+    // settings.
     // eslint-disable-next-line react-hooks/immutability
     gl.toneMappingExposure = exposure
+    gl.localClippingEnabled = true
   }, [exposure, gl])
 
   return null

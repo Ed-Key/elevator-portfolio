@@ -1,5 +1,6 @@
 import { Component, Suspense, useEffect, useMemo } from 'react'
 import { useGLTF } from '@react-three/drei'
+import { Plane, Vector3 } from 'three'
 
 // Set dressing loads after the elevator is interactive: Suspense with a
 // null fallback keeps the props off the critical path, and the draco
@@ -17,24 +18,29 @@ const PLANTER_FINISHES = {
   white: { color: '#e6e0d6', metalness: 0.05, roughness: 0.42 },
 }
 
-// Ed's chosen composition: the scanned terracotta plants themselves,
-// mirrored tall plant each side of the portal with a bowl companion on
-// the left. The vase/cachepot machinery below (tint, hideMaterials,
-// planter, soilCap) stays for future props.
+// Ed's chosen composition: the terracotta-tinted angular vases carrying
+// the scanned plants' own foliage. The plant's pot and trunk share one
+// mesh, so a clipping plane slices away everything below the trunk base;
+// the cut hides inside the vase under the soil cap.
+const TERRACOTTA = { color: '#8a4d33', metalness: 0.05, roughness: 0.7 }
 
 const SET_DRESSING = [
+  { url: '/models/props/ceramic_vase_03.glb', position: [0.55, 0, 2.55], rotation: [0, 0, 0], scale: 2.4, tint: TERRACOTTA, soilCap: { radius: 0.046, y: 0.402 } },
   {
     url: '/models/props/potted_plant_01.glb',
-    position: [0.55, 0, 2.55],
+    position: [0.55, 0.31, 2.55],
     rotation: [0, -0.6, 0],
     scale: 1.15,
+    clipBelow: 0.57,
     kind: 'foliage',
   },
+  { url: '/models/props/ceramic_vase_03.glb', position: [0.55, 0, -2.55], rotation: [0, 0, 0], scale: 2.4, tint: TERRACOTTA, soilCap: { radius: 0.046, y: 0.402 } },
   {
     url: '/models/props/potted_plant_01.glb',
-    position: [0.55, 0, -2.55],
+    position: [0.55, 0.31, -2.55],
     rotation: [0, 2.4, 0],
     scale: 1.15,
+    clipBelow: 0.57,
     kind: 'foliage',
   },
   {
@@ -42,9 +48,9 @@ const SET_DRESSING = [
     position: [0.92, 0, 2.05],
     rotation: [0, 0.9, 0],
     scale: 1,
-    kind: 'foliage',
   },
 ]
+
 
 
 
@@ -72,11 +78,19 @@ function CachePot({ finish, height, radiusBottom, radiusTop }) {
   )
 }
 
-function Prop({ hideMaterials, planter, position, rotation, scale, soilCap, tint, url }) {
+function Prop({ clipBelow, hideMaterials, planter, position, rotation, scale, soilCap, tint, url }) {
   const { scene } = useGLTF(url, DRACO_PATH)
   // The same GLB appears on both sides of the portal; useGLTF caches one
   // scene object, so each Prop renders its own clone.
   const instance = useMemo(() => scene.clone(true), [scene])
+  const scaleY = Array.isArray(scale) ? scale[1] : scale
+  // Clipping planes are world-space; the cut height rides the prop's own
+  // transform so the sliders keep working.
+  const clipPlane = useMemo(() => {
+    if (clipBelow === undefined) return null
+
+    return new Plane(new Vector3(0, 1, 0), -(position[1] + clipBelow * scaleY))
+  }, [clipBelow, position, scaleY])
 
   useEffect(() => {
     instance.traverse((object) => {
@@ -87,14 +101,21 @@ function Prop({ hideMaterials, planter, position, rotation, scale, soilCap, tint
         object.visible = false
       }
 
-      if (tint && object.isMesh && object.material) {
+      if ((tint || clipPlane) && object.isMesh && object.material) {
         object.material = object.material.clone()
-        object.material.color.set(tint.color)
-        if ('metalness' in object.material) object.material.metalness = tint.metalness ?? object.material.metalness
-        if ('roughness' in object.material) object.material.roughness = tint.roughness ?? object.material.roughness
+
+        if (tint) {
+          object.material.color.set(tint.color)
+          if ('metalness' in object.material) object.material.metalness = tint.metalness ?? object.material.metalness
+          if ('roughness' in object.material) object.material.roughness = tint.roughness ?? object.material.roughness
+        }
+
+        if (clipPlane) {
+          object.material.clippingPlanes = [clipPlane]
+        }
       }
     })
-  }, [hideMaterials, instance, tint])
+  }, [clipPlane, hideMaterials, instance, tint])
 
   return (
     <group position={position} rotation={rotation} scale={scale}>
