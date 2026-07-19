@@ -114,7 +114,9 @@ function HallEnvironment({ intensity, preset }) {
       {/* tall warm wash behind the camera: this is what puts the bronze
           gradient back on the door faces */}
       <Lightformer color="#ffa14f" form="rect" intensity={4.2} position={[9, 4.5, 0]} rotation-y={-Math.PI / 2} scale={[9, 5, 1]} />
-      <Lightformer color="#bcd3ff" form="rect" intensity={0.8} position={[8, 1.4, 0]} rotation-y={-Math.PI / 2} scale={[6, 0.7, 1]} />
+      {/* lower rim strip: warm, not cool, so the near-mirror doors reflect a
+          continuation of the bronze gradient instead of a blue band */}
+      <Lightformer color="#e6b784" form="rect" intensity={0.9} position={[8, 1.4, 0]} rotation-y={-Math.PI / 2} scale={[6, 0.7, 1]} />
     </Environment>
   )
 }
