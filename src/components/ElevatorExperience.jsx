@@ -249,6 +249,7 @@ function getExportableSetup(tuning) {
       exposure: currentTuning.exposure,
       dressingFoliageHeight: currentTuning.dressingFoliageHeight,
       dressingFoliageScale: currentTuning.dressingFoliageScale,
+      dressingFoliageSpread: currentTuning.dressingFoliageSpread,
       dressingFoliageStretch: currentTuning.dressingFoliageStretch,
       dressingFoliageTurn: currentTuning.dressingFoliageTurn,
       floorColor: currentTuning.floorColor,
@@ -1244,6 +1245,13 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
             min={-0.3}
             onChange={(value) => updateTuning('dressingFoliageHeight', value)}
             value={tuning.dressingFoliageHeight}
+          />
+          <TuningSlider
+            label="Foliage spread"
+            max={2}
+            min={-0.6}
+            onChange={(value) => updateTuning('dressingFoliageSpread', value)}
+            value={tuning.dressingFoliageSpread}
           />
           <TuningSlider
             label="Foliage size"

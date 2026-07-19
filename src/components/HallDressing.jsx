@@ -177,7 +177,13 @@ export default function HallDressing({ tuning, visible }) {
   return (
     <group>
       {SET_DRESSING.map((prop) => {
-        let resolved = prop
+        // Spread pushes every flanking piece outboard along z (away from the
+        // portal), symmetric by side, so vases and plants move together.
+        const spread = Math.sign(prop.position[2]) * (tuning.dressingFoliageSpread ?? 0)
+        const posZ = prop.position[2] + spread
+        let resolved = prop.position[2] === posZ
+          ? prop
+          : { ...prop, position: [prop.position[0], prop.position[1], posZ] }
 
         if (prop.kind === 'foliage') {
           const foliageScale = prop.scale * (tuning.dressingFoliageScale ?? 1)
@@ -193,7 +199,7 @@ export default function HallDressing({ tuning, visible }) {
 
           resolved = {
             ...prop,
-            position: [prop.position[0], posY, prop.position[2]],
+            position: [prop.position[0], posY, posZ],
             rotation: [0, prop.rotation[1] + (tuning.dressingFoliageTurn ?? 0), 0],
             scale: [foliageScale, foliageScaleY, foliageScale],
           }
