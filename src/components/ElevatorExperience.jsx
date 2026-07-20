@@ -77,6 +77,17 @@ const METAL_MATERIALS = new Set(['Metal', 'DarkerMetal', 'Mirror'])
 
 const LAB_TABS = ['scene', 'render', 'hall', 'motion', 'fx', 'camera']
 
+// Cursor parallax keeps its aim mostly on the elevator while the camera
+// drifts in its own screen plane, so the scene feels dimensional without
+// the objects sliding. Scratch vectors reused per frame to avoid churn.
+const WORLD_UP = new Vector3(0, 1, 0)
+const PARALLAX_LOOK_FOLLOW = 0.82
+const parallaxDir = new Vector3()
+const parallaxRight = new Vector3()
+const parallaxUp = new Vector3()
+const parallaxOffset = new Vector3()
+const parallaxAim = new Vector3()
+
 const TONE_MAPPING_MODES = {
   aces: ToneMappingMode.ACES_FILMIC,
   agx: ToneMappingMode.AGX,
@@ -103,7 +114,9 @@ function HallEnvironment({ intensity, preset }) {
       {/* tall warm wash behind the camera: this is what puts the bronze
           gradient back on the door faces */}
       <Lightformer color="#ffa14f" form="rect" intensity={4.2} position={[9, 4.5, 0]} rotation-y={-Math.PI / 2} scale={[9, 5, 1]} />
-      <Lightformer color="#bcd3ff" form="rect" intensity={0.8} position={[8, 1.4, 0]} rotation-y={-Math.PI / 2} scale={[6, 0.7, 1]} />
+      {/* lower rim strip: warm, not cool, so the near-mirror doors reflect a
+          continuation of the bronze gradient instead of a blue band */}
+      <Lightformer color="#e6b784" form="rect" intensity={0.9} position={[8, 1.4, 0]} rotation-y={-Math.PI / 2} scale={[6, 0.7, 1]} />
     </Environment>
   )
 }
@@ -286,10 +299,13 @@ function getExportableSetup(tuning) {
       modalRevealSeconds: currentTuning.modalRevealSeconds,
       openDelay: currentTuning.openDelay,
       openSeconds: currentTuning.openSeconds,
+      parallaxSmooth: currentTuning.parallaxSmooth,
+      parallaxStrength: currentTuning.parallaxStrength,
       practicalAngle: currentTuning.practicalAngle,
       practicalColor: currentTuning.practicalColor,
       practicalHeight: currentTuning.practicalHeight,
       practicalIntensity: currentTuning.practicalIntensity,
+      practicalSpread: currentTuning.practicalSpread,
       practicalStyle: currentTuning.practicalStyle,
       previewMode: currentTuning.previewMode,
       sequenceSpeed: currentTuning.sequenceSpeed,
@@ -358,6 +374,8 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, onStageR
   const groupRef = useRef()
   const materialBaselinesRef = useRef(new Map())
   const orbitRef = useRef()
+  const pointerRef = useRef({ x: 0, y: 0 })
+  const pointerTargetRef = useRef({ x: 0, y: 0 })
   const sampleElapsedRef = useRef(0)
   const stageReadyFiredRef = useRef(false)
   const targetLookAtRef = useRef(new Vector3())
@@ -540,6 +558,36 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, onStageR
     })
   }, [scene, tuning.environmentIntensity, tuning.floorColor, tuning.materialLift, tuning.metalPolish, tuning.metalRoughness, tuning.wallColor])
 
+  useEffect(() => {
+    // No cursor parallax where there is no cursor, or where the visitor
+    // asked for less motion.
+    if (window.matchMedia('(pointer: coarse)').matches) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const onMove = (event) => {
+      // Negated: the camera leans counter to the cursor so the scene
+      // appears to follow the pointer rather than shift away from it.
+      pointerTargetRef.current = {
+        x: -((event.clientX / window.innerWidth) * 2 - 1),
+        y: (event.clientY / window.innerHeight) * 2 - 1,
+      }
+    }
+
+    const recenter = () => {
+      pointerTargetRef.current = { x: 0, y: 0 }
+    }
+
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('blur', recenter)
+    document.addEventListener('mouseleave', recenter)
+
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('blur', recenter)
+      document.removeEventListener('mouseleave', recenter)
+    }
+  }, [])
+
   useFrame((_, delta) => {
     const camera = cameraRef.current
     if (!camera) return
@@ -613,7 +661,29 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, onStageR
     camera.position.lerp(targetPositionRef.current, 1 - Math.exp(-delta * tuning.cameraSmooth))
     currentLookAtRef.current.lerp(targetLookAtRef.current, 1 - Math.exp(-delta * tuning.cameraSmooth))
     camera.fov = MathUtils.damp(camera.fov, shot.fov, tuning.cameraSmooth, delta)
-    camera.lookAt(currentLookAtRef.current)
+
+    // Cursor parallax: ease the smoothed pointer toward the target, then
+    // strafe the camera in its screen plane while its aim only partly
+    // follows, so near geometry drifts a touch more than far.
+    const parallaxEase = 1 - Math.exp(-delta * tuning.parallaxSmooth)
+    pointerRef.current.x += (pointerTargetRef.current.x - pointerRef.current.x) * parallaxEase
+    pointerRef.current.y += (pointerTargetRef.current.y - pointerRef.current.y) * parallaxEase
+
+    if (tuning.parallaxStrength > 0) {
+      parallaxDir.subVectors(currentLookAtRef.current, camera.position).normalize()
+      parallaxRight.crossVectors(parallaxDir, WORLD_UP).normalize()
+      parallaxUp.crossVectors(parallaxRight, parallaxDir).normalize()
+      parallaxOffset
+        .set(0, 0, 0)
+        .addScaledVector(parallaxRight, pointerRef.current.x * tuning.parallaxStrength)
+        .addScaledVector(parallaxUp, pointerRef.current.y * tuning.parallaxStrength)
+      camera.position.add(parallaxOffset)
+      parallaxAim.copy(currentLookAtRef.current).addScaledVector(parallaxOffset, PARALLAX_LOOK_FOLLOW)
+      camera.lookAt(parallaxAim)
+    } else {
+      camera.lookAt(currentLookAtRef.current)
+    }
+
     camera.updateProjectionMatrix()
 
     mixer.setTime(clipTime)
@@ -1068,6 +1138,21 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           value={tuning.cameraFov}
         />
         <TuningSlider
+          label="Cursor parallax"
+          max={1}
+          min={0}
+          onChange={(value) => updateTuning('parallaxStrength', value)}
+          value={tuning.parallaxStrength}
+        />
+        <TuningSlider
+          label="Parallax ease"
+          max={8}
+          min={0.5}
+          onChange={(value) => updateTuning('parallaxSmooth', value)}
+          step={0.1}
+          value={tuning.parallaxSmooth}
+        />
+        <TuningSlider
           label="Sequence speed"
           max={2}
           min={0.25}
@@ -1231,6 +1316,13 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
             onChange={(value) => updateTuning('practicalHeight', value)}
             step={0.01}
             value={tuning.practicalHeight}
+          />
+          <TuningSlider
+            label="Sconce spread"
+            max={2}
+            min={-1}
+            onChange={(value) => updateTuning('practicalSpread', value)}
+            value={tuning.practicalSpread}
           />
         </div>
 
