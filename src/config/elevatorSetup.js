@@ -54,7 +54,7 @@ export const DEFAULT_TUNING = {
   cyan: 0,
   cabin: 0,
   contactShadow: 0.32,
-  parallaxStrength: 0.02,
+  parallaxStrength: 0.08,
   parallaxSmooth: 1.1,
   sequenceRunId: 0,
   sequenceSpeed: 1,
