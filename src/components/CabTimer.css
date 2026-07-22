@@ -12,6 +12,8 @@
   border-radius: 3px;
   background: var(--void-deep);
   box-shadow: inset 0 0 8px rgb(0 0 0 / 55%);
+  /* Dimmed as a whole: the fixture should register, not compete. */
+  opacity: 0.72;
   transition: opacity 1500ms ease;
 }
 
@@ -43,5 +45,5 @@
 .cab-timer__digit polygon.is-lit,
 .cab-timer__colon circle {
   fill: var(--gold);
-  filter: drop-shadow(0 0 3px rgb(240 200 112 / 70%));
+  filter: drop-shadow(0 0 3px rgb(240 200 112 / 45%));
 }
