@@ -15,8 +15,15 @@
   transition: opacity 1500ms ease;
 }
 
-.cab-timer.is-fading {
+.cab-timer.is-faded {
   opacity: 0;
+}
+
+/* A tab that returns after the whole timeline already elapsed goes dark
+   without animating: replaying the fade on refocus would be theater about
+   nothing. */
+.cab-timer.is-snapped {
+  transition: none;
 }
 
 .cab-timer__digit {

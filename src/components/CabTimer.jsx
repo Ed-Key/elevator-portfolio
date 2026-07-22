@@ -33,19 +33,20 @@ function Digit({ value }) {
 
 export default function CabTimer() {
   const [secondsLeft, setSecondsLeft] = useState(COUNTDOWN_SECONDS)
-  const [fading, setFading] = useState(false)
-  const [done, setDone] = useState(false)
+  const [fade, setFade] = useState(null)
 
   useEffect(() => {
     const startedAt = performance.now()
     let frame
     let holdTimeout
-    let fadeTimeout
 
     // Timestamp math (not interval accumulation) keeps the display honest:
     // a backgrounded tab skips ahead on return, because real seconds passed.
+    // The hold and fade anchor to the same timestamp, so a tab that comes
+    // back after the whole timeline snaps to hidden instead of replaying it.
     const tick = (now) => {
-      const left = Math.max(0, COUNTDOWN_SECONDS - Math.floor((now - startedAt) / 1000))
+      const elapsedMs = now - startedAt
+      const left = Math.max(0, COUNTDOWN_SECONDS - Math.floor(elapsedMs / 1000))
 
       setSecondsLeft(left)
 
@@ -55,10 +56,15 @@ export default function CabTimer() {
         return
       }
 
-      holdTimeout = setTimeout(() => {
-        setFading(true)
-        fadeTimeout = setTimeout(() => setDone(true), FADE_MS)
-      }, HOLD_MS)
+      const overshootMs = elapsedMs - COUNTDOWN_SECONDS * 1000
+
+      if (overshootMs >= HOLD_MS + FADE_MS) {
+        setFade('snap')
+
+        return
+      }
+
+      holdTimeout = setTimeout(() => setFade('ease'), Math.max(0, HOLD_MS - overshootMs))
     }
 
     frame = requestAnimationFrame(tick)
@@ -66,18 +72,17 @@ export default function CabTimer() {
     return () => {
       cancelAnimationFrame(frame)
       clearTimeout(holdTimeout)
-      clearTimeout(fadeTimeout)
     }
   }, [])
-
-  if (done) return null
 
   const minutes = Math.floor(secondsLeft / 60)
   const tens = Math.floor((secondsLeft % 60) / 10)
   const ones = secondsLeft % 10
 
+  // The faded span stays mounted: it holds the header row's height so the
+  // content below never jumps when the display goes dark.
   return (
-    <span aria-hidden="true" className={fading ? 'cab-timer is-fading' : 'cab-timer'}>
+    <span aria-hidden="true" className={fade ? `cab-timer is-faded${fade === 'snap' ? ' is-snapped' : ''}` : 'cab-timer'}>
       <Digit value={minutes} />
       <svg className="cab-timer__colon" viewBox="0 0 8 40">
         <circle cx="4" cy="13" r="2.4" />
