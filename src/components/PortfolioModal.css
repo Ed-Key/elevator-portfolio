@@ -147,7 +147,7 @@
   min-width: clamp(96px, 9vw, 128px);
   padding: 13px 16px 12px;
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: 0;
   color: var(--ink-low);
   background: transparent;
   font: inherit;
@@ -693,7 +693,7 @@
 }
 
 .floor-panel__button:focus-visible {
-  border-radius: 9px;
+  border-radius: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

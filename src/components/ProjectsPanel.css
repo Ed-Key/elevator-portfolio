@@ -474,6 +474,23 @@
   text-transform: uppercase;
 }
 
+/* Quiet status tag where links would sit: private work stays honest
+   without a dead-feeling call to action. */
+.stage-show__private {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 2px;
+  padding: 7px 12px;
+  border: 1px solid rgb(240 200 112 / 28%);
+  border-radius: 2px;
+  color: rgb(240 200 112 / 65%);
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
 .stage-show__visit {
   display: inline-flex;
   gap: 6px;
@@ -744,6 +761,10 @@
 
 .projects-stack .panel-cell {
   display: grid;
+  /* The column must always fill the cell: with a content-sized track, the
+     desktop rule's justify-content: flex-end (vertical there, horizontal
+     here) shoves narrow no-media cells to the right edge. */
+  grid-template-columns: minmax(0, 1fr);
   padding: 0;
   cursor: default;
 }

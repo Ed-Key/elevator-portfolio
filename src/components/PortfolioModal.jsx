@@ -1,5 +1,6 @@
 import gsap from 'gsap'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import CabTimer from './CabTimer'
 import PortfolioBackdrop from './PortfolioBackdrop'
 import { playCue } from './ElevatorSounds'
 import { AboutFloor, ContactFloor, HomeFloor } from './PortfolioFloors'
@@ -194,6 +195,7 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
         <div aria-hidden="true" className="portfolio-modal__vignette" />
         <header className="site-header">
           <span className="site-brand">Edward Kiboma</span>
+          <CabTimer />
         </header>
         <nav aria-label="Floors" className="floor-panel">
           {PORTFOLIO_FLOORS.map((floor) => (

@@ -1,0 +1,54 @@
+/* A cab position indicator repurposed as a countdown: a near black display
+   window with warm amber LED digits. Ghost segments stay faintly visible the
+   way a dark LED shows its off segments. */
+
+.cab-timer {
+  /* Out of flow entirely: the header keeps its natural brand-driven
+     height whether the timer is present, counting, or faded. */
+  position: absolute;
+  top: 50%;
+  right: clamp(22px, 4vw, 56px);
+  transform: translateY(-50%);
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  padding: 5px 8px 4px;
+  border: 1px solid var(--gold-hair);
+  border-radius: 3px;
+  background: var(--void-deep);
+  box-shadow: inset 0 0 8px rgb(0 0 0 / 55%);
+  /* Dimmed as a whole: the fixture should register, not compete. */
+  opacity: 0.58;
+  transition: opacity 1500ms ease;
+}
+
+.cab-timer.is-faded {
+  opacity: 0;
+}
+
+/* A tab that returns after the whole timeline already elapsed goes dark
+   without animating: replaying the fade on refocus would be theater about
+   nothing. */
+.cab-timer.is-snapped {
+  transition: none;
+}
+
+.cab-timer__digit {
+  width: 10px;
+  height: 18px;
+}
+
+.cab-timer__colon {
+  width: 4px;
+  height: 18px;
+}
+
+.cab-timer__digit polygon {
+  fill: rgb(240 200 112 / 10%);
+}
+
+.cab-timer__digit polygon.is-lit,
+.cab-timer__colon circle {
+  fill: var(--gold);
+  filter: drop-shadow(0 0 3px rgb(240 200 112 / 45%));
+}
