@@ -167,15 +167,23 @@ export function ContactFloor() {
       <p className="contact-line" data-reveal>
         Looking for a full-time role. If you’re building something good, email me.
       </p>
-      <ul className="contact-links" data-reveal>
+      <ul className="home-links" data-reveal>
         <li>
           <a href={CONTACT.github.url} rel="noreferrer" target="_blank">
-            GitHub <span aria-hidden="true">↗</span>
+            <GitHubIcon />
+            GitHub
           </a>
         </li>
         <li>
           <a href={CONTACT.linkedin.url} rel="noreferrer" target="_blank">
-            LinkedIn <span aria-hidden="true">↗</span>
+            <LinkedInIcon />
+            LinkedIn
+          </a>
+        </li>
+        <li>
+          <a href={CONTACT.resume.url} rel="noreferrer" target="_blank">
+            <ResumeIcon />
+            Resume
           </a>
         </li>
       </ul>
