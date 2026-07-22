@@ -59,12 +59,23 @@ export default function CabTimer() {
       const overshootMs = elapsedMs - COUNTDOWN_SECONDS * 1000
 
       if (overshootMs >= HOLD_MS + FADE_MS) {
-        setFade('snap')
+        setFade({ mode: 'snap' })
 
         return
       }
 
-      holdTimeout = setTimeout(() => setFade('ease'), Math.max(0, HOLD_MS - overshootMs))
+      // The callback rechecks the clock: a tab suspended during the hold can
+      // fire this long past the deadline, and then it must snap, not fade.
+      // An ease fade gets only the timeline's remaining duration.
+      holdTimeout = setTimeout(() => {
+        const lateMs = performance.now() - startedAt - COUNTDOWN_SECONDS * 1000
+
+        if (lateMs >= HOLD_MS + FADE_MS) {
+          setFade({ mode: 'snap' })
+        } else {
+          setFade({ mode: 'ease', ms: Math.min(FADE_MS, HOLD_MS + FADE_MS - lateMs) })
+        }
+      }, Math.max(0, HOLD_MS - overshootMs))
     }
 
     frame = requestAnimationFrame(tick)
@@ -79,10 +90,14 @@ export default function CabTimer() {
   const tens = Math.floor((secondsLeft % 60) / 10)
   const ones = secondsLeft % 10
 
-  // The faded span stays mounted: it holds the header row's height so the
-  // content below never jumps when the display goes dark.
+  // Absolutely positioned (see CSS), so it never affects the header's size;
+  // it stays mounted after fading to keep the lifecycle a single effect.
   return (
-    <span aria-hidden="true" className={fade ? `cab-timer is-faded${fade === 'snap' ? ' is-snapped' : ''}` : 'cab-timer'}>
+    <span
+      aria-hidden="true"
+      className={fade ? `cab-timer is-faded${fade.mode === 'snap' ? ' is-snapped' : ''}` : 'cab-timer'}
+      style={fade?.mode === 'ease' ? { transitionDuration: `${fade.ms}ms` } : undefined}
+    >
       <Digit value={minutes} />
       <svg className="cab-timer__colon" viewBox="0 0 8 40">
         <circle cx="4" cy="13" r="2.4" />
