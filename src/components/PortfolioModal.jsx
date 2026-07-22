@@ -204,8 +204,6 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
               <section className="floor-section" data-floor={floor.id} key={floor.id}>
                 <div className="site-content__inner">
                   <p className="floor-indicator" data-reveal>
-                    <span className="floor-indicator__num">{floor.number}</span>
-                    <span aria-hidden="true" className="floor-indicator__rule" />
                     <span className="floor-indicator__label">{floor.label}</span>
                   </p>
                   <FloorBody />
