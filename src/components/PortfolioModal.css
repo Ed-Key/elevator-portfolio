@@ -293,8 +293,14 @@
   column-gap: clamp(30px, 5vw, 80px);
 }
 
-.home-links {
+/* The named area only exists in the home grid; on other floors (contact
+   reuses this class for its links) an unscoped grid-area would conjure
+   implicit tracks and wreck the single-column flow. */
+.floor--home .home-links {
   grid-area: links;
+}
+
+.home-links {
   display: flex;
   align-items: center;
   margin: 2px 0 0;
