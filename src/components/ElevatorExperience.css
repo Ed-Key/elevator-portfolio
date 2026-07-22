@@ -10,7 +10,9 @@
   position: fixed;
   left: 22px;
   bottom: 20px;
-  z-index: 20;
+  /* Above the portfolio modal (30): the hum plays under the portfolio, so
+     the mute control has to stay reachable there. */
+  z-index: 35;
   display: flex;
   align-items: center;
   gap: 8px;

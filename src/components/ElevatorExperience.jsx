@@ -5,7 +5,7 @@ import { ToneMappingMode } from 'postprocessing'
 import { Box3, Color, MathUtils, Vector3 } from 'three'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import ElevatorCallButton from './ElevatorCallButton'
-import { getSoundMuted, playCue, primeSounds, setSoundMuted, startHum, stopHum } from './ElevatorSounds'
+import { HUM_PORTFOLIO_VOLUME, getSoundMuted, playCue, primeSounds, setHumLevel, setSoundMuted, startHum, stopHum } from './ElevatorSounds'
 import HallArchitecture from './HallArchitecture'
 import HallDressing from './HallDressing'
 import HallPracticals from './HallPracticals'
@@ -669,7 +669,9 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, onStageR
 
         if (elapsedRef.current >= revealAt) {
           autoRevealFiredRef.current = true
-          stopHum()
+          // The hum survives the reveal as building tone under the
+          // portfolio, just lower than the in-cab level.
+          setHumLevel(HUM_PORTFOLIO_VOLUME, 1.6)
           onRequestModalOpen()
         }
       }
@@ -1778,13 +1780,19 @@ export default function ElevatorExperience({ showTools = false }) {
   const handleStageReady = useCallback(() => setStageReady(true), [])
   const handleModalClosed = useCallback(() => setModalPhase('closed'), [])
 
+  // Side effects stay outside the state updater (StrictMode double-invokes
+  // updaters). Unmuting mid-portfolio brings the building tone back; the
+  // ride's own hum entry is handled by the sequence clock.
   const toggleSound = useCallback(() => {
-    setSoundMutedState((current) => {
-      setSoundMuted(!current)
+    const nextMuted = !soundMuted
 
-      return !current
-    })
-  }, [])
+    setSoundMutedState(nextMuted)
+    setSoundMuted(nextMuted)
+
+    if (!nextMuted && (modalPhase === 'open' || modalPhase === 'opening')) {
+      startHum(HUM_PORTFOLIO_VOLUME)
+    }
+  }, [modalPhase, soundMuted])
 
   useEffect(() => {
     if (!showTools) return

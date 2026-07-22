@@ -6,10 +6,12 @@
 //   cabin-hum.mp3    Pixabay "Elevator ambience" 30947 (Pixabay License)
 // Cues are loudness-matched at the file level; per-cue gains below only set
 // the mix. The first cue always follows the call-button click, so playback
-// never fights the browser's autoplay policy.
+// never fights the browser's autoplay policy. The hum loops: it enters with
+// the cab and stays under the portfolio at a lower level as building tone.
 
 const MUTE_STORAGE_KEY = 'elevator-sound-muted'
-const HUM_VOLUME = 0.22
+export const HUM_CAB_VOLUME = 0.22
+export const HUM_PORTFOLIO_VOLUME = 0.13
 
 const CUES = {
   ding: { gain: 0.8, src: '/media/sfx/arrival-ding.mp3' },
@@ -51,15 +53,16 @@ export function primeSounds() {
   if (!humElement) {
     humElement = new Audio('/media/sfx/cabin-hum.mp3')
     humElement.preload = 'auto'
+    humElement.loop = true
   }
 }
 
-export function playCue(name) {
+export function playCue(name, gain) {
   if (readMuted()) return
 
   const audio = getCueElement(name)
 
-  audio.volume = CUES[name].gain
+  audio.volume = gain ?? CUES[name].gain
   audio.currentTime = 0
   // NotAllowedError only occurs before any user gesture (lab previews on a
   // fresh page); the ride itself always starts from a click.
@@ -85,14 +88,20 @@ function fadeHum(target, seconds, onDone) {
   humFadeFrame = window.requestAnimationFrame(step)
 }
 
-export function startHum() {
+export function startHum(target = HUM_CAB_VOLUME) {
   if (readMuted()) return
 
   primeSounds()
   humElement.volume = 0
   humElement.currentTime = 0
   humElement.play().catch(() => {})
-  fadeHum(HUM_VOLUME, 0.9)
+  fadeHum(target, 0.9)
+}
+
+export function setHumLevel(target, seconds = 1.2) {
+  if (!humElement || humElement.paused) return
+
+  fadeHum(target, seconds)
 }
 
 export function stopHum(seconds = 1.4) {
