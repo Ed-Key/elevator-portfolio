@@ -2,19 +2,24 @@
 // use without attribution:
 //   call-tap.mp3     Mixkit "Light switch tap" (Mixkit Free License), trimmed
 //   door-slide.mp3   AlexanderChe freesound.org/s/363242 (CC0), trimmed slide
+//   door-open.mp3    AlexanderChe freesound.org/s/363242 (CC0), longer cut
+//                    with the mechanical settle, sized to the door travel
 //   arrival-ding.mp3 collierhs_colinlib freesound.org/s/588718 (CC0)
 //   cabin-hum.mp3    Pixabay "Elevator ambience" 30947 (Pixabay License)
-// Cues are loudness-matched at the file level; per-cue gains below only set
-// the mix. The first cue always follows the call-button click, so playback
-// never fights the browser's autoplay policy. The hum loops: it enters with
-// the cab and stays under the portfolio at a lower level as building tone.
+// Cues are loudness-matched at the file level; per-cue gains set the mix and
+// a master volume (tunable from the Lighting Lab) scales everything. The
+// first cue always follows the call-button click, so playback never fights
+// the browser's autoplay policy. The hum loops: it enters with the cab and
+// stays under the portfolio at a lower level as building tone.
 
 const MUTE_STORAGE_KEY = 'elevator-sound-muted'
+export const DEFAULT_MASTER_VOLUME = 0.65
 export const HUM_CAB_VOLUME = 0.22
 export const HUM_PORTFOLIO_VOLUME = 0.13
 
 const CUES = {
   ding: { gain: 0.8, src: '/media/sfx/arrival-ding.mp3' },
+  open: { gain: 0.75, src: '/media/sfx/door-open.mp3' },
   slide: { gain: 0.75, src: '/media/sfx/door-slide.mp3' },
   tap: { gain: 0.9, src: '/media/sfx/call-tap.mp3' },
 }
@@ -22,6 +27,11 @@ const CUES = {
 const elements = new Map()
 let humElement = null
 let humFadeFrame = null
+// The level the hum should sit at right now, before master scaling; 0 means
+// off. Tracked independently of playback so unmuting can restore the hum
+// that a muted ride never started (or that muting paused).
+let humTarget = 0
+let master = DEFAULT_MASTER_VOLUME
 let muted = null
 
 function readMuted() {
@@ -57,12 +67,19 @@ export function primeSounds() {
   }
 }
 
+export function setMasterVolume(value) {
+  master = Math.min(Math.max(value, 0), 1)
+
+  // Retarget a playing hum immediately so the Lab slider audibly tunes it.
+  if (humElement && !humElement.paused) fadeHum(humTarget * master, 0.15)
+}
+
 export function playCue(name, gain) {
   if (readMuted()) return
 
   const audio = getCueElement(name)
 
-  audio.volume = gain ?? CUES[name].gain
+  audio.volume = (gain ?? CUES[name].gain) * master
   audio.currentTime = 0
   // NotAllowedError only occurs before any user gesture (lab previews on a
   // fresh page); the ride itself always starts from a click.
@@ -88,23 +105,37 @@ function fadeHum(target, seconds, onDone) {
   humFadeFrame = window.requestAnimationFrame(step)
 }
 
-export function startHum(target = HUM_CAB_VOLUME) {
-  if (readMuted()) return
-
+function resumeHum(fadeSeconds = 0.9) {
   primeSounds()
   humElement.volume = 0
-  humElement.currentTime = 0
-  humElement.play().catch(() => {})
-  fadeHum(target, 0.9)
+
+  if (humElement.paused) {
+    humElement.currentTime = 0
+    humElement.play().catch(() => {})
+  }
+
+  fadeHum(humTarget * master, fadeSeconds)
+}
+
+export function startHum(target = HUM_CAB_VOLUME) {
+  humTarget = target
+
+  if (readMuted()) return
+
+  resumeHum()
 }
 
 export function setHumLevel(target, seconds = 1.2) {
-  if (!humElement || humElement.paused) return
+  humTarget = target
 
-  fadeHum(target, seconds)
+  if (readMuted() || !humElement || humElement.paused) return
+
+  fadeHum(target * master, seconds)
 }
 
 export function stopHum(seconds = 1.4) {
+  humTarget = 0
+
   if (!humElement || humElement.paused) return
 
   fadeHum(0, seconds, () => {
@@ -119,7 +150,22 @@ export function getSoundMuted() {
 export function setSoundMuted(next) {
   muted = next
 
-  if (next) stopHum(0.2)
+  if (next) {
+    // Silence everything in flight, not just the hum: a door slide runs
+    // almost two seconds and must not outlive the mute press.
+    elements.forEach((audio) => {
+      audio.pause()
+      audio.currentTime = 0
+    })
+
+    if (humElement && !humElement.paused) {
+      fadeHum(0, 0.2, () => humElement.pause())
+    }
+  } else if (humTarget > 0) {
+    // A ride that crossed its hum mark while muted never started the hum;
+    // bring it back at whatever level the sequence last asked for.
+    resumeHum()
+  }
 
   try {
     window.localStorage.setItem(MUTE_STORAGE_KEY, String(next))

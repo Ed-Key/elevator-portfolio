@@ -58,6 +58,7 @@ export const DEFAULT_TUNING = {
   parallaxSmooth: 1.1,
   sequenceRunId: 0,
   sequenceSpeed: 1,
+  soundMaster: 0.65,
   cameraSmooth: 4.2,
   cameraFov: 52,
   doorOpen: 0,
