@@ -72,7 +72,7 @@ After (no italics):
 
 | Project | New blurb |
 |---|---|
-| PageAura | My public bookshelf and the EPUB reader behind it. Anyone can upload books to build a shelf of their own, with audio playback for when you'd rather listen. |
+| PageAura | My public bookshelf and the EPUB reader behind it. Upload books to build your own shelf, or just listen. |
 | Showdown Copilot | An advisor that suggests moves during live Pokémon Showdown battles, built on Monte Carlo tree search in Rust. |
 | Daily Bread | A YouVersion companion that puts the verse of the day in every new tab. Study notes and prayer are one click away. |
 | Avirem | A marketplace where patients find and book aesthetic-medicine providers. Payments run on Stripe Connect. |

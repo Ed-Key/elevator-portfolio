@@ -50,7 +50,7 @@ export const PROJECTS = [
   {
     id: 'pageaura',
     name: 'PageAura',
-    blurb: 'My public bookshelf and the EPUB reader behind it. Anyone can upload books to build a shelf of their own, with audio playback for when you’d rather listen.',
+    blurb: 'My public bookshelf and the EPUB reader behind it. Upload books to build your own shelf, or just listen.',
     year: '2026',
     status: 'live',
     tech: [TECH.react, TECH.threejs, TECH.supabase, TECH.claude],
