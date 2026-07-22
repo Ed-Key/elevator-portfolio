@@ -3,11 +3,16 @@
    way a dark LED shows its off segments. */
 
 .cab-timer {
+  /* Out of flow entirely: the header keeps its natural brand-driven
+     height whether the timer is present, counting, or faded. */
+  position: absolute;
+  top: 50%;
+  right: clamp(22px, 4vw, 56px);
+  transform: translateY(-50%);
   display: inline-flex;
   gap: 3px;
   align-items: center;
-  align-self: center;
-  padding: 6px 9px 5px;
+  padding: 5px 8px 4px;
   border: 1px solid var(--gold-hair);
   border-radius: 3px;
   background: var(--void-deep);
@@ -29,13 +34,13 @@
 }
 
 .cab-timer__digit {
-  width: 11px;
-  height: 20px;
+  width: 10px;
+  height: 18px;
 }
 
 .cab-timer__colon {
   width: 4px;
-  height: 20px;
+  height: 18px;
 }
 
 .cab-timer__digit polygon {
