@@ -82,12 +82,24 @@ export function playCue(name, gain, matchSeconds) {
 
   // matchSeconds pins the cue's length to an animation (the door travel):
   // pitch-preserving rate change, so retuning door timings in the Lab keeps
-  // sound and motion in lockstep without re-cutting files.
-  if (matchSeconds > 0 && Number.isFinite(audio.duration) && audio.duration > 0) {
+  // sound and motion in lockstep without re-cutting files. The 0.5-4x clamp
+  // is a deliberate guardrail: absurd Lab extremes get a sane cue instead
+  // of chipmunk or tape-crawl audio.
+  const applyRate = () => {
     audio.playbackRate = Math.min(Math.max(audio.duration / matchSeconds, 0.5), 4)
     audio.preservesPitch = true
+  }
+
+  if (matchSeconds > 0 && Number.isFinite(audio.duration) && audio.duration > 0) {
+    applyRate()
   } else {
     audio.playbackRate = 1
+
+    // Cold cache: metadata may not have arrived by the first cue. Correct
+    // the rate as soon as the duration is known instead of never.
+    if (matchSeconds > 0) {
+      audio.addEventListener('loadedmetadata', applyRate, { once: true })
+    }
   }
 
   audio.volume = (gain ?? CUES[name].gain) * master
