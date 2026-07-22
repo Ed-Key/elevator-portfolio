@@ -75,10 +75,20 @@ export function setMasterVolume(value) {
   if (humElement && !humElement.paused) fadeHum(humTarget * master, 0.15)
 }
 
-export function playCue(name, gain) {
+export function playCue(name, gain, matchSeconds) {
   if (readMuted()) return
 
   const audio = getCueElement(name)
+
+  // matchSeconds pins the cue's length to an animation (the door travel):
+  // pitch-preserving rate change, so retuning door timings in the Lab keeps
+  // sound and motion in lockstep without re-cutting files.
+  if (matchSeconds > 0 && Number.isFinite(audio.duration) && audio.duration > 0) {
+    audio.playbackRate = Math.min(Math.max(audio.duration / matchSeconds, 0.5), 4)
+    audio.preservesPitch = true
+  } else {
+    audio.playbackRate = 1
+  }
 
   audio.volume = (gain ?? CUES[name].gain) * master
   audio.currentTime = 0

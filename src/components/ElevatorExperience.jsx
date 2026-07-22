@@ -657,21 +657,23 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, onStageR
       elapsedRef.current = Math.min(elapsedRef.current + delta * tuning.sequenceSpeed, timing.closeEnd)
 
       // The ride's diegetic cues, keyed to the same clock as the camera and
-      // doors: ding just before the doors part, a long slide for the full
-      // door-open travel, a shorter one for the close, cabin ambience while
-      // inside.
+      // doors: ding just before the doors part, cabin ambience while inside,
+      // and door slides rate-matched to the exact travel time (openSeconds /
+      // closeSeconds, corrected for sequenceSpeed) so sound and motion stop
+      // together.
+      const speed = tuning.sequenceSpeed || 1
       const soundCues = [
-        ['ding', Math.max(timing.openStart - 0.2, 0.12), 'ding'],
-        ['slideOpen', timing.openStart, 'open'],
-        ['humIn', timing.enterStart, null],
-        ['slideClose', timing.closeStart, 'slide'],
+        ['ding', Math.max(timing.openStart - 0.2, 0.12), 'ding', null],
+        ['slideOpen', timing.openStart, 'open', tuning.openSeconds / speed],
+        ['humIn', timing.enterStart, null, null],
+        ['slideClose', timing.closeStart, 'slide', tuning.closeSeconds / speed],
       ]
 
-      for (const [cue, at, sound] of soundCues) {
+      for (const [cue, at, sound, matchSeconds] of soundCues) {
         if (elapsedRef.current >= at && !soundCuesFiredRef.current[cue]) {
           soundCuesFiredRef.current[cue] = true
 
-          if (sound) playCue(sound)
+          if (sound) playCue(sound, undefined, matchSeconds)
           else startHum()
         }
       }
