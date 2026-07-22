@@ -1,6 +1,7 @@
 import gsap from 'gsap'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import PortfolioBackdrop from './PortfolioBackdrop'
+import { playCue } from './ElevatorSounds'
 import { AboutFloor, ContactFloor, HomeFloor } from './PortfolioFloors'
 import ProjectsPanel from './ProjectsPanel'
 import { PORTFOLIO_FLOORS } from '../config/portfolioContent'
@@ -18,6 +19,7 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
   const scrollerRef = useRef(null)
   const progressRef = useRef({ value: 0 })
   const [activeFloorId, setActiveFloorId] = useState('home')
+  const lastFloorRef = useRef('home')
   const reducedMotion = useMemo(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false, [])
   const activeFloor = PORTFOLIO_FLOORS.find((floor) => floor.id === activeFloorId) ?? PORTFOLIO_FLOORS[0]
   // Observers must survive phase churn (opening → open → closing) — keying
@@ -82,7 +84,18 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveFloorId(entry.target.dataset.floor)
+          if (!entry.isIntersecting) return
+
+          const next = entry.target.dataset.floor
+
+          // Reaching the ground floor earns the arrival bell, once per
+          // genuine arrival (transitions only, never re-fires in place).
+          // The ref, not the state updater, carries the previous floor:
+          // side effects inside updaters double-fire under StrictMode.
+          if (next === 'contact' && lastFloorRef.current !== 'contact') playCue('ding', 0.4)
+
+          lastFloorRef.current = next
+          setActiveFloorId(next)
         })
       },
       { root: scroller, rootMargin: '-45% 0px -45% 0px', threshold: 0 },
@@ -153,6 +166,7 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
     (floorId) => {
       const section = scrollerRef.current?.querySelector(`[data-floor="${floorId}"]`)
 
+      playCue('tap', 0.5)
       section?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' })
     },
     [reducedMotion],
@@ -204,8 +218,6 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
               <section className="floor-section" data-floor={floor.id} key={floor.id}>
                 <div className="site-content__inner">
                   <p className="floor-indicator" data-reveal>
-                    <span className="floor-indicator__num">{floor.number}</span>
-                    <span aria-hidden="true" className="floor-indicator__rule" />
                     <span className="floor-indicator__label">{floor.label}</span>
                   </p>
                   <FloorBody />

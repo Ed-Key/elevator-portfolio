@@ -5,6 +5,18 @@ import { ToneMappingMode } from 'postprocessing'
 import { Box3, Color, MathUtils, Vector3 } from 'three'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import ElevatorCallButton from './ElevatorCallButton'
+import {
+  DEFAULT_MASTER_VOLUME,
+  HUM_PORTFOLIO_VOLUME,
+  getSoundMuted,
+  playCue,
+  primeSounds,
+  setHumLevel,
+  setMasterVolume,
+  setSoundMuted,
+  startHum,
+  stopHum,
+} from './ElevatorSounds'
 import HallArchitecture from './HallArchitecture'
 import HallDressing from './HallDressing'
 import HallPracticals from './HallPracticals'
@@ -309,6 +321,7 @@ function getExportableSetup(tuning) {
       practicalStyle: currentTuning.practicalStyle,
       previewMode: currentTuning.previewMode,
       sequenceSpeed: currentTuning.sequenceSpeed,
+      soundMaster: currentTuning.soundMaster,
       toneMapping: currentTuning.toneMapping,
       turnSeconds: currentTuning.turnSeconds,
       vignetteDarkness: currentTuning.vignetteDarkness,
@@ -385,14 +398,28 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, onStageR
   const [started, setStarted] = useState(false)
   const startedRef = useRef(false)
 
+  const soundCuesFiredRef = useRef({})
+
   const startSequence = useCallback(() => {
     if (startedRef.current) return
 
     startedRef.current = true
     autoRevealFiredRef.current = false
     elapsedRef.current = 0
+    soundCuesFiredRef.current = {}
+    playCue('tap')
     setStarted(true)
   }, [])
+
+  useEffect(() => {
+    primeSounds()
+
+    return () => stopHum(0.2)
+  }, [])
+
+  useEffect(() => {
+    setMasterVolume(tuning.soundMaster ?? DEFAULT_MASTER_VOLUME)
+  }, [tuning.soundMaster])
 
   useEffect(() => {
     if (tuning.previewMode !== 'sequence' || tuning.sequenceRunId === 0) return
@@ -400,6 +427,8 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, onStageR
     startedRef.current = true
     autoRevealFiredRef.current = false
     elapsedRef.current = 0
+    soundCuesFiredRef.current = {}
+    playCue('tap')
 
     const frameId = window.requestAnimationFrame(() => {
       setStarted(true)
@@ -627,6 +656,28 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, onStageR
 
       elapsedRef.current = Math.min(elapsedRef.current + delta * tuning.sequenceSpeed, timing.closeEnd)
 
+      // The ride's diegetic cues, keyed to the same clock as the camera and
+      // doors: ding just before the doors part, cabin ambience while inside,
+      // and door slides rate-matched to the exact travel time (openSeconds /
+      // closeSeconds, corrected for sequenceSpeed) so sound and motion stop
+      // together.
+      const speed = tuning.sequenceSpeed || 1
+      const soundCues = [
+        ['ding', Math.max(timing.openStart - 0.2, 0.12), 'ding', null],
+        ['slideOpen', timing.openStart, 'open', tuning.openSeconds / speed],
+        ['humIn', timing.enterStart, null, null],
+        ['slideClose', timing.closeStart, 'slide', tuning.closeSeconds / speed],
+      ]
+
+      for (const [cue, at, sound, matchSeconds] of soundCues) {
+        if (elapsedRef.current >= at && !soundCuesFiredRef.current[cue]) {
+          soundCuesFiredRef.current[cue] = true
+
+          if (sound) playCue(sound, undefined, matchSeconds)
+          else startHum()
+        }
+      }
+
       if (!autoRevealFiredRef.current) {
         // Clamp to the sequence end: elapsed stops accruing at closeEnd, so an
         // unclamped threshold beyond it would leave the portfolio unreachable.
@@ -637,6 +688,9 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, onStageR
 
         if (elapsedRef.current >= revealAt) {
           autoRevealFiredRef.current = true
+          // The hum survives the reveal as building tone under the
+          // portfolio, just lower than the in-cab level.
+          setHumLevel(HUM_PORTFOLIO_VOLUME, 1.6)
           onRequestModalOpen()
         }
       }
@@ -1159,6 +1213,14 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           onChange={(value) => updateTuning('sequenceSpeed', value)}
           step={0.05}
           value={tuning.sequenceSpeed}
+        />
+        <TuningSlider
+          label="Sound volume"
+          max={1}
+          min={0}
+          onChange={(value) => updateTuning('soundMaster', value)}
+          step={0.05}
+          value={tuning.soundMaster ?? 0.65}
         />
         <TuningSlider
           label="Open delay"
@@ -1726,6 +1788,7 @@ export default function ElevatorExperience({ showTools = false }) {
   }))
   const [cameraJumpRequest, setCameraJumpRequest] = useState(null)
   const [modalPhase, setModalPhase] = useState('closed')
+  const [soundMuted, setSoundMutedState] = useState(getSoundMuted)
   const [stageReady, setStageReady] = useState(false)
   // Tuning storage is a Lab-only concern: without it gated on showTools,
   // every visitor pins the deploy-time defaults forever, and Lab preview
@@ -1743,6 +1806,16 @@ export default function ElevatorExperience({ showTools = false }) {
   const handleModalOpened = useCallback(() => setModalPhase('open'), [])
   const handleStageReady = useCallback(() => setStageReady(true), [])
   const handleModalClosed = useCallback(() => setModalPhase('closed'), [])
+
+  // Side effects stay outside the state updater (StrictMode double-invokes
+  // updaters). The sound module tracks the hum level the sequence last asked
+  // for, so unmuting at any point (mid-ride or mid-portfolio) resumes it.
+  const toggleSound = useCallback(() => {
+    const nextMuted = !soundMuted
+
+    setSoundMutedState(nextMuted)
+    setSoundMuted(nextMuted)
+  }, [soundMuted])
 
   useEffect(() => {
     if (!showTools) return
@@ -1798,6 +1871,10 @@ export default function ElevatorExperience({ showTools = false }) {
           <ToneMapping mode={TONE_MAPPING_MODES[tuning.toneMapping] ?? ToneMappingMode.AGX} />
         </EffectComposer>
       </Canvas>
+      <button aria-pressed={!soundMuted} className="sound-toggle" onClick={toggleSound} type="button">
+        <span aria-hidden="true" className={soundMuted ? 'sound-toggle__lamp' : 'sound-toggle__lamp is-on'} />
+        {soundMuted ? 'Sound off' : 'Sound on'}
+      </button>
       <PortfolioModalLoader
         onClosed={handleModalClosed}
         onOpened={handleModalOpened}

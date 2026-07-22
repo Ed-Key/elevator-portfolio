@@ -50,10 +50,8 @@ export function HomeFloor() {
         Edward <span className="home-name__accent">Kiboma</span>
       </h1>
       <p className="home-lede" data-reveal>
-        Based in <em>New York / New Jersey</em>, I build products end to end — React frontends,
-        cloud backends, and AI features that hold up in production. It started with ed-tech at
-        Tufts, and the goal hasn’t changed: building products that bring <em>real value</em> to the
-        people using them.
+        I build web products end to end from the <em>New York / New Jersey</em> area. I started in
+        ed-tech at Tufts, and shipping things people actually use is still the whole point.
       </p>
       <ul className="home-links" data-reveal>
         <li>
@@ -167,17 +165,25 @@ export function ContactFloor() {
         {CONTACT.email}
       </a>
       <p className="contact-line" data-reveal>
-        Open to full-time roles and <em>interesting collaborations</em>.
+        Looking for a full-time role. If you’re building something good, email me.
       </p>
-      <ul className="contact-links" data-reveal>
+      <ul className="home-links" data-reveal>
         <li>
           <a href={CONTACT.github.url} rel="noreferrer" target="_blank">
-            GitHub <span aria-hidden="true">↗</span>
+            <GitHubIcon />
+            GitHub
           </a>
         </li>
         <li>
           <a href={CONTACT.linkedin.url} rel="noreferrer" target="_blank">
-            LinkedIn <span aria-hidden="true">↗</span>
+            <LinkedInIcon />
+            LinkedIn
+          </a>
+        </li>
+        <li>
+          <a href={CONTACT.resume.url} rel="noreferrer" target="_blank">
+            <ResumeIcon />
+            Resume
           </a>
         </li>
       </ul>

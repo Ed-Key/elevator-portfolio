@@ -50,7 +50,7 @@ export const PROJECTS = [
   {
     id: 'pageaura',
     name: 'PageAura',
-    blurb: 'Public bookshelf and EPUB reader with mood-reactive ambience, personal libraries, progress, and audio companions.',
+    blurb: 'My public bookshelf and the EPUB reader behind it. Upload books to build your own shelf, or just listen.',
     year: '2026',
     status: 'live',
     tech: [TECH.react, TECH.threejs, TECH.supabase, TECH.claude],
@@ -71,7 +71,7 @@ export const PROJECTS = [
   {
     id: 'showdown-copilot',
     name: 'Showdown Copilot',
-    blurb: 'Pokemon Showdown advisor: TypeScript overlay, Python belief proxy, Rust MCTS, and neural priors for human decisions.',
+    blurb: 'An advisor that suggests moves during live Pokémon Showdown battles, built on Monte Carlo tree search in Rust.',
     year: '2026',
     status: 'live',
     tech: [TECH.rust, TECH.python, TECH.typescript],
@@ -93,7 +93,7 @@ export const PROJECTS = [
   {
     id: 'daily-bread',
     name: 'Daily Bread',
-    blurb: 'YouVersion companion that puts the verse of the day in every new tab, with study notes and prayer one click away.',
+    blurb: 'A YouVersion companion that puts the verse of the day in every new tab. Study notes and prayer are one click away.',
     year: '2026',
     status: 'live',
     tech: [TECH.typescript, TECH.react, TECH.firebase, TECH.claude],
@@ -108,7 +108,7 @@ export const PROJECTS = [
   {
     id: 'avirem',
     name: 'Avirem',
-    blurb: 'Aesthetic-medicine marketplace for onboarding, provider review, booking, and Stripe Connect payouts.',
+    blurb: 'A marketplace where patients find and book aesthetic-medicine providers. Payments run on Stripe Connect.',
     year: '2026',
     status: 'live',
     tech: [TECH.nextjs, TECH.supabase, TECH.stripe],
@@ -118,7 +118,7 @@ export const PROJECTS = [
   {
     id: 'elevator',
     name: 'This Elevator',
-    blurb: 'Interactive 3D elevator portfolio with R3F, GSAP timing, and a golden shader modal.',
+    blurb: 'This site. A 3D elevator ride built with React Three Fiber, with a shader-driven reveal into the portfolio.',
     year: '2026',
     status: 'live',
     tech: [TECH.r3f, TECH.gsap, TECH.glsl],
@@ -128,7 +128,7 @@ export const PROJECTS = [
   {
     id: 'potencia',
     name: 'Potencia Tutor Chatbot',
-    blurb: 'WhatsApp RAG assistant that answers volunteer tutors from program docs during live support.',
+    blurb: 'A WhatsApp assistant that answers volunteer tutors’ questions from program documents during live sessions.',
     year: '2025',
     status: 'private',
     tech: [TECH.python, TECH.langchain, TECH.gcp],
@@ -138,7 +138,7 @@ export const PROJECTS = [
   {
     id: 'water-sim',
     name: 'Water Purification Sim',
-    blurb: 'Unity simulator teaching water-treatment systems through interactive 3D scenarios.',
+    blurb: 'A Unity simulator that teaches water-treatment systems, used by two hundred engineering students at Tufts.',
     year: '2025',
     status: 'private',
     tech: [TECH.unity, TECH.csharp],
@@ -148,7 +148,7 @@ export const PROJECTS = [
   {
     id: 'ace',
     name: 'ACE++ Website',
-    blurb: 'First shipped website: a Tufts CS access program site that reached 500+ students at launch.',
+    blurb: 'The first website I shipped: a CS access program site at Tufts that reached 500+ students at launch.',
     year: '2023',
     status: 'live',
     tech: [TECH.react, TECH.figma],
@@ -193,8 +193,8 @@ export const CAPABILITIES = [
 ]
 
 export const BIO = [
-  'Computer science at Tufts School of Engineering, class of ’25. Since then I’ve shipped agent-evaluation infrastructure at Matrices.ai, built social-platform integrations at GoDaddy, and put a 3D simulator in front of two hundred engineering students.',
-  'I like software that feels considered — interfaces with motion and weight, tools that respect the person using them.',
+  'Computer science at Tufts School of Engineering, class of ’25. I’ve built agent-evaluation infrastructure at Matrices.ai and interned at GoDaddy on social-platform integrations. Along the way I put a 3D simulator in front of two hundred engineering students.',
+  'I care a lot about how interfaces feel. Most of my side projects start there.',
 ]
 
 export const PORTFOLIO_FLOORS = [
