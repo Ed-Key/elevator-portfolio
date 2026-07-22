@@ -5,7 +5,18 @@ import { ToneMappingMode } from 'postprocessing'
 import { Box3, Color, MathUtils, Vector3 } from 'three'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import ElevatorCallButton from './ElevatorCallButton'
-import { HUM_PORTFOLIO_VOLUME, getSoundMuted, playCue, primeSounds, setHumLevel, setSoundMuted, startHum, stopHum } from './ElevatorSounds'
+import {
+  DEFAULT_MASTER_VOLUME,
+  HUM_PORTFOLIO_VOLUME,
+  getSoundMuted,
+  playCue,
+  primeSounds,
+  setHumLevel,
+  setMasterVolume,
+  setSoundMuted,
+  startHum,
+  stopHum,
+} from './ElevatorSounds'
 import HallArchitecture from './HallArchitecture'
 import HallDressing from './HallDressing'
 import HallPracticals from './HallPracticals'
@@ -310,6 +321,7 @@ function getExportableSetup(tuning) {
       practicalStyle: currentTuning.practicalStyle,
       previewMode: currentTuning.previewMode,
       sequenceSpeed: currentTuning.sequenceSpeed,
+      soundMaster: currentTuning.soundMaster,
       toneMapping: currentTuning.toneMapping,
       turnSeconds: currentTuning.turnSeconds,
       vignetteDarkness: currentTuning.vignetteDarkness,
@@ -404,6 +416,10 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, onStageR
 
     return () => stopHum(0.2)
   }, [])
+
+  useEffect(() => {
+    setMasterVolume(tuning.soundMaster ?? DEFAULT_MASTER_VOLUME)
+  }, [tuning.soundMaster])
 
   useEffect(() => {
     if (tuning.previewMode !== 'sequence' || tuning.sequenceRunId === 0) return
@@ -641,21 +657,24 @@ function ElevatorAssetSequence({ cameraJumpRequest, onRequestModalOpen, onStageR
       elapsedRef.current = Math.min(elapsedRef.current + delta * tuning.sequenceSpeed, timing.closeEnd)
 
       // The ride's diegetic cues, keyed to the same clock as the camera and
-      // doors: ding just before the doors part, one slide sound for both
-      // door directions, cabin ambience while inside.
+      // doors: ding just before the doors part, cabin ambience while inside,
+      // and door slides rate-matched to the exact travel time (openSeconds /
+      // closeSeconds, corrected for sequenceSpeed) so sound and motion stop
+      // together.
+      const speed = tuning.sequenceSpeed || 1
       const soundCues = [
-        ['ding', Math.max(timing.openStart - 0.2, 0.12)],
-        ['slideOpen', timing.openStart],
-        ['humIn', timing.enterStart],
-        ['slideClose', timing.closeStart],
+        ['ding', Math.max(timing.openStart - 0.2, 0.12), 'ding', null],
+        ['slideOpen', timing.openStart, 'open', tuning.openSeconds / speed],
+        ['humIn', timing.enterStart, null, null],
+        ['slideClose', timing.closeStart, 'slide', tuning.closeSeconds / speed],
       ]
 
-      for (const [cue, at] of soundCues) {
+      for (const [cue, at, sound, matchSeconds] of soundCues) {
         if (elapsedRef.current >= at && !soundCuesFiredRef.current[cue]) {
           soundCuesFiredRef.current[cue] = true
 
-          if (cue === 'humIn') startHum()
-          else playCue(cue === 'ding' ? 'ding' : 'slide')
+          if (sound) playCue(sound, undefined, matchSeconds)
+          else startHum()
         }
       }
 
@@ -1194,6 +1213,14 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
           onChange={(value) => updateTuning('sequenceSpeed', value)}
           step={0.05}
           value={tuning.sequenceSpeed}
+        />
+        <TuningSlider
+          label="Sound volume"
+          max={1}
+          min={0}
+          onChange={(value) => updateTuning('soundMaster', value)}
+          step={0.05}
+          value={tuning.soundMaster ?? 0.65}
         />
         <TuningSlider
           label="Open delay"
@@ -1781,18 +1808,14 @@ export default function ElevatorExperience({ showTools = false }) {
   const handleModalClosed = useCallback(() => setModalPhase('closed'), [])
 
   // Side effects stay outside the state updater (StrictMode double-invokes
-  // updaters). Unmuting mid-portfolio brings the building tone back; the
-  // ride's own hum entry is handled by the sequence clock.
+  // updaters). The sound module tracks the hum level the sequence last asked
+  // for, so unmuting at any point (mid-ride or mid-portfolio) resumes it.
   const toggleSound = useCallback(() => {
     const nextMuted = !soundMuted
 
     setSoundMutedState(nextMuted)
     setSoundMuted(nextMuted)
-
-    if (!nextMuted && (modalPhase === 'open' || modalPhase === 'opening')) {
-      startHum(HUM_PORTFOLIO_VOLUME)
-    }
-  }, [modalPhase, soundMuted])
+  }, [soundMuted])
 
   useEffect(() => {
     if (!showTools) return

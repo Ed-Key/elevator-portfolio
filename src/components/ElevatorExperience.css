@@ -49,6 +49,14 @@
   box-shadow: 0 0 6px rgb(240 200 112 / 70%);
 }
 
+/* Below 880px the portfolio's floor nav becomes a bottom bar; lift the
+   toggle above it so it never covers the first floor button. */
+@media (max-width: 880px) {
+  .sound-toggle {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+}
+
 .portfolio-modal-fallback {
   position: fixed;
   left: 50%;
