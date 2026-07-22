@@ -6,6 +6,49 @@
   background: #11141b;
 }
 
+.sound-toggle {
+  position: fixed;
+  left: 22px;
+  bottom: 20px;
+  /* Above the portfolio modal (30): the hum plays under the portfolio, so
+     the mute control has to stay reachable there. */
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgb(217 179 106 / 28%);
+  border-radius: 2px;
+  background: rgb(13 10 6 / 55%);
+  color: rgb(217 179 106 / 85%);
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: border-color 200ms ease, color 200ms ease;
+}
+
+.sound-toggle:hover,
+.sound-toggle:focus-visible {
+  border-color: rgb(240 200 112 / 60%);
+  color: #f0c870;
+}
+
+.sound-toggle__lamp {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgb(217 179 106 / 18%);
+  border: 1px solid rgb(217 179 106 / 40%);
+}
+
+.sound-toggle__lamp.is-on {
+  background: #f0c870;
+  box-shadow: 0 0 6px rgb(240 200 112 / 70%);
+}
+
 .portfolio-modal-fallback {
   position: fixed;
   left: 50%;
