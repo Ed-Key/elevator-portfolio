@@ -744,6 +744,10 @@
 
 .projects-stack .panel-cell {
   display: grid;
+  /* The column must always fill the cell: with a content-sized track, the
+     desktop rule's justify-content: flex-end (vertical there, horizontal
+     here) shoves narrow no-media cells to the right edge. */
+  grid-template-columns: minmax(0, 1fr);
   padding: 0;
   cursor: default;
 }
