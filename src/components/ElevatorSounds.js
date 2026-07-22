@@ -1,9 +1,10 @@
 // Sound cues for the elevator ride. All sources are licensed for commercial
 // use without attribution:
 //   call-tap.mp3     Mixkit "Light switch tap" (Mixkit Free License), trimmed
-//   door-slide.mp3   AlexanderChe freesound.org/s/363242 (CC0), trimmed slide
-//   door-open.mp3    AlexanderChe freesound.org/s/363242 (CC0), longer cut
-//                    with the mechanical settle, sized to the door travel
+//   door-slide.mp3   ryanharding95 freesound.org/s/272435 (CC0), the second
+//                    slide into the thud, cut for the door close
+//   door-open.mp3    ryanharding95 freesound.org/s/272435 (CC0), the full
+//                    slide-pause-slide-thud event, sized to the door travel
 //   arrival-ding.mp3 collierhs_colinlib freesound.org/s/588718 (CC0)
 //   cabin-hum.mp3    Pixabay "Elevator ambience" 30947 (Pixabay License)
 // Cues are loudness-matched at the file level; per-cue gains set the mix and
