@@ -234,6 +234,8 @@ function ProjectStage({ backdropped, project, reducedMotion }) {
               </a>
             ))}
           </span>
+        ) : project.status === 'private' ? (
+          <span className="stage-show__private">Private build</span>
         ) : null}
       </div>
     </div>
@@ -388,6 +390,8 @@ export default function ProjectsPanel() {
                           </a>
                         ))}
                       </span>
+                    ) : project.status === 'private' ? (
+                      <span className="stage-show__private">Private build</span>
                     ) : null}
                   </div>
                 </div>

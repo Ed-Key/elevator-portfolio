@@ -54,7 +54,7 @@ export const PROJECTS = [
     year: '2026',
     status: 'live',
     tech: [TECH.react, TECH.threejs, TECH.supabase, TECH.claude],
-    links: [{ label: 'Demo', url: 'https://pageaura.app/' }],
+    links: [{ label: 'Visit', url: 'https://pageaura.app/' }],
     media: {
       video: '/media/projects/pageaura-demo.mp4',
       poster: '/media/projects/pageaura-shelf.png',
@@ -97,7 +97,7 @@ export const PROJECTS = [
     year: '2026',
     status: 'live',
     tech: [TECH.typescript, TECH.react, TECH.firebase, TECH.claude],
-    links: [{ label: 'Landing', url: 'https://daily-bread-landing.web.app' }],
+    links: [{ label: 'Visit', url: 'https://daily-bread-landing.web.app' }],
     media: {
       video: null,
       poster: '/media/projects/daily-bread-landing.png',
@@ -112,7 +112,7 @@ export const PROJECTS = [
     year: '2026',
     status: 'live',
     tech: [TECH.nextjs, TECH.supabase, TECH.stripe],
-    links: [{ label: 'Open', url: 'https://www.joinavirem.com/' }],
+    links: [{ label: 'Visit', url: 'https://www.joinavirem.com/' }],
     media: { video: null, poster: '/media/projects/avirem-preview.png', logo: null, model: null },
   },
   {
@@ -153,7 +153,7 @@ export const PROJECTS = [
     status: 'live',
     tech: [TECH.react, TECH.figma],
     links: [
-      { label: 'Site', url: 'https://ed-key.github.io/ACE/' },
+      { label: 'Visit', url: 'https://ed-key.github.io/ACE/' },
       { label: 'Code', url: 'https://github.com/Ed-Key/ACE' },
     ],
     media: { video: null, poster: '/media/projects/ace-preview.png', logo: null, model: null },

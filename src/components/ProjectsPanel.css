@@ -474,6 +474,23 @@
   text-transform: uppercase;
 }
 
+/* Quiet status tag where links would sit: private work stays honest
+   without a dead-feeling call to action. */
+.stage-show__private {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 2px;
+  padding: 7px 12px;
+  border: 1px solid rgb(240 200 112 / 28%);
+  border-radius: 2px;
+  color: rgb(240 200 112 / 65%);
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
 .stage-show__visit {
   display: inline-flex;
   gap: 6px;
