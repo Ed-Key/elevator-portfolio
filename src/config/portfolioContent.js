@@ -106,14 +106,23 @@ export const PROJECTS = [
     },
   },
   {
-    id: 'avirem',
-    name: 'Avirem',
-    blurb: 'A marketplace where patients find and book aesthetic-medicine providers. Payments run on Stripe Connect.',
+    id: 'kemuma-studio',
+    name: 'Kemuma Studio',
+    blurb: "The tool that runs my family's Etsy shop. Photograph a carving on a phone and it drafts the listing, prices it, and generates the product photography.",
     year: '2026',
     status: 'live',
-    tech: [TECH.nextjs, TECH.supabase, TECH.stripe],
-    links: [{ label: 'Visit', url: 'https://www.joinavirem.com/' }],
-    media: { video: null, poster: '/media/projects/avirem-preview.png', logo: null, model: null },
+    tech: [TECH.nextjs, TECH.typescript, TECH.claude],
+    links: [
+      { label: 'Code', url: 'https://github.com/Ed-Key/kemuma-studio' },
+      { label: 'Shop', url: 'https://www.etsy.com/shop/KemumaCarvings' },
+    ],
+    media: {
+      video: '/media/projects/kemuma-demo.mp4',
+      poster: '/media/projects/kemuma-preview.png',
+      logo: null,
+      model: null,
+      backdrop: '/media/projects/kemuma-teaser.mp4',
+    },
   },
   {
     id: 'elevator',
@@ -164,7 +173,7 @@ export const PROJECTS = [
 // lists which ring projects light each glyph (cross-highlight); empty
 // arrays stay etched — rated beyond what's on display.
 export const LANGUAGES = [
-  { name: 'TypeScript', slug: 'typescript', color: '#3178c6', projects: ['pageaura', 'showdown-copilot', 'daily-bread', 'avirem'] },
+  { name: 'TypeScript', slug: 'typescript', color: '#3178c6', projects: ['pageaura', 'showdown-copilot', 'daily-bread', 'kemuma-studio'] },
   { name: 'JavaScript', slug: 'javascript', color: '#f7df1e', projects: ['elevator', 'ace'] },
   { name: 'Python', slug: 'python', color: '#4b8bbe', projects: ['showdown-copilot', 'potencia'] },
   { name: 'Rust', slug: 'rust', color: '#ce6d35', projects: ['showdown-copilot'] },
@@ -172,7 +181,7 @@ export const LANGUAGES = [
   { name: 'C', slug: 'c', color: '#a8b9cc', projects: [] },
   { name: 'C++', slug: 'cplusplus', color: '#659ad2', projects: [] },
   { name: 'C#', slug: 'csharp', color: '#a179dc', projects: ['water-sim'] },
-  { name: 'SQL', slug: null, color: '#e8b54a', projects: ['pageaura', 'avirem'] },
+  { name: 'SQL', slug: null, color: '#e8b54a', projects: ['pageaura', 'kemuma-studio'] },
   { name: 'HTML', slug: 'html5', color: '#e34f26', projects: ['daily-bread', 'ace'] },
   { name: 'CSS', slug: 'css', color: '#2965f1', projects: ['elevator', 'daily-bread', 'ace'] },
   { name: 'GLSL', slug: 'opengl', color: '#5586a4', projects: ['pageaura', 'elevator'] },
