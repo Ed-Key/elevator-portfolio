@@ -68,9 +68,14 @@ function StageProp({ reducedMotion, srcs }) {
 // Ladder: video → poster → null (text tier's monogram carries the stage).
 // Only the active project's <video> is ever mounted, and only when motion
 // is allowed; reduced-motion visitors get the poster tier.
-function StageMedia({ project, reducedMotion }) {
+//
+// `stillOnly` holds the ladder one rung down for the project the floor opens
+// on. Nobody asked for that one, and the demos run to 29MB, so arriving should
+// not cost a visitor a video they did not choose. Ignored when the project has
+// no poster to fall back to, since a blank window is worse than the download.
+function StageMedia({ project, reducedMotion, stillOnly }) {
   const { poster, video } = project.media
-  const showVideo = Boolean(video) && !reducedMotion
+  const showVideo = Boolean(video) && !reducedMotion && !(stillOnly && poster)
 
   if (!showVideo && !poster) return null
 
@@ -179,7 +184,7 @@ function ProjectCell({ denied, index, onArm, onArmNow, onDeniedPress, onDisarm, 
   )
 }
 
-function ProjectStage({ backdropped, project, reducedMotion }) {
+function ProjectStage({ backdropped, project, reducedMotion, stillOnly }) {
   const capsLine = `${project.tech.map((tech) => tech.name).join(' · ')} — ${project.year}`
   const hasWindow = Boolean(project.media.video || project.media.poster)
   const links = getProjectLinks(project)
@@ -193,7 +198,7 @@ function ProjectStage({ backdropped, project, reducedMotion }) {
 
   return (
     <div className={classes} key={project.id}>
-      <StageMedia project={project} reducedMotion={reducedMotion} />
+      <StageMedia project={project} reducedMotion={reducedMotion} stillOnly={stillOnly} />
       <div className="stage-show__text">
         {project.media.stageMark === 'pageauraSparkles' ? (
           <PageAuraMark />
@@ -328,6 +333,9 @@ function openingProjectId() {
 export default function ProjectsPanel() {
   const [deniedId, setDeniedId] = useState(null)
   const [activeId, setActiveId] = useState(openingProjectId) // stage holds the last armed project
+  // True until the visitor arms a cell themselves. The opening pick shows its
+  // poster; a project someone actually chose gets the footage.
+  const [untouched, setUntouched] = useState(true)
   const intentRef = useRef(null)
   const reducedMotion = useReducedMotion()
   const compact = useMediaQuery('(max-width: 900px), (pointer: coarse)')
@@ -338,10 +346,12 @@ export default function ProjectsPanel() {
   // ~100ms hover intent: sweeping across the ring doesn't thrash the stage.
   const armStage = (id) => {
     clearTimeout(intentRef.current)
+    setUntouched(false)
     intentRef.current = setTimeout(() => setActiveId(id), 100)
   }
   const armStageNow = (id) => {
     clearTimeout(intentRef.current)
+    setUntouched(false)
     setActiveId(id)
   }
   const disarmStage = () => clearTimeout(intentRef.current)
@@ -436,6 +446,7 @@ export default function ProjectsPanel() {
               backdropped={Boolean(activeProject.media.backdrop) && !reducedMotion}
               project={activeProject}
               reducedMotion={reducedMotion}
+              stillOnly={untouched}
             />
           ) : (
             /* Only reachable if no project has any media at all. */
