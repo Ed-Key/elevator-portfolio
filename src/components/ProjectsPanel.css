@@ -142,14 +142,6 @@
   line-height: 1.32;
 }
 
-.panel-cell__glyphs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 9px 11px;
-  align-items: center;
-  margin-top: 1px;
-}
-
 /* ---------- tech glyphs: etched gold → brand color on press ---------- */
 
 .tech-glyph {
@@ -160,11 +152,6 @@
   transition: background-color 280ms ease;
   -webkit-mask: var(--glyph) center / contain no-repeat;
   mask: var(--glyph) center / contain no-repeat;
-}
-
-.panel-cell:hover .tech-glyph,
-.panel-cell:focus-visible .tech-glyph {
-  background-color: var(--brand);
 }
 
 /* ---------- locked floor: denied blink ---------- */
@@ -822,8 +809,6 @@
   color: rgb(240 200 112 / 92%);
   text-shadow: 0 0 18px rgb(240 200 112 / 45%);
 }
-
-.panel-cell--open .tech-glyph { background-color: var(--brand); }
 
 .projects-stack .stage-show__window {
   width: min(100%, 420px);
