@@ -142,11 +142,6 @@ function CellInner({ index, project }) {
       <span className="panel-cell__base">
         <span className="panel-cell__name">{project.name}</span>
         <span className="panel-cell__blurb">{project.blurb}</span>
-        <span className="panel-cell__glyphs">
-          {project.tech.map((tech) => (
-            <TechGlyph key={tech.name} tech={tech} />
-          ))}
-        </span>
       </span>
     </>
   )
