@@ -10,7 +10,7 @@ import { copyFile, mkdir, readdir } from 'node:fs/promises'
 import path from 'node:path'
 
 const SLUGS = [
-  'c', 'claude', 'cplusplus', 'csharp', 'css', 'figma', 'firebase',
+  'c', 'claude', 'cplusplus', 'css', 'figma', 'firebase',
   'gnubash', 'googlecloud', 'greensock', 'html5', 'javascript', 'langchain',
   'nextdotjs', 'openjdk', 'opengl', 'python', 'react', 'rust', 'stripe',
   'sqlite', 'supabase', 'threedotjs', 'typescript', 'unity',
@@ -19,9 +19,12 @@ const SLUGS = [
 // Slugs that only exist in the lobehub set.
 const AI_SLUGS = ['openai', 'gemini']
 // If upstream renamed a slug, try these before failing.
+// csharp is deliberately absent from SLUGS. simple-icons has no C# mark and
+// the dotnet fallback that used to stand in for it is a different product, so
+// public/images/tech/csharp.svg is hand-vendored from devicon. Re-running this
+// script used to overwrite it.
 const FALLBACKS = {
   claude: ['anthropic'],
-  csharp: ['dotnet'],
   css: ['css3'],
   greensock: ['gsap'],
   openjdk: ['java'],
