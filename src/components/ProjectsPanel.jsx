@@ -317,9 +317,22 @@ function IdlePlate() {
   )
 }
 
+/* The stage opens on a project rather than an empty plate, chosen at random so
+   the floor is not the same picture twice. Only projects with something to
+   show are eligible: the rest carry no video, poster or model, and would open
+   the floor on a blank window frame, which is worse than the idle plate it
+   replaces. Derived from the media rather than a hardcoded list, so a project
+   joins the rotation the moment it gets a thumbnail. */
+const SHOWABLE = PROJECTS.filter((project) => project.media.video || project.media.poster)
+
+function openingProjectId() {
+  if (SHOWABLE.length === 0) return null
+  return SHOWABLE[Math.floor(Math.random() * SHOWABLE.length)].id
+}
+
 export default function ProjectsPanel() {
   const [deniedId, setDeniedId] = useState(null)
-  const [activeId, setActiveId] = useState(null) // stage holds the last armed project
+  const [activeId, setActiveId] = useState(openingProjectId) // stage holds the last armed project
   const intentRef = useRef(null)
   const reducedMotion = useReducedMotion()
   const compact = useMediaQuery('(max-width: 900px), (pointer: coarse)')
@@ -430,6 +443,7 @@ export default function ProjectsPanel() {
               reducedMotion={reducedMotion}
             />
           ) : (
+            /* Only reachable if no project has any media at all. */
             <IdlePlate />
           )}
         </div>
