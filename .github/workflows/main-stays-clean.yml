@@ -26,12 +26,15 @@ jobs:
           # `|| [ -n "$path" ]` so a manifest without a trailing newline does
           # not silently drop its last entry.
           while IFS= read -r path || [ -n "$path" ]; do
-            path="$(printf '%s' "$path" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+            path="$(printf '%s' "$path" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s#/*$##')"
             case "$path" in ''|\#*) continue ;; esac
             # Captured, not piped into grep -q. Under pipefail an early-exiting
             # grep can SIGPIPE git, the pipeline returns 141, and the `if`
             # reads that as "absent": a false pass that defeats the whole check.
-            matches="$(git ls-tree -r --name-only HEAD -- "$path")"
+            # :(literal) so the entry cannot be read as a glob here while the
+            # release script's `git rm` reads it as one, which would let the two
+            # halves disagree about what was stripped.
+            matches="$(git ls-tree -r --name-only HEAD -- ":(literal)$path")"
             if [ -n "$matches" ]; then
               echo "::error::'$path' is dev-only but is present on main"
               printf '%s\n' "$matches" | sed 's/^/    /'

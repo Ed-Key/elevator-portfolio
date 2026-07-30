@@ -44,12 +44,24 @@ git('fetch', 'origin', '--prune')
 const manifest = gitAllowFail('show', 'origin/dev:.github/dev-only-paths.txt')
 if (!manifest.ok) die('origin/dev has no .github/dev-only-paths.txt')
 
+// Entries are canonicalised and then matched literally. Left as raw pathspecs
+// they mean different things to different git commands: `git rm -- 's*'` globs
+// and would take src/ with it, while `git ls-tree -- 's*'` matches nothing, so
+// the strip and both verifications would disagree and real source could go
+// missing with every check still passing.
 const devOnly = manifest.out
   .split('\n')
-  .map((line) => line.trim())
+  .map((line) => line.trim().replace(/\/+$/, ''))
   .filter((line) => line && !line.startsWith('#'))
 
 if (!devOnly.length) die('.github/dev-only-paths.txt lists no paths')
+
+for (const path of devOnly) {
+  if (/[*?[\]]/.test(path)) die(`dev-only path "${path}" looks like a glob; list plain paths`)
+  if (path.startsWith('/') || path.split('/').includes('..')) die(`dev-only path "${path}" is not repo-relative`)
+}
+
+const literal = (path) => `:(literal)${path}`
 
 const ahead = git('rev-list', '--count', 'origin/main..origin/dev')
 if (ahead === '0') die('origin/dev has nothing main does not already have')
@@ -66,7 +78,7 @@ const merge = gitAllowFail('merge', '--no-commit', '--no-ff', 'origin/dev')
 // Strip first: most conflicts a release hits are inside the dev-only paths
 // themselves, and removing them resolves those outright.
 for (const path of devOnly) {
-  gitAllowFail('rm', '-r', '--force', '--quiet', '--ignore-unmatch', '--', path)
+  gitAllowFail('rm', '-r', '--force', '--quiet', '--ignore-unmatch', '--', literal(path))
 }
 
 const unresolved = git('diff', '--name-only', '--diff-filter=U')
@@ -91,7 +103,7 @@ if (!gitAllowFail('rev-parse', '--verify', '--quiet', 'MERGE_HEAD').ok) {
 git('commit', '--no-edit')
 
 // Belt and braces: prove the tree is clean before anyone sees the PR.
-const leaked = devOnly.filter((path) => git('ls-tree', '-r', '--name-only', 'HEAD', '--', path))
+const leaked = devOnly.filter((path) => git('ls-tree', '-r', '--name-only', 'HEAD', '--', literal(path)))
 if (leaked.length) die(`still present after the strip: ${leaked.join(', ')}`)
 
 console.log(`prepared ${branch} from origin/main + origin/dev`)
