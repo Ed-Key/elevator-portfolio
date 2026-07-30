@@ -1,0 +1,40 @@
+# main is what Vercel builds and deploys. It should carry the site and nothing
+# else. The release script strips the working material on the way in; this is
+# the check that the strip actually happened, so the invariant does not depend
+# on anyone remembering.
+name: main stays clean
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  no-dev-only-paths:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail if dev-only paths reached main
+        run: |
+          set -euo pipefail
+          list=.github/dev-only-paths.txt
+          [ -f "$list" ] || { echo "missing $list"; exit 1; }
+
+          found=0
+          while IFS= read -r path; do
+            case "$path" in ''|\#*) continue ;; esac
+            if git ls-tree -r --name-only HEAD -- "$path" | grep -q .; then
+              echo "::error::'$path' is dev-only but is present on main"
+              git ls-tree -r --name-only HEAD -- "$path" | sed 's/^/    /'
+              found=1
+            fi
+          done < "$list"
+
+          if [ "$found" -ne 0 ]; then
+            echo
+            echo "Build the release with: node scripts/release-to-main.mjs"
+            exit 1
+          fi
+          echo "main carries no dev-only paths"
