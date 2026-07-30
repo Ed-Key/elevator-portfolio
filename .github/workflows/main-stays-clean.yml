@@ -28,6 +28,11 @@ jobs:
           while IFS= read -r path || [ -n "$path" ]; do
             path="$(printf '%s' "$path" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s#/*$##')"
             case "$path" in ''|\#*) continue ;; esac
+            if [ "$path" = "." ]; then
+              echo "::error::'.' is not a valid dev-only path"
+              found=1
+              continue
+            fi
             # Captured, not piped into grep -q. Under pipefail an early-exiting
             # grep can SIGPIPE git, the pipeline returns 141, and the `if`
             # reads that as "absent": a false pass that defeats the whole check.

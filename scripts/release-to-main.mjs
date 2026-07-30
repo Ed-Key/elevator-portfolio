@@ -59,6 +59,9 @@ if (!devOnly.length) die('.github/dev-only-paths.txt lists no paths')
 for (const path of devOnly) {
   if (/[*?[\]]/.test(path)) die(`dev-only path "${path}" looks like a glob; list plain paths`)
   if (path.startsWith('/') || path.split('/').includes('..')) die(`dev-only path "${path}" is not repo-relative`)
+  // "." is the whole repository. It would strip every tracked file, and the
+  // post-strip check would pass precisely because nothing was left to find.
+  if (path === '.') die('dev-only path "." would strip the entire repository')
 }
 
 const literal = (path) => `:(literal)${path}`
