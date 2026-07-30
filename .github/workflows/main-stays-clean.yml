@@ -26,13 +26,24 @@ jobs:
           # `|| [ -n "$path" ]` so a manifest without a trailing newline does
           # not silently drop its last entry.
           while IFS= read -r path || [ -n "$path" ]; do
-            path="$(printf '%s' "$path" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s#/*$##')"
+            path="$(printf '%s' "$path" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
             case "$path" in ''|\#*) continue ;; esac
-            if [ "$path" = "." ]; then
-              echo "::error::'.' is not a valid dev-only path"
-              found=1
-              continue
-            fi
+            # Same segment walk the release script does, so both halves agree on
+            # what a line means. A chain of sed substitutions is not equivalent:
+            # it leaves "././." pointing at the root and does not collapse
+            # "docs/./media".
+            path="$(printf '%s' "$path" | awk -F/ '{
+              out = ""
+              for (i = 1; i <= NF; i++) {
+                if ($i == "" || $i == ".") continue
+                out = (out == "" ? $i : out "/" $i)
+              }
+              print out
+            }')"
+            case "$path" in
+              '') echo "::error::a dev-only entry resolves to the repository root"; found=1; continue ;;
+              ..|../*|*/..|*/../*) echo "::error::'$path' is not repo-relative"; found=1; continue ;;
+            esac
             # Captured, not piped into grep -q. Under pipefail an early-exiting
             # grep can SIGPIPE git, the pipeline returns 141, and the `if`
             # reads that as "absent": a false pass that defeats the whole check.

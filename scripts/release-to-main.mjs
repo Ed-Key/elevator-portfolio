@@ -49,20 +49,27 @@ if (!manifest.ok) die('origin/dev has no .github/dev-only-paths.txt')
 // and would take src/ with it, while `git ls-tree -- 's*'` matches nothing, so
 // the strip and both verifications would disagree and real source could go
 // missing with every check still passing.
-const devOnly = manifest.out
+const raw = manifest.out
   .split('\n')
-  .map((line) => line.trim().replace(/\/+$/, ''))
+  .map((line) => line.trim())
   .filter((line) => line && !line.startsWith('#'))
 
-if (!devOnly.length) die('.github/dev-only-paths.txt lists no paths')
+if (!raw.length) die('.github/dev-only-paths.txt lists no paths')
 
-for (const path of devOnly) {
-  if (/[*?[\]]/.test(path)) die(`dev-only path "${path}" looks like a glob; list plain paths`)
-  if (path.startsWith('/') || path.split('/').includes('..')) die(`dev-only path "${path}" is not repo-relative`)
-  // "." is the whole repository. It would strip every tracked file, and the
-  // post-strip check would pass precisely because nothing was left to find.
-  if (path === '.') die('dev-only path "." would strip the entire repository')
-}
+// Normalise segments rather than blocking particular spellings. Anything that
+// resolves to the repository root is the dangerous case: git would strip every
+// tracked file and the post-strip check would pass precisely because nothing
+// was left to find. "." reaches root, and so do "./." and "././.".
+const devOnly = raw.map((entry) => {
+  if (/[*?[\]]/.test(entry)) die(`dev-only path "${entry}" looks like a glob; list plain paths`)
+  if (entry.startsWith('/')) die(`dev-only path "${entry}" is not repo-relative`)
+
+  const segments = entry.split('/').filter((segment) => segment !== '' && segment !== '.')
+  if (segments.includes('..')) die(`dev-only path "${entry}" is not repo-relative`)
+  if (!segments.length) die(`dev-only path "${entry}" resolves to the repository root`)
+
+  return segments.join('/')
+})
 
 const literal = (path) => `:(literal)${path}`
 
