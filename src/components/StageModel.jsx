@@ -1,4 +1,4 @@
-import { Center, useGLTF } from '@react-three/drei'
+import { Center, Environment, Lightformer, useGLTF } from '@react-three/drei'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Suspense, useEffect, useRef, useState } from 'react'
 
@@ -56,6 +56,15 @@ export default function StageModel({ poster, src, view = DEFAULT_VIEW }) {
         <ambientLight color="#fff3dc" intensity={0.9} />
         <directionalLight color="#f0c870" intensity={1.7} position={[2.5, 3, 4]} />
         <directionalLight color="#8fa1ff" intensity={0.45} position={[-3, -1.5, 2]} />
+        {/* Project logos are glTF PBR: with no environment their indirect
+            diffuse and specular are both zero, so the art reads several stops
+            darker here than it does on the project's own site. Baked once from
+            lightformers for the same reason as the hall, no CDN HDRI. */}
+        <Environment environmentIntensity={0.25} frames={1} resolution={128}>
+          <color args={['#120a04']} attach="background" />
+          <Lightformer color="#ffd9a0" form="rect" intensity={3.2} position={[3, 3, 4]} scale={[6, 6, 1]} />
+          <Lightformer color="#ffb066" form="rect" intensity={1.6} position={[-4, 1, 2]} rotation-y={Math.PI / 2} scale={[6, 4, 1]} />
+        </Environment>
         <Suspense fallback={null}>
           <FloatingModel onReady={() => setReady(true)} src={src} view={view} />
         </Suspense>
