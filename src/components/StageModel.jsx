@@ -1,5 +1,5 @@
 import { Center, Environment, Lightformer, useGLTF } from '@react-three/drei'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Suspense, useEffect, useRef, useState } from 'react'
 
 // Tiny R3F stage mark for a project's 3D logo. Draco decoders are vendored
@@ -12,21 +12,71 @@ const DEFAULT_VIEW = {
   scale: 1,
 }
 
+// The mark answers to the whole panel, not just to a cursor parked on its own
+// ~150px canvas, so the cursor offset is measured against half the viewport
+// rather than against the canvas. The stage holds the last armed project after
+// pointer-leave, which is what gives the cursor room to roam.
+const pointerReach = () => Math.min(window.innerWidth, window.innerHeight) / 2
+const TILT_YAW = 0.4
+const TILT_PITCH = 0.24
+
+const clamp = (value) => Math.min(Math.max(value, -1), 1)
+
 function FloatingModel({ onReady, src, view = DEFAULT_VIEW }) {
   const { scene } = useGLTF(src, '/draco/')
+  const canvas = useThree((state) => state.gl.domElement)
   const group = useRef()
+  const target = useRef({ x: 0, y: 0 })
+  const eased = useRef({ x: 0, y: 0 })
   const [baseX, baseY, baseZ] = view.rotation ?? DEFAULT_VIEW.rotation
 
   useEffect(() => {
     onReady()
   }, [onReady])
 
-  useFrame(({ clock }) => {
+  useEffect(() => {
+    // Same guards as the hall's cursor parallax: no lean where there is no
+    // cursor, or where the visitor asked for less motion.
+    if (window.matchMedia('(pointer: coarse)').matches) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const onMove = (event) => {
+      // Measured from the mark rather than from the viewport centre, unlike
+      // the hall camera: this mark sits off to one side of the panel, and it
+      // should lean toward the cursor from where it actually is.
+      const rect = canvas.getBoundingClientRect()
+      const reach = pointerReach()
+      target.current.x = clamp((event.clientX - (rect.left + rect.width / 2)) / reach)
+      target.current.y = clamp((event.clientY - (rect.top + rect.height / 2)) / reach)
+    }
+
+    const recenter = () => {
+      target.current = { x: 0, y: 0 }
+    }
+
+    window.addEventListener('pointermove', onMove, { passive: true })
+    window.addEventListener('blur', recenter)
+    document.addEventListener('mouseleave', recenter)
+
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('blur', recenter)
+      document.removeEventListener('mouseleave', recenter)
+    }
+  }, [canvas])
+
+  useFrame(({ clock }, delta) => {
     if (!group.current) return
     const t = clock.getElapsedTime()
+    // Framerate-independent damping, so the follow feels the same at 60 and 120.
+    const k = 1 - Math.exp(-delta * 6)
+
+    eased.current.x += (target.current.x - eased.current.x) * k
+    eased.current.y += (target.current.y - eased.current.y) * k
+
     group.current.rotation.set(
-      baseX + Math.sin(t * 0.8) * 0.035,
-      baseY + Math.sin(t * 0.55) * 0.09,
+      baseX + Math.sin(t * 0.8) * 0.035 + eased.current.y * TILT_PITCH,
+      baseY + Math.sin(t * 0.55) * 0.09 + eased.current.x * TILT_YAW,
       baseZ + Math.sin(t * 0.7) * 0.025,
     )
     group.current.position.y = Math.sin(t * 0.9) * 0.045
