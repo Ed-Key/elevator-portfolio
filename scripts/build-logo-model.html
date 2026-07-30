@@ -26,6 +26,12 @@ import * as BGU from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 const out = document.getElementById('out')
 const log = (s) => { out.textContent += s + '\n' }
 
+// Surface failures into the page so the driver reports them instead of
+// sitting on its timeout waiting for a DONE that will never come.
+const fail = (reason) => log('FAILED: ' + (reason?.message ?? reason))
+window.addEventListener('error', (event) => fail(event.error ?? event.message))
+window.addEventListener('unhandledrejection', (event) => fail(event.reason))
+
 const params = new URLSearchParams(location.search)
 const SRC = params.get('src') ?? '/media/projects/daily-bread-logo.svg'
 
@@ -43,7 +49,11 @@ const MATERIALS = {
   default: { metalness: 0.10, roughness: 0.42 },
 }
 
-const parsed = new SVGLoader().parse(await (await fetch(SRC)).text())
+// fetch only rejects on network failure, so a mistyped --src would otherwise
+// parse a 404 page into zero paths and still export over a good asset.
+const res = await fetch(SRC)
+if (!res.ok) throw new Error(`cannot read ${SRC}: HTTP ${res.status}`)
+const parsed = new SVGLoader().parse(await res.text())
 
 // Extruding from y-down svg coords needs a mirror, and a mirror inverts
 // winding, so the triangles are flipped back or every face lights from inside.
@@ -93,8 +103,13 @@ for (const [color, geos] of byColor) {
   })))
 }
 
+if (!root.children.length) throw new Error(`no fillable paths in ${SRC}`)
+
 const box = new THREE.Box3().setFromObject(root)
 const size = box.getSize(new THREE.Vector3())
+// An empty Box3 sizes to -Infinity, which would scale to nothing and still
+// write a valid but empty GLB over the target.
+if (!Number.isFinite(size.x) || size.x <= 0) throw new Error(`degenerate bounds from ${SRC}`)
 const centre = box.getCenter(new THREE.Vector3())
 root.children.forEach((m) => m.geometry.translate(-centre.x, -centre.y, -centre.z))
 root.scale.setScalar(TARGET_W / size.x)

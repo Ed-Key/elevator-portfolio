@@ -13,7 +13,15 @@ import { writeFileSync } from 'node:fs'
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`)
-  return i === -1 ? fallback : process.argv[i + 1]
+  if (i === -1) return fallback
+  const value = process.argv[i + 1]
+  // Without this, `--src --out x.glb` would silently take "--out" as the
+  // source, 404, and write an empty model over the target.
+  if (value === undefined || value.startsWith('--')) {
+    console.error(`--${name} needs a value`)
+    process.exit(1)
+  }
+  return value
 }
 
 const BASE = arg('base', process.env.BASE_URL ?? 'http://localhost:5173')
@@ -27,16 +35,22 @@ page.on('pageerror', (e) => errors.push(String(e)))
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
 
 await page.goto(`${BASE}/scripts/build-logo-model.html?src=${encodeURIComponent(SRC)}`, { waitUntil: 'networkidle' })
-await page.waitForFunction(() => document.getElementById('out').textContent.includes('DONE'), null, { timeout: 120000 })
+await page.waitForFunction(() => {
+  const text = document.getElementById('out').textContent
+  return text.includes('DONE') || text.includes('FAILED')
+}, null, { timeout: 120000 })
 
-console.log(await page.evaluate(() => document.getElementById('out').textContent.trim()))
+const report = await page.evaluate(() => document.getElementById('out').textContent.trim())
+console.log(report)
 if (errors.length) console.log('page errors:', errors)
 
 const b64 = await page.evaluate(() => window.__GLB__ ?? null)
 await browser.close()
 
-if (!b64) {
-  console.error('no GLB produced')
+// Never overwrite the target on a partial run: this tool exists to regenerate
+// a committed binary, so a bad write is worse than no write.
+if (report.includes('FAILED') || !b64) {
+  console.error('no GLB produced, leaving', OUT, 'untouched')
   process.exit(1)
 }
 writeFileSync(OUT, Buffer.from(b64, 'base64'))
