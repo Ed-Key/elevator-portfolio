@@ -28,7 +28,13 @@ const log = (s) => { out.textContent += s + '\n' }
 
 // Surface failures into the page so the driver reports them instead of
 // sitting on its timeout waiting for a DONE that will never come.
-const fail = (reason) => log('FAILED: ' + (reason?.message ?? reason))
+// Status is a flag rather than a string in the log, so a source path that
+// happens to contain DONE or FAILED cannot be mistaken for the outcome.
+window.__STATUS__ = 'running'
+const fail = (reason) => {
+  window.__STATUS__ = 'failed'
+  log('FAILED: ' + (reason?.message ?? reason))
+}
 window.addEventListener('error', (event) => fail(event.error ?? event.message))
 window.addEventListener('unhandledrejection', (event) => fail(event.reason))
 
@@ -126,5 +132,6 @@ for (let i = 0; i < glb.length; i++) bin += String.fromCharCode(glb[i])
 window.__GLB__ = btoa(bin)
 log('glb bytes: ' + glb.length)
 log('DONE')
+window.__STATUS__ = 'done'
 </script>
 </body>

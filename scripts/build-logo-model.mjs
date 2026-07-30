@@ -35,21 +35,19 @@ page.on('pageerror', (e) => errors.push(String(e)))
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
 
 await page.goto(`${BASE}/scripts/build-logo-model.html?src=${encodeURIComponent(SRC)}`, { waitUntil: 'networkidle' })
-await page.waitForFunction(() => {
-  const text = document.getElementById('out').textContent
-  return text.includes('DONE') || text.includes('FAILED')
-}, null, { timeout: 120000 })
+await page.waitForFunction(() => window.__STATUS__ === 'done' || window.__STATUS__ === 'failed',
+  null, { timeout: 120000 })
 
-const report = await page.evaluate(() => document.getElementById('out').textContent.trim())
-console.log(report)
+console.log(await page.evaluate(() => document.getElementById('out').textContent.trim()))
 if (errors.length) console.log('page errors:', errors)
 
+const status = await page.evaluate(() => window.__STATUS__)
 const b64 = await page.evaluate(() => window.__GLB__ ?? null)
 await browser.close()
 
 // Never overwrite the target on a partial run: this tool exists to regenerate
 // a committed binary, so a bad write is worse than no write.
-if (report.includes('FAILED') || !b64) {
+if (status !== 'done' || !b64) {
   console.error('no GLB produced, leaving', OUT, 'untouched')
   process.exit(1)
 }
