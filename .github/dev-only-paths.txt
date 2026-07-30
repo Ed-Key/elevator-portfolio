@@ -1,0 +1,19 @@
+# Paths that live on dev but must never reach main.
+#
+# main is what Vercel builds and deploys, so it should carry the site and
+# nothing else. Everything here is working material: the tools we run by hand
+# and the before/after media we attach to PRs.
+#
+# Single source of truth. Both of these read it:
+#   scripts/release-to-main.mjs           strips these paths from a release
+#   .github/workflows/main-stays-clean.yml  fails main if one shows up
+#
+# One path per line. Blank lines and # comments are ignored. A trailing slash
+# means the whole directory.
+#
+# Deleting PR media from main does not break the raw links in PR bodies: those
+# point at commit SHAs, and the blobs stay in history forever.
+
+scripts/
+docs/
+.claude/
