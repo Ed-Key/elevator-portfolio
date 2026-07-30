@@ -23,11 +23,18 @@ jobs:
           [ -f "$list" ] || { echo "missing $list"; exit 1; }
 
           found=0
-          while IFS= read -r path; do
+          # `|| [ -n "$path" ]` so a manifest without a trailing newline does
+          # not silently drop its last entry.
+          while IFS= read -r path || [ -n "$path" ]; do
+            path="$(printf '%s' "$path" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
             case "$path" in ''|\#*) continue ;; esac
-            if git ls-tree -r --name-only HEAD -- "$path" | grep -q .; then
+            # Captured, not piped into grep -q. Under pipefail an early-exiting
+            # grep can SIGPIPE git, the pipeline returns 141, and the `if`
+            # reads that as "absent": a false pass that defeats the whole check.
+            matches="$(git ls-tree -r --name-only HEAD -- "$path")"
+            if [ -n "$matches" ]; then
               echo "::error::'$path' is dev-only but is present on main"
-              git ls-tree -r --name-only HEAD -- "$path" | sed 's/^/    /'
+              printf '%s\n' "$matches" | sed 's/^/    /'
               found=1
             fi
           done < "$list"

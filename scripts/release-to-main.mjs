@@ -13,7 +13,6 @@
 // Deterministic, and .github/workflows/main-stays-clean.yml fails the PR if
 // anything slips through.
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
 
 const DRY_RUN = process.argv.includes('--dry-run')
 
@@ -30,16 +29,24 @@ const die = (message) => {
   process.exit(1)
 }
 
-const devOnly = readFileSync('.github/dev-only-paths.txt', 'utf8')
+if (git('status', '--porcelain')) die('working tree is dirty; commit or stash first')
+
+git('fetch', 'origin', '--prune')
+
+// Read the list from the tree being released, never from whatever branch
+// happens to be checked out. Reading it locally would let a stray entry on a
+// feature branch strip a real source directory out of the release, and the
+// released manifest would not mention it, so the guard would pass and the loss
+// would be silent.
+const manifest = gitAllowFail('show', 'origin/dev:.github/dev-only-paths.txt')
+if (!manifest.ok) die('origin/dev has no .github/dev-only-paths.txt')
+
+const devOnly = manifest.out
   .split('\n')
   .map((line) => line.trim())
   .filter((line) => line && !line.startsWith('#'))
 
 if (!devOnly.length) die('.github/dev-only-paths.txt lists no paths')
-
-if (git('status', '--porcelain')) die('working tree is dirty; commit or stash first')
-
-git('fetch', 'origin', '--prune')
 
 const ahead = git('rev-list', '--count', 'origin/main..origin/dev')
 if (ahead === '0') die('origin/dev has nothing main does not already have')
@@ -70,8 +77,12 @@ if (unresolved.length) {
   process.exit(1)
 }
 
-if (!merge.ok && !git('diff', '--cached', '--name-only')) {
-  die(`merge failed and produced nothing to commit:\n${merge.out}`)
+// Judge on whether a merge is actually in progress, not on whether anything is
+// staged. A release whose only changes were dev-only paths strips down to a
+// tree identical to main, and that still needs its merge commit to record that
+// this dev tip was released.
+if (!gitAllowFail('rev-parse', '--verify', '--quiet', 'MERGE_HEAD').ok) {
+  die(`merge never started:\n${merge.out}`)
 }
 
 git('commit', '--no-edit')
