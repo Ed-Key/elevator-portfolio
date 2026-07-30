@@ -49,11 +49,18 @@ try {
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
 
   await page.goto(`${BASE}/scripts/build-logo-model.html?src=${encodeURIComponent(SRC)}`, { waitUntil: 'networkidle' })
-  await page.waitForFunction(() => window.__STATUS__ === 'done' || window.__STATUS__ === 'failed',
-    null, { timeout: 120000 })
+
+  // Polled rather than waitForFunction so a page that never reports at all
+  // still fails fast on the errors this side has already collected.
+  const deadline = Date.now() + 120000
+  while (Date.now() < deadline) {
+    status = await page.evaluate(() => window.__STATUS__)
+    if (status === 'done' || status === 'failed') break
+    if (errors.length) { status = 'failed'; break }
+    await page.waitForTimeout(200)
+  }
 
   console.log(await page.evaluate(() => document.getElementById('out').textContent.trim()))
-  status = await page.evaluate(() => window.__STATUS__)
   b64 = await page.evaluate(() => window.__GLB__ ?? null)
 } catch (error) {
   console.error(error.message)
