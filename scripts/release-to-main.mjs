@@ -16,7 +16,10 @@ import { execFileSync } from 'node:child_process'
 
 const DRY_RUN = process.argv.includes('--dry-run')
 
-const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim()
+// stderr is captured rather than inherited so a probe we expect to fail does
+// not print git's raw fatal above our own message.
+const git = (...args) =>
+  execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim()
 const gitAllowFail = (...args) => {
   try {
     return { ok: true, out: git(...args) }
