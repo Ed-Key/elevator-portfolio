@@ -9,41 +9,59 @@
 // The actual geometry work happens in scripts/build-logo-model.html, driven
 // here in a headless browser because SVGLoader and GLTFExporter both need a DOM.
 import { chromium } from 'playwright'
-import { writeFileSync } from 'node:fs'
+import { renameSync, unlinkSync, writeFileSync } from 'node:fs'
+import { parseArgs } from 'node:util'
 
-const arg = (name, fallback) => {
-  const i = process.argv.indexOf(`--${name}`)
-  if (i === -1) return fallback
-  const value = process.argv[i + 1]
-  // Without this, `--src --out x.glb` would silently take "--out" as the
-  // source, 404, and write an empty model over the target.
-  if (value === undefined || value.startsWith('--')) {
+// strict parsing on purpose: a typo like `--scr foo.svg --out pageaura.glb`
+// would otherwise fall back to the default source and cheerfully overwrite
+// another project's mark with the wrong model.
+let values
+try {
+  ;({ values } = parseArgs({
+    options: { base: { type: 'string' }, src: { type: 'string' }, out: { type: 'string' } },
+    strict: true,
+    allowPositionals: false,
+  }))
+} catch (error) {
+  console.error(error.message)
+  process.exit(1)
+}
+
+for (const [name, value] of Object.entries(values)) {
+  if (value.startsWith('--') || value === '') {
     console.error(`--${name} needs a value`)
     process.exit(1)
   }
-  return value
 }
 
-const BASE = arg('base', process.env.BASE_URL ?? 'http://localhost:5173')
-const SRC = arg('src', '/media/projects/daily-bread-logo.svg')
-const OUT = arg('out', 'public/media/projects/daily-bread-logo.glb')
+const BASE = values.base ?? process.env.BASE_URL ?? 'http://localhost:5173'
+const SRC = values.src ?? '/media/projects/daily-bread-logo.svg'
+const OUT = values.out ?? 'public/media/projects/daily-bread-logo.glb'
 
 const browser = await chromium.launch()
-const page = await browser.newPage()
+let status = null
+let b64 = null
 const errors = []
-page.on('pageerror', (e) => errors.push(String(e)))
-page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
 
-await page.goto(`${BASE}/scripts/build-logo-model.html?src=${encodeURIComponent(SRC)}`, { waitUntil: 'networkidle' })
-await page.waitForFunction(() => window.__STATUS__ === 'done' || window.__STATUS__ === 'failed',
-  null, { timeout: 120000 })
+try {
+  const page = await browser.newPage()
+  page.on('pageerror', (e) => errors.push(String(e)))
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
 
-console.log(await page.evaluate(() => document.getElementById('out').textContent.trim()))
+  await page.goto(`${BASE}/scripts/build-logo-model.html?src=${encodeURIComponent(SRC)}`, { waitUntil: 'networkidle' })
+  await page.waitForFunction(() => window.__STATUS__ === 'done' || window.__STATUS__ === 'failed',
+    null, { timeout: 120000 })
+
+  console.log(await page.evaluate(() => document.getElementById('out').textContent.trim()))
+  status = await page.evaluate(() => window.__STATUS__)
+  b64 = await page.evaluate(() => window.__GLB__ ?? null)
+} catch (error) {
+  console.error(error.message)
+} finally {
+  await browser.close()
+}
+
 if (errors.length) console.log('page errors:', errors)
-
-const status = await page.evaluate(() => window.__STATUS__)
-const b64 = await page.evaluate(() => window.__GLB__ ?? null)
-await browser.close()
 
 // Never overwrite the target on a partial run: this tool exists to regenerate
 // a committed binary, so a bad write is worse than no write.
@@ -51,5 +69,16 @@ if (status !== 'done' || !b64) {
   console.error('no GLB produced, leaving', OUT, 'untouched')
   process.exit(1)
 }
-writeFileSync(OUT, Buffer.from(b64, 'base64'))
+
+// Write beside the target and rename, so an interrupted write cannot leave a
+// truncated model where a good one was.
+const tmp = `${OUT}.tmp`
+try {
+  writeFileSync(tmp, Buffer.from(b64, 'base64'))
+  renameSync(tmp, OUT)
+} catch (error) {
+  try { unlinkSync(tmp) } catch { /* nothing to clean up */ }
+  console.error(`could not write ${OUT}: ${error.message}`)
+  process.exit(1)
+}
 console.log(`wrote ${OUT}`)

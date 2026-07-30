@@ -17,6 +17,9 @@
 -->
 <body style="background:#2b1a0e;color:#eee;font:12px monospace">
 <pre id="out"></pre>
+<!-- Set before the module so a failed import still reports rather than
+     leaving the driver to sit on its timeout. -->
+<script>window.__STATUS__ = 'running'</script>
 <script type="module">
 import * as THREE from 'three'
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js'
@@ -30,7 +33,6 @@ const log = (s) => { out.textContent += s + '\n' }
 // sitting on its timeout waiting for a DONE that will never come.
 // Status is a flag rather than a string in the log, so a source path that
 // happens to contain DONE or FAILED cannot be mistaken for the outcome.
-window.__STATUS__ = 'running'
 const fail = (reason) => {
   window.__STATUS__ = 'failed'
   log('FAILED: ' + (reason?.message ?? reason))
