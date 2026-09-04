@@ -192,6 +192,7 @@ export const LANGUAGES = [
 ]
 
 export const EXPERIENCE = [
+  { company: 'Stax Labs', role: 'Software Engineer', period: '2026 — Present' },
   { company: 'Matrices.ai', role: 'Software Developer / Project Lead', period: '2025 — 2026' },
   { company: 'Tufts Engineering Education', role: 'Software Developer', period: '2023 — 2025' },
   { company: 'GoDaddy', role: 'Software Developer Intern', period: '2024' },
@@ -205,7 +206,7 @@ export const CAPABILITIES = [
 ]
 
 export const BIO = [
-  'Computer science at Tufts School of Engineering, class of ’25. I’ve built agent-evaluation infrastructure at Matrices.ai and interned at GoDaddy on social-platform integrations. Along the way I put a 3D simulator in front of two hundred engineering students.',
+  'Computer science at Tufts School of Engineering, class of ’25. Right now I’m at Stax Labs building the company-exposure service behind Buddi, their investing assistant, where every claim it renders carries a dated source receipt. Before that I built agent-evaluation infrastructure at Matrices.ai and interned at GoDaddy on social-platform integrations. Along the way I put a 3D simulator in front of two hundred engineering students.',
   'I care a lot about how interfaces feel. Most of my side projects start there.',
 ]
 

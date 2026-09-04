@@ -1,0 +1,66 @@
+# main is what Vercel builds and deploys. It should carry the site and nothing
+# else. The release script strips the working material on the way in; this is
+# the check that the strip actually happened, so the invariant does not depend
+# on anyone remembering.
+name: main stays clean
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  no-dev-only-paths:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail if dev-only paths reached main
+        run: |
+          set -euo pipefail
+          list=.github/dev-only-paths.txt
+          [ -f "$list" ] || { echo "missing $list"; exit 1; }
+
+          found=0
+          # `|| [ -n "$path" ]` so a manifest without a trailing newline does
+          # not silently drop its last entry.
+          while IFS= read -r path || [ -n "$path" ]; do
+            path="$(printf '%s' "$path" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+            case "$path" in ''|\#*) continue ;; esac
+            # Same segment walk the release script does, so both halves agree on
+            # what a line means. A chain of sed substitutions is not equivalent:
+            # it leaves "././." pointing at the root and does not collapse
+            # "docs/./media".
+            path="$(printf '%s' "$path" | awk -F/ '{
+              out = ""
+              for (i = 1; i <= NF; i++) {
+                if ($i == "" || $i == ".") continue
+                out = (out == "" ? $i : out "/" $i)
+              }
+              print out
+            }')"
+            case "$path" in
+              '') echo "::error::a dev-only entry resolves to the repository root"; found=1; continue ;;
+              ..|../*|*/..|*/../*) echo "::error::'$path' is not repo-relative"; found=1; continue ;;
+            esac
+            # Captured, not piped into grep -q. Under pipefail an early-exiting
+            # grep can SIGPIPE git, the pipeline returns 141, and the `if`
+            # reads that as "absent": a false pass that defeats the whole check.
+            # :(literal) so the entry cannot be read as a glob here while the
+            # release script's `git rm` reads it as one, which would let the two
+            # halves disagree about what was stripped.
+            matches="$(git ls-tree -r --name-only HEAD -- ":(literal)$path")"
+            if [ -n "$matches" ]; then
+              echo "::error::'$path' is dev-only but is present on main"
+              printf '%s\n' "$matches" | sed 's/^/    /'
+              found=1
+            fi
+          done < "$list"
+
+          if [ "$found" -ne 0 ]; then
+            echo
+            echo "Build the release with: node scripts/release-to-main.mjs"
+            exit 1
+          fi
+          echo "main carries no dev-only paths"
