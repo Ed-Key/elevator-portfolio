@@ -53,8 +53,32 @@ Visual changes also need a look in the browser (`npm run dev`).
 
 ## Deployment
 
+`main` carries the site and nothing else. The tools we run by hand and
+the PR media live on `dev` only; `.github/dev-only-paths.txt` is the
+list, and it is the single source of truth for both halves of the
+mechanism below.
+
+Never open a `dev` to `main` PR directly, or the working material rides
+along. Build the release instead:
+
+```
+node scripts/release-to-main.mjs          # or --dry-run to inspect first
+```
+
+That merges `dev` into a `release/<sha>` branch, strips every dev-only
+path, and pushes. Open the PR from that branch into `main`.
+`.github/workflows/main-stays-clean.yml` fails the PR if anything slips
+through, so the invariant does not rest on anyone remembering.
+
+The strip has to happen on every release, not once: deleting the paths
+from `main` a single time does not hold. A dev-side edit to a deleted
+path is a modify/delete conflict on the next release, and files added on
+`dev` afterwards re-enter `main` untouched. Both were tested before this
+was written. Removing PR media from `main` does not break the raw links
+in PR bodies, which point at commit SHAs that stay in history.
+
 Vercel project `edwardkiboma` auto-deploys `main` to edwardkiboma.com
 (apex and www both serve directly). `dev` and feature branches get
 Vercel preview URLs, so merging a feature PR into `dev` publishes
-nothing. Deploying is an explicit act: open a `dev` to `main` PR and
+nothing. Deploying is an explicit act: open the release PR and
 merge it when the accumulated work is ready to go live.
