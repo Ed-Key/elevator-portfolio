@@ -193,7 +193,7 @@ export const LANGUAGES = [
 
 export const EXPERIENCE = [
   { company: 'Stax Labs', role: 'Software Engineer', period: '2026 — Present' },
-  { company: 'Matrices.ai', role: 'Software Developer / Project Lead', period: '2025 — 2026' },
+  { company: 'Matrices.ai', role: 'Software Developer / Project Lead', period: 'Jun 2025 — Jun 2026' },
   { company: 'Tufts Engineering Education', role: 'Software Developer', period: '2023 — 2025' },
   { company: 'GoDaddy', role: 'Software Developer Intern', period: '2024' },
 ]
