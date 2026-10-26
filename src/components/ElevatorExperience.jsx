@@ -1780,14 +1780,20 @@ function LightingLab({ cameraDraft, onModalClose, onModalOpen, setCameraDraft, s
   )
 }
 
-export default function ElevatorExperience({ showTools = false }) {
+export default function ElevatorExperience({ showTools = false, startFloor = null }) {
   const [cameraDraft, setCameraDraft] = useState(() => ({
     fov: outsideShot.fov,
     lookAt: outsideShot.lookAt,
     position: outsideShot.position,
   }))
   const [cameraJumpRequest, setCameraJumpRequest] = useState(null)
-  const [modalPhase, setModalPhase] = useState('closed')
+  // A start floor means the visitor is coming back from another page, so the
+  // ride is skipped: the portfolio sweeps in at once, or simply appears under
+  // reduced motion. The elevator still waits behind it, unpressed.
+  const [modalPhase, setModalPhase] = useState(() => {
+    if (!startFloor) return 'closed'
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'open' : 'opening'
+  })
   const [soundMuted, setSoundMutedState] = useState(getSoundMuted)
   const [stageReady, setStageReady] = useState(false)
   // Tuning storage is a Lab-only concern: without it gated on showTools,
@@ -1876,6 +1882,7 @@ export default function ElevatorExperience({ showTools = false }) {
         {soundMuted ? 'Sound off' : 'Sound on'}
       </button>
       <PortfolioModalLoader
+        initialFloor={startFloor}
         onClosed={handleModalClosed}
         onOpened={handleModalOpened}
         phase={modalPhase}
