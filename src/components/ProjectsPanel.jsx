@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { LANGUAGES, PROJECTS } from '../config/portfolioContent'
+import { useMediaQuery, useReducedMotion } from '../hooks/useMediaQuery'
 import PageAuraMark from './PageAuraMark'
 import StageModel from './StageModel'
 import './ProjectsPanel.css'
@@ -20,26 +21,14 @@ export function TechGlyph({ tech }) {
   )
 }
 
-function useMediaQuery(query) {
-  const [matches, setMatches] = useState(() => window.matchMedia?.(query).matches ?? false)
-
-  useEffect(() => {
-    const mql = window.matchMedia?.(query)
-    if (!mql) return undefined
-    const onChange = (event) => setMatches(event.matches)
-    mql.addEventListener('change', onChange)
-    return () => mql.removeEventListener('change', onChange)
-  }, [query])
-
-  return matches
-}
-
-function useReducedMotion() {
-  return useMediaQuery('(prefers-reduced-motion: reduce)')
-}
-
 function getProjectLinks(project) {
   return project.links ?? (project.url ? [{ label: 'Visit', url: project.url }] : [])
+}
+
+// Pages on this site (paths like /cua) open in place; everything else opens
+// in a new tab so the elevator stays where the visitor left it.
+function linkTarget(url) {
+  return url.startsWith('/') ? {} : { rel: 'noreferrer', target: '_blank' }
 }
 
 // Prop art behind the window. With several faces it cycles like the
@@ -166,7 +155,7 @@ function ProjectCell({ denied, index, onArm, onArmNow, onDeniedPress, onDisarm, 
 
   if (primaryLink) {
     return (
-      <a {...shared} href={primaryLink.url} rel="noreferrer" target="_blank">
+      <a {...shared} href={primaryLink.url} {...linkTarget(primaryLink.url)}>
         <CellInner index={index} project={project} />
       </a>
     )
@@ -229,7 +218,7 @@ function ProjectStage({ backdropped, project, reducedMotion, stillOnly }) {
         {links.length > 0 ? (
           <span className="stage-show__actions">
             {links.map((link) => (
-              <a className="stage-show__visit" href={link.url} key={link.url} rel="noreferrer" target="_blank">
+              <a className="stage-show__visit" href={link.url} key={link.url} {...linkTarget(link.url)}>
                 {link.label}
               </a>
             ))}
@@ -400,8 +389,7 @@ export default function ProjectsPanel() {
                             className="stage-show__visit"
                             href={link.url}
                             key={link.url}
-                            rel="noreferrer"
-                            target="_blank"
+                            {...linkTarget(link.url)}
                             tabIndex={expanded ? 0 : -1}
                           >
                             {link.label}
