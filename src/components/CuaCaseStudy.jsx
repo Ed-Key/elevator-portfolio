@@ -309,7 +309,7 @@ export default function CuaCaseStudy() {
               </dl>
               <div className="cua-actions">
                 <a className="cua-pill cua-pill--solid" href="#demo">Watch the demo</a>
-                <a className="cua-pill cua-pill--ghost" href="https://github.com/Ed-Key/cua" rel="noreferrer" target="_blank">Code</a>
+                <a className="cua-pill cua-pill--ghost" href="https://github.com/Ed-Key/cua/tree/ed/main" rel="noreferrer" target="_blank">Code</a>
               </div>
             </div>
             <DemoWindow />
@@ -396,7 +396,7 @@ export default function CuaCaseStudy() {
 
         <footer className="cua-footer">
           <a href="/#projects">Back to projects</a>
-          <a href="https://github.com/Ed-Key/cua" rel="noreferrer" target="_blank">Code on GitHub</a>
+          <a href="https://github.com/Ed-Key/cua/tree/ed/main" rel="noreferrer" target="_blank">Code on GitHub</a>
         </footer>
       </div>
     </div>

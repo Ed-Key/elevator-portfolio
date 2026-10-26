@@ -138,7 +138,7 @@ export const PROJECTS = [
     tech: [TECH.rust, TECH.python],
     links: [
       { label: 'Case study', url: '/cua' },
-      { label: 'Code', url: 'https://github.com/Ed-Key/cua' },
+      { label: 'Code', url: 'https://github.com/Ed-Key/cua/tree/ed/main' },
     ],
     media: { video: DEMO.mp4, poster: DEMO.poster, logo: null, model: null },
   },
