@@ -49,6 +49,8 @@ const TAP_ROWS = [
 const THEMES = ['Reliability', 'Speed and cost', 'Safety', 'Native parity', 'Picture-in-picture and cursor', 'Observation quality']
 const SHORT = { 'Picture-in-picture and cursor': 'PiP and cursor' }
 const isMeasured = (fix) => Boolean(fix.before && fix.after)
+// The dot says whether the record names how many runs a number rests on.
+const hasRunCount = (fix) => fix.sample.trim() !== ''
 
 function Eyebrow({ lead, children }) {
   return (
@@ -193,8 +195,8 @@ function Ledger() {
                   )}
                 </span>
                 <i
-                  aria-label={fix.confidence === 'high' ? 'run count recorded' : 'run count not recorded'}
-                  className={fix.confidence === 'high' ? 'cua-conf cua-conf--high' : 'cua-conf'}
+                  aria-label={hasRunCount(fix) ? 'run count recorded' : 'run count not recorded'}
+                  className={hasRunCount(fix) ? 'cua-dot cua-dot--recorded' : 'cua-dot'}
                   role="img"
                 />
               </summary>
@@ -209,8 +211,8 @@ function Ledger() {
       </ul>
 
       <div className="cua-legend">
-        <span><i aria-hidden="true" className="cua-conf cua-conf--high" />run count recorded</span>
-        <span><i aria-hidden="true" className="cua-conf" />run count not recorded</span>
+        <span><i aria-hidden="true" className="cua-dot cua-dot--recorded" />run count recorded</span>
+        <span><i aria-hidden="true" className="cua-dot" />run count not recorded</span>
         <span><b className="cua-before">before</b> → <b className="cua-after">after</b></span>
       </div>
     </section>

@@ -682,7 +682,7 @@ body {
   color: var(--cua-muted);
 }
 
-.cua-conf {
+.cua-dot {
   display: inline-block;
   justify-self: end;
   align-self: center;
@@ -692,7 +692,7 @@ body {
   border-radius: 50%;
 }
 
-.cua-conf--high {
+.cua-dot--recorded {
   background: var(--cua-gold);
 }
 
@@ -885,7 +885,7 @@ body {
   .cua-row__date { grid-area: 1 / 1; }
   .cua-row__title { grid-area: 2 / 1; }
   .cua-row__ba { grid-area: 3 / 1; }
-  .cua-conf { grid-area: 1 / 2; }
+  .cua-dot { grid-area: 1 / 2; }
 
   .cua-row__more {
     padding-left: 4px;

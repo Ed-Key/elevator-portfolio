@@ -9,7 +9,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -22,7 +21,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -35,7 +33,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 6
  },
  {
@@ -48,7 +45,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -61,7 +57,6 @@
   "before": "3-5/9 readiness checks passed",
   "after": "15/15 readiness checks passed",
   "sample": "9 baseline cases; 15 after cases",
-  "confidence": "high",
   "headline_score": 7
  },
  {
@@ -74,7 +69,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -87,7 +81,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -100,7 +93,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -113,7 +105,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 5
  },
  {
@@ -126,7 +117,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 2
  },
  {
@@ -139,7 +129,6 @@
   "before": "5/40 shortcut checks passed",
   "after": "40/40 shortcut checks passed",
   "sample": "40 checks per build",
-  "confidence": "high",
   "headline_score": 10
  },
  {
@@ -152,7 +141,6 @@
   "before": "6.0 s",
   "after": "1.8 s",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 9
  },
  {
@@ -165,7 +153,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -178,7 +165,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "low",
   "headline_score": 1
  },
  {
@@ -191,7 +177,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -204,7 +189,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -217,7 +201,6 @@
   "before": "11,362 characters",
   "after": "1,671 characters",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 9
  },
  {
@@ -230,7 +213,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 5
  },
  {
@@ -243,7 +225,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 1
  },
  {
@@ -256,7 +237,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -269,7 +249,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "high",
   "headline_score": 3
  },
  {
@@ -282,7 +261,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -295,7 +273,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -308,7 +285,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -321,7 +297,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -334,7 +309,6 @@
   "before": "14 calls per task",
   "after": "7 calls per task",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 8
  },
  {
@@ -347,7 +321,6 @@
   "before": "396k tokens per task",
   "after": "335k tokens per task",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 6
  },
  {
@@ -360,7 +333,6 @@
   "before": "59.3 s per task",
   "after": "48.7 s per task",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 6
  },
  {
@@ -373,7 +345,6 @@
   "before": "44,475 characters",
   "after": "12,918 characters",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 8
  },
  {
@@ -386,7 +357,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -399,7 +369,6 @@
   "before": "9 calls per task",
   "after": "8 calls per task",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 5
  },
  {
@@ -412,7 +381,6 @@
   "before": "276k tokens per task",
   "after": "245k tokens per task",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 5
  },
  {
@@ -425,7 +393,6 @@
   "before": "125-126 shortcut firings",
   "after": "1 shortcut firing",
   "sample": "3 runs per build",
-  "confidence": "high",
   "headline_score": 10
  },
  {
@@ -438,7 +405,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -451,7 +417,6 @@
   "before": "311k tokens per task",
   "after": "267k tokens per task",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 6
  },
  {
@@ -464,7 +429,6 @@
   "before": "",
   "after": "~12 fps",
   "sample": "4 checks",
-  "confidence": "high",
   "headline_score": 5
  },
  {
@@ -477,7 +441,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "high",
   "headline_score": 3
  },
  {
@@ -490,7 +453,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -503,7 +465,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -516,7 +477,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -529,7 +489,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -542,7 +501,6 @@
   "before": "7 calls",
   "after": "3 calls",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 7
  },
  {
@@ -555,7 +513,6 @@
   "before": "6-8 calls",
   "after": "2 calls",
   "sample": "3 attempts per lane",
-  "confidence": "high",
   "headline_score": 9
  },
  {
@@ -568,7 +525,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -581,7 +537,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -594,7 +549,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -607,7 +561,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -620,7 +573,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -633,7 +585,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "high",
   "headline_score": 3
  },
  {
@@ -646,7 +597,6 @@
   "before": "~276 pt short of the edge",
   "after": "Within 0.5 pt of the edge",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 8
  },
  {
@@ -659,7 +609,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -672,7 +621,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "high",
   "headline_score": 3
  },
  {
@@ -685,7 +633,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 5
  },
  {
@@ -698,7 +645,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -711,7 +657,6 @@
   "before": "11.3 calls per task",
   "after": "5.0 calls per task",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 8
  },
  {
@@ -724,7 +669,6 @@
   "before": "9 calls per task",
   "after": "4.0 calls per task",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 8
  },
  {
@@ -737,7 +681,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -750,7 +693,6 @@
   "before": "306k tokens per task",
   "after": "261k tokens per task",
   "sample": "18 runs per lane",
-  "confidence": "high",
   "headline_score": 7
  },
  {
@@ -763,7 +705,6 @@
   "before": "16.2 calls per workflow",
   "after": "9.5 calls per workflow",
   "sample": "15 Claude workflows",
-  "confidence": "medium",
   "headline_score": 7
  },
  {
@@ -776,7 +717,6 @@
   "before": "1.29 rereads per run",
   "after": "0.33 rereads per run",
   "sample": "12 Codex runs",
-  "confidence": "high",
   "headline_score": 8
  },
  {
@@ -789,7 +729,6 @@
   "before": "22/34 checks passed",
   "after": "37/37 checks passed",
   "sample": "34 baseline checks; 37 candidate checks",
-  "confidence": "high",
   "headline_score": 7
  },
  {
@@ -802,7 +741,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 3
  },
  {
@@ -815,7 +753,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "high",
   "headline_score": 3
  },
  {
@@ -828,7 +765,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "high",
   "headline_score": 3
  },
  {
@@ -841,7 +777,6 @@
   "before": "8.1-8.2 s",
   "after": "0.3-0.5 s",
   "sample": "",
-  "confidence": "high",
   "headline_score": 10
  },
  {
@@ -854,7 +789,6 @@
   "before": "40 failed calls",
   "after": "32 failed calls",
   "sample": "30 errands per build",
-  "confidence": "high",
   "headline_score": 5
  },
  {
@@ -867,7 +801,6 @@
   "before": "0/4 Finder folder checks passed",
   "after": "3/3 Finder folder checks passed",
   "sample": "4 baseline runs; 3 candidate runs",
-  "confidence": "high",
   "headline_score": 8
  },
  {
@@ -880,7 +813,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "high",
   "headline_score": 2
  },
  {
@@ -893,7 +825,6 @@
   "before": "1/5 successful handbacks",
   "after": "5/5 successful handbacks",
   "sample": "5 T6 attempts per build",
-  "confidence": "high",
   "headline_score": 8
  },
  {
@@ -906,7 +837,6 @@
   "before": "",
   "after": "",
   "sample": "4 candidate runs per row",
-  "confidence": "high",
   "headline_score": 5
  },
  {
@@ -919,7 +849,6 @@
   "before": "",
   "after": "",
   "sample": "3 candidate runs per row",
-  "confidence": "high",
   "headline_score": 5
  },
  {
@@ -932,7 +861,6 @@
   "before": "15.05 s",
   "after": "0.05 to 2.7 s",
   "sample": "4 final candidate or committed runs",
-  "confidence": "high",
   "headline_score": 9
  },
  {
@@ -945,7 +873,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "high",
   "headline_score": 5
  },
  {
@@ -958,7 +885,6 @@
   "before": "12/29 checks passed",
   "after": "29/29 checks passed",
   "sample": "29 checks per take",
-  "confidence": "medium",
   "headline_score": 9
  },
  {
@@ -971,7 +897,6 @@
   "before": "96.9 s of forbidden foreground",
   "after": "0 s of forbidden foreground",
   "sample": "60 baseline attempts; 22 after attempts",
-  "confidence": "medium",
   "headline_score": 9
  },
  {
@@ -984,7 +909,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "high",
   "headline_score": 5
  },
  {
@@ -997,7 +921,6 @@
   "before": "",
   "after": "",
   "sample": "",
-  "confidence": "high",
   "headline_score": 3
  },
  {
@@ -1010,7 +933,6 @@
   "before": "Twice per delayed command",
   "after": "Once per delayed command",
   "sample": "15 candidate trials",
-  "confidence": "high",
   "headline_score": 9
  },
  {
@@ -1023,7 +945,6 @@
   "before": "809 ms",
   "after": "584 ms",
   "sample": "5 samples per build",
-  "confidence": "high",
   "headline_score": 8
  },
  {
@@ -1036,7 +957,6 @@
   "before": "2,901 ms",
   "after": "940 ms",
   "sample": "5 samples per build",
-  "confidence": "high",
   "headline_score": 10
  },
  {
@@ -1049,7 +969,6 @@
   "before": "7-11 s old",
   "after": "1-5 ms old",
   "sample": "",
-  "confidence": "medium",
   "headline_score": 9
  },
  {
@@ -1062,7 +981,6 @@
   "before": "10 pt",
   "after": "7 pt",
   "sample": "",
-  "confidence": "high",
   "headline_score": 6
  },
  {
@@ -1075,7 +993,6 @@
   "before": "4 of 19 drags failed",
   "after": "0 of 19 drags failed",
   "sample": "3 runs per build, 19 drags per run",
-  "confidence": "high",
   "headline_score": 9
  },
  {
@@ -1088,7 +1005,6 @@
   "before": "",
   "after": "11/11 safety checks passed",
   "sample": "11 candidate checks across four builds",
-  "confidence": "medium",
   "headline_score": 8
  },
  {
@@ -1101,7 +1017,6 @@
   "before": "timed out at 120 s",
   "after": "62.2 s",
   "sample": "1,344 characters per build",
-  "confidence": "medium",
   "headline_score": 9
  },
  {
@@ -1114,7 +1029,6 @@
   "before": "4 of 11 web-row checks passed",
   "after": "11/11 web-row checks passed",
   "sample": "11 web-row checks per build",
-  "confidence": "high",
   "headline_score": 9
  }
 ]
