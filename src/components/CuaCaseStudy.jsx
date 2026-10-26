@@ -242,7 +242,7 @@ function ChartSlot({ chart }) {
       <figcaption>
         <b>{chart.title}</b>
         {chart.caption}
-        {status !== 'ready' ? ' Data is coming from the benchmark pilot.' : null}
+        {status !== 'ready' ? ' Data lands after the re-run.' : null}
       </figcaption>
     </figure>
   )
@@ -264,7 +264,7 @@ function Measure() {
       <div className="cua-measure__part">
         <h3>Everyday work</h3>
         <p>
-          A frozen benchmark of everyday tasks in native Mac apps and web apps. The first pilot is running now, and these charts fill in as its results land.
+          A frozen benchmark of everyday tasks in native Mac apps and web apps. The first pilot run is done. These charts fill in after the current round of fixes and a re-run on the same tasks, so the numbers compare like with like.
         </p>
         <div className="cua-charts">
           {CHARTS.map((chart) => (
