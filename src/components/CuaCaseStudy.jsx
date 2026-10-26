@@ -287,7 +287,7 @@ export default function CuaCaseStudy() {
       <div className="cua-wrap">
         <nav aria-label="Site" className="cua-bar">
           <a className="cua-bar__name" href="/">Edward Kiboma</a>
-          <a className="cua-bar__back" href="/">Back to projects</a>
+          <a className="cua-bar__back" href="/#projects">Back to projects</a>
         </nav>
 
         <main>
@@ -393,7 +393,7 @@ export default function CuaCaseStudy() {
         </main>
 
         <footer className="cua-footer">
-          <a href="/">Back to projects</a>
+          <a href="/#projects">Back to projects</a>
           <a href="https://github.com/Ed-Key/cua" rel="noreferrer" target="_blank">Code on GitHub</a>
         </footer>
       </div>
