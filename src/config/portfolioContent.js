@@ -1,6 +1,8 @@
 // Portfolio content — sections are "floors" in the building the elevator
 // just carried you into. Edit copy here; layout lives in PortfolioFloors.jsx.
 
+import { DEMO } from './cuaCaseStudy'
+
 export const COMPANIES = [
   { id: 'matrices', name: 'Matrices.ai', initial: 'M', wordmark: '/images/logos/matrices-full.svg', wordmarkHeight: 18 },
   { id: 'godaddy', name: 'GoDaddy', initial: 'G', wordmark: '/images/logos/godaddy-full.svg', wordmarkHeight: 19 },
@@ -128,14 +130,17 @@ export const PROJECTS = [
     },
   },
   {
-    id: 'elevator',
-    name: 'This Elevator',
-    blurb: 'This site. A 3D elevator ride built with React Three Fiber, with a shader-driven reveal into the portfolio.',
+    id: 'cua',
+    name: 'cua-driver Fork',
+    blurb: 'My fork of an open-source tool that lets AI agents use Mac apps in the background while you keep working.',
     year: '2026',
     status: 'live',
-    tech: [TECH.r3f, TECH.gsap, TECH.glsl],
-    links: [{ label: 'Code', url: 'https://github.com/Ed-Key/elevator-portfolio' }],
-    media: { video: null, poster: null, logo: null, model: null },
+    tech: [TECH.rust, TECH.python],
+    links: [
+      { label: 'Case study', url: '/cua' },
+      { label: 'Code', url: 'https://github.com/Ed-Key/cua/tree/ed/main' },
+    ],
+    media: { video: DEMO.mp4, poster: DEMO.poster, logo: null, model: null },
   },
   {
     id: 'potencia',
@@ -177,17 +182,17 @@ export const PROJECTS = [
 // arrays stay etched — rated beyond what's on display.
 export const LANGUAGES = [
   { name: 'TypeScript', slug: 'typescript', color: '#3178c6', projects: ['pageaura', 'showdown-copilot', 'daily-bread', 'kemuma-studio'] },
-  { name: 'JavaScript', slug: 'javascript', color: '#f7df1e', projects: ['elevator', 'ace'] },
-  { name: 'Python', slug: 'python', color: '#4b8bbe', projects: ['showdown-copilot', 'potencia'] },
-  { name: 'Rust', slug: 'rust', color: '#ce6d35', projects: ['showdown-copilot'] },
+  { name: 'JavaScript', slug: 'javascript', color: '#f7df1e', projects: ['ace'] },
+  { name: 'Python', slug: 'python', color: '#4b8bbe', projects: ['showdown-copilot', 'cua', 'potencia'] },
+  { name: 'Rust', slug: 'rust', color: '#ce6d35', projects: ['showdown-copilot', 'cua'] },
   { name: 'Java', slug: 'openjdk', color: '#f89820', projects: [] },
   { name: 'C', slug: 'c', color: '#a8b9cc', projects: [] },
   { name: 'C++', slug: 'cplusplus', color: '#659ad2', projects: [] },
   { name: 'C#', slug: 'csharp', color: '#a179dc', projects: ['water-sim'] },
   { name: 'SQL', slug: null, color: '#e8b54a', projects: ['pageaura', 'kemuma-studio'] },
   { name: 'HTML', slug: 'html5', color: '#e34f26', projects: ['daily-bread', 'ace'] },
-  { name: 'CSS', slug: 'css', color: '#2965f1', projects: ['elevator', 'daily-bread', 'ace'] },
-  { name: 'GLSL', slug: 'opengl', color: '#5586a4', projects: ['pageaura', 'elevator'] },
+  { name: 'CSS', slug: 'css', color: '#2965f1', projects: ['daily-bread', 'ace'] },
+  { name: 'GLSL', slug: 'opengl', color: '#5586a4', projects: ['pageaura'] },
   { name: 'Bash', slug: 'gnubash', color: '#4eaa25', projects: [] },
 ]
 
