@@ -1016,7 +1016,7 @@
   "change": "Use an Interactive LaunchAgent, enforce a posting deadline, and refuse typing that cannot fit the remaining time.",
   "before": "timed out at 120 s",
   "after": "62.2 s",
-  "sample": "1,344 characters per build",
+  "sample": "1 run per build (1,344 characters typed)",
   "headline_score": 9
  },
  {
