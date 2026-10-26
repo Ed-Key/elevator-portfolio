@@ -1,0 +1,28 @@
+WEBVTT
+
+00:00.000 --> 00:02.900
+TextEdit is in front. Behind it, the agent reads an email in Gmail. On screen: "Books a meeting behind your app".
+
+00:02.900 --> 00:04.170
+A picture-in-picture card appears in the corner with a live view of the agent's window.
+
+00:04.170 --> 00:06.770
+The agent types a quick event into Calendar. On screen: "Creates the event in Calendar".
+
+00:06.770 --> 00:09.370
+The new event, "Launch sync with Jordan", Oct 27, 2:00 to 2:30 PM.
+
+00:09.370 --> 00:11.670
+The agent clicks Add Reminder, and the Reminders card comes forward.
+
+00:11.670 --> 00:14.470
+It adds "Prep launch slides". On screen: "Adds the reminder in Reminders".
+
+00:14.470 --> 00:19.000
+The agent finishes after working in 2 windows. The view pulls back: TextEdit stayed in front, with 0 front-app changes, 0 window raises and 0 pointer moves.
+
+00:19.000 --> 00:21.800
+Same task, two models, both sped up 44 times. Claude Opus 5.5 finishes in 52.7 s. GPT-6.1 Sol finishes in 1 min 27.7 s. TextEdit stays in front for both.
+
+00:21.800 --> 00:24.800
+On screen: "Any model, working in the background".
