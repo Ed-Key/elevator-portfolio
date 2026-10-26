@@ -1,0 +1,28 @@
+WEBVTT
+
+00:00.000 --> 00:04.600
+TextEdit is in front with a draft of launch notes. Behind it, an agent runs on Claude Opus 5.5 through Claude Code. On screen: "Books a meeting behind your app".
+
+00:04.600 --> 00:06.600
+The view cuts to the agent's Calendar window, captured directly. The agent types a quick event.
+
+00:06.600 --> 00:09.000
+The new event, "Launch sync with Jordan", Oct 27, 2:00 to 2:30 PM. On screen: "Creates the event in Calendar".
+
+00:09.000 --> 00:11.400
+The picture-in-picture card in the corner switches to Reminders.
+
+00:11.400 --> 00:13.800
+The agent adds "Prep launch slides" in Reminders. On screen: "Adds the reminder in Reminders".
+
+00:13.800 --> 00:17.600
+The card reads "Worked in 2 windows", with Reminders and Calendar both checked.
+
+00:17.600 --> 00:21.600
+The view pulls back to the whole screen. On screen: "TextEdit stayed in front", with 0 front-app changes, 0 window raises and 0 pointer moves.
+
+00:21.600 --> 00:32.200
+Same task, two models, in separate takes sped up 39 times. Claude Opus 5.5 with Claude Code finishes in 45.6 s. GPT-6.1 Sol with Codex CLI finishes in 1 min 17.1 s. TextEdit stays in front for both.
+
+00:32.200 --> 00:35.000
+On screen: "Any model, working in the background".

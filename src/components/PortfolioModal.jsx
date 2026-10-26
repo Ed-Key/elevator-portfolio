@@ -15,12 +15,12 @@ const FLOOR_COMPONENTS = {
   projects: ProjectsPanel,
 }
 
-export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
+export default function PortfolioModal({ initialFloor = null, onClosed, onOpened, phase, tuning }) {
   const containerRef = useRef(null)
   const scrollerRef = useRef(null)
   const progressRef = useRef({ value: 0 })
-  const [activeFloorId, setActiveFloorId] = useState('home')
-  const lastFloorRef = useRef('home')
+  const [activeFloorId, setActiveFloorId] = useState(initialFloor ?? 'home')
+  const lastFloorRef = useRef(initialFloor ?? 'home')
   const reducedMotion = useMemo(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false, [])
   const activeFloor = PORTFOLIO_FLOORS.find((floor) => floor.id === activeFloorId) ?? PORTFOLIO_FLOORS[0]
   // Observers must survive phase churn (opening → open → closing) — keying
@@ -72,6 +72,13 @@ export default function PortfolioModal({ onClosed, onOpened, phase, tuning }) {
   useEffect(() => {
     if (phase === 'open') containerRef.current?.focus()
   }, [phase])
+
+  // Land on the start floor before the first paint, with no scroll animation
+  // and no tap cue, so the sweep reveals that floor rather than the lobby.
+  useLayoutEffect(() => {
+    if (!mounted || !initialFloor) return
+    scrollerRef.current?.querySelector(`[data-floor="${initialFloor}"]`)?.scrollIntoView({ block: 'start' })
+  }, [initialFloor, mounted])
 
   // Scroll position drives the panel lamp: a section is "current" while it
   // crosses the middle band of the scroller (robust for tall floors).
