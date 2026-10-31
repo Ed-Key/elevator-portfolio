@@ -229,7 +229,7 @@ function ChartSlot({ chart }) {
       <div className="cua-chart__frame" data-status={status}>
         {status !== 'missing' ? (
           <img
-            alt={chart.title}
+            alt={chart.alt}
             onError={() => setStatus('missing')}
             onLoad={() => setStatus('ready')}
             src={CHART_DIR + chart.file}
@@ -264,13 +264,16 @@ function Measure() {
       <div className="cua-measure__part">
         <h3>Everyday work</h3>
         <p>
-          A frozen benchmark of everyday tasks in native Mac apps and web apps. The first pilot run is done. These charts fill in after the current round of fixes and a re-run on the same tasks, so the numbers compare like with like.
+          A frozen benchmark of 20 everyday tasks, ten in native Mac apps and ten in web apps, five seeds each. Every trial ran the same Codex agent in a fresh VM, and only the computer-use tool changed: OpenAI’s native Computer Use, or this fork. The latest build finished all 100 trials and disturbed the person at the Mac in 25% of them, against 79% for native. Native is still cheaper: $0.077 per success at API rates, against $0.113.
         </p>
         <div className="cua-charts">
           {CHARTS.map((chart) => (
             <ChartSlot chart={chart} key={chart.file} />
           ))}
         </div>
+        <p className="cua-charts-note">
+          How the latest 100 were collected: the first pass ran while the test Mac was badly overloaded, and 25 trials failed before the agent started. Those were retried, which gave 95 of 100, 34% disruption and a 58 s median. The 46 trials that had started under heavy load were then rerun on a quiet machine. I chose that load cutoff after seeing the results, and one real timeout and one wrong result fell above it. Native’s figures are from the pilot, also on a quiet machine. Either way, cua gets noticeably worse when the Mac is busy, and that is the next thing to fix.
+        </p>
       </div>
 
       <div className="cua-measure__part">
