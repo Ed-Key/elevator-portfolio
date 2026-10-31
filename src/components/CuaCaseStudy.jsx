@@ -229,7 +229,7 @@ function ChartSlot({ chart }) {
       <div className="cua-chart__frame" data-status={status}>
         {status !== 'missing' ? (
           <img
-            alt={chart.title}
+            alt={chart.alt}
             onError={() => setStatus('missing')}
             onLoad={() => setStatus('ready')}
             src={CHART_DIR + chart.file}
