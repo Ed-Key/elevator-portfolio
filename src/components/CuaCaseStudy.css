@@ -1020,8 +1020,14 @@ body {
     grid-column: 1 / -1;
   }
 
-  .cua-stat:nth-child(2) {
+  .cua-stat:nth-child(2),
+  .cua-stat:nth-child(4) {
     border-left: 0;
+  }
+
+  .cua-stat__value {
+    font-size: 28px;
+    white-space: nowrap;
   }
 
   .cua-stat--lead + .cua-stat,
