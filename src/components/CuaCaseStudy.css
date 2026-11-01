@@ -778,129 +778,112 @@ body {
   text-wrap: balance;
 }
 
-.cua-bench__lede {
-  max-width: 40em;
-  margin: 0;
-  color: var(--cua-muted);
-}
-
-.cua-stats {
+.cua-bench__lead {
   display: grid;
-  grid-template-columns: 1.5fr repeat(3, minmax(0, 1fr));
-  margin-top: 36px;
-  border-block: 1px solid var(--cua-hair);
-}
-
-.cua-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
-  padding: 26px 24px 24px;
-}
-
-.cua-stat + .cua-stat {
-  border-left: 1px solid var(--cua-hair);
-}
-
-.cua-stat__value {
-  margin: 0;
-  font-family: var(--cua-display);
-  font-size: 34px;
-  font-variant-numeric: tabular-nums;
-  font-weight: 300;
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-.cua-stat--lead .cua-stat__value {
-  color: var(--cua-gold);
-  font-size: 68px;
-}
-
-.cua-stat__native {
-  margin: 0;
-  color: var(--cua-muted);
-  font-family: var(--cua-mono);
-  font-size: 13px;
-}
-
-.cua-disruption {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 32px;
-  margin-top: 40px;
-}
-
-.cua-disruption figure {
-  min-width: 0;
-  margin: 0;
-}
-
-.cua-disruption figcaption {
-  margin-bottom: 14px;
-  font-family: var(--cua-display);
-  font-size: 15px;
-}
-
-.cua-disruption ul {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.cua-disruption li {
-  display: grid;
-  grid-template-columns: 5.4em minmax(0, 1fr) 2.9em;
-  gap: 8px;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 40px;
   align-items: center;
-  color: var(--cua-muted);
+  margin-top: 32px;
+}
+
+.cua-plot {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.cua-plot__grid {
+  stroke: var(--cua-hair-soft);
+}
+
+.cua-plot__tick,
+.cua-plot__axis {
+  fill: var(--cua-muted);
+  font-family: var(--cua-mono);
   font-size: 13px;
 }
 
-.cua-disruption li > i {
-  display: block;
-  height: 12px;
+.cua-plot__axis {
+  font-family: var(--cua-display);
+  font-size: 14px;
 }
 
-.cua-disruption li b {
-  display: block;
-  min-width: 2px;
-  height: 100%;
-  border-radius: 0 4px 4px 0;
-  background: #7d6330;
+.cua-plot__better {
+  fill: var(--cua-good);
+  font-family: var(--cua-display);
+  font-size: 14px;
 }
 
-.cua-disruption li[data-arm='0'] b {
-  background: var(--cua-muted);
+.cua-plot__path {
+  fill: none;
+  stroke: var(--cua-gold);
+  stroke-dasharray: 5 6;
+  stroke-width: 1.5;
 }
 
-.cua-disruption li[data-arm='2'] b {
-  background: #b8954c;
+.cua-plot__point line {
+  stroke: #b8954c;
+  stroke-opacity: 0.55;
+  stroke-width: 1.5;
 }
 
-.cua-disruption li[data-arm='3'] b {
-  background: var(--cua-gold);
+.cua-plot__point circle {
+  fill: #b8954c;
+  stroke: var(--cua-void);
+  stroke-width: 2;
 }
 
-.cua-disruption li strong {
-  color: var(--cua-ink);
-  font-family: var(--cua-mono);
-  font-size: 12px;
+.cua-plot__point text {
+  fill: var(--cua-ink);
+  font-family: var(--cua-display);
+  font-size: 16px;
+}
+
+.cua-plot__point[data-latest] circle {
+  fill: var(--cua-gold);
+}
+
+.cua-plot__point[data-latest] text {
+  fill: var(--cua-gold);
   font-weight: 500;
-  text-align: right;
 }
 
-.cua-bench__key {
-  margin: 20px 0 0;
+.cua-plot__point--native line {
+  stroke: var(--cua-muted);
+}
+
+.cua-plot__point--native circle {
+  fill: var(--cua-muted);
+}
+
+.cua-bench__read {
+  min-width: 0;
   color: var(--cua-muted);
-  font-size: 15px;
+}
+
+.cua-bench__read p {
+  margin: 0;
+}
+
+.cua-bench__read p + p {
+  margin-top: 16px;
+}
+
+.cua-bench__read p:first-child {
+  color: var(--cua-ink);
+  font-family: var(--cua-display);
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 1.25;
+}
+
+.cua-bench__read b {
+  color: var(--cua-gold);
+  font-weight: 400;
 }
 
 .cua-table {
-  margin-top: 36px;
+  margin-top: 40px;
   overflow-x: auto;
   border: 1px solid var(--cua-hair);
   border-radius: 12px;
@@ -908,36 +891,46 @@ body {
 
 .cua-table table {
   width: 100%;
-  min-width: 640px;
+  min-width: 620px;
   border-collapse: collapse;
   font-size: 15px;
 }
 
 .cua-table th,
 .cua-table td {
-  padding: 12px 16px;
+  padding: 11px 16px;
   text-align: right;
   white-space: nowrap;
 }
 
-.cua-table th:first-child {
+.cua-table tbody th {
+  font-family: var(--cua-display);
+  font-size: 15px;
+  font-weight: 400;
   text-align: left;
+}
+
+.cua-table sup {
+  margin-left: 2px;
+  color: var(--cua-muted);
+  font-family: var(--cua-mono);
+  font-size: 10px;
 }
 
 .cua-table thead th {
   color: var(--cua-muted);
   font-family: var(--cua-display);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
-.cua-table tbody th {
-  font-weight: 400;
+.cua-table thead th[data-latest] {
+  color: var(--cua-gold);
 }
 
 .cua-table tbody td {
+  color: var(--cua-muted);
   font-family: var(--cua-mono);
   font-size: 14px;
   font-variant-numeric: tabular-nums;
@@ -947,29 +940,29 @@ body {
   border-top: 1px solid var(--cua-hair-soft);
 }
 
-.cua-table tr[data-latest] th,
-.cua-table tr[data-latest] td {
-  color: var(--cua-gold);
+.cua-table [data-latest] {
+  border-inline: 1px solid var(--cua-hair);
 }
 
-.cua-bench__how {
-  margin-top: 24px;
+.cua-table td[data-best] {
+  background: rgb(240 200 112 / 12%);
+  color: var(--cua-ink);
+  font-weight: 500;
+}
+
+.cua-bench__notes {
+  max-width: 46em;
+  margin: 20px 0 0;
+  padding-left: 1.2em;
   color: var(--cua-muted);
-}
-
-.cua-bench__how summary {
-  cursor: pointer;
   font-size: 15px;
+  line-height: 1.5;
 }
 
-.cua-bench__how summary:hover {
-  color: var(--cua-gold);
+.cua-bench__notes li + li {
+  margin-top: 8px;
 }
 
-.cua-bench__how p {
-  max-width: 40em;
-  margin: 14px 0 0;
-}
 
 
 .cua-footer {
@@ -1012,31 +1005,9 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .cua-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .cua-stat--lead {
-    grid-column: 1 / -1;
-  }
-
-  .cua-stat:nth-child(2),
-  .cua-stat:nth-child(4) {
-    border-left: 0;
-  }
-
-  .cua-stat__value {
-    font-size: 28px;
-    white-space: nowrap;
-  }
-
-  .cua-stat--lead + .cua-stat,
-  .cua-stat--lead ~ .cua-stat {
-    border-top: 1px solid var(--cua-hair);
-  }
-
-  .cua-disruption {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .cua-bench__lead {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
   }
 
   .cua-result:nth-child(4) {

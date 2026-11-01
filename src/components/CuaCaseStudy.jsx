@@ -219,71 +219,104 @@ function Ledger() {
   )
 }
 
+// Disruption against time, with lower left better: native's point, then cua's
+// builds joined in order. Whiskers are the 95% ranges.
+const PLOT = { left: 62, right: 622, top: 22, bottom: 372, minTime: 20, maxTime: 90 }
+const plotX = (time) => PLOT.left + ((time - PLOT.minTime) / (PLOT.maxTime - PLOT.minTime)) * (PLOT.right - PLOT.left)
+const plotY = (percent) => PLOT.bottom - (percent / 100) * (PLOT.bottom - PLOT.top)
+const LABELS = {
+  'Native Computer Use': { dx: 14, dy: -10, anchor: 'start' },
+  'First build': { dx: 14, dy: -10, anchor: 'start' },
+  'After fixes': { dx: 16, dy: 6, anchor: 'start' },
+  Latest: { dx: -14, dy: 6, anchor: 'end' },
+}
+
+function TradeOffChart() {
+  const cua = BENCHMARK.points.filter((point) => !point.native)
+  const summary = BENCHMARK.points.map((p) => `${p.name}: ${p.disruption}% disruption, ${p.time} seconds`).join('; ')
+  return (
+    <svg aria-label={`Disruption against median time, lower left is better. ${summary}.`} className="cua-plot" role="img" viewBox="0 0 640 430">
+      {[0, 25, 50, 75, 100].map((percent) => (
+        <g key={percent}>
+          <line className="cua-plot__grid" x1={PLOT.left} x2={PLOT.right} y1={plotY(percent)} y2={plotY(percent)} />
+          <text className="cua-plot__tick" textAnchor="end" x={PLOT.left - 10} y={plotY(percent) + 5}>{percent}%</text>
+        </g>
+      ))}
+      {[20, 40, 60, 80].map((time) => (
+        <text className="cua-plot__tick" key={time} textAnchor="middle" x={plotX(time)} y={PLOT.bottom + 26}>{time} s</text>
+      ))}
+      <text className="cua-plot__axis" textAnchor="middle" x={(PLOT.left + PLOT.right) / 2} y={PLOT.bottom + 54}>Median time per trial</text>
+      <text className="cua-plot__axis" textAnchor="middle" transform={`rotate(-90 15 ${(PLOT.top + PLOT.bottom) / 2})`} x="15" y={(PLOT.top + PLOT.bottom) / 2}>Trials that disturbed the person</text>
+      <text className="cua-plot__better" x={PLOT.left + 14} y={PLOT.bottom - 14}>← Better: faster, less disruption</text>
+      <polyline className="cua-plot__path" points={cua.map((p) => `${plotX(p.time)},${plotY(p.disruption)}`).join(' ')} />
+      {BENCHMARK.points.map((p) => {
+        const x = plotX(p.time)
+        const y = plotY(p.disruption)
+        const label = LABELS[p.name]
+        return (
+          <g className={p.native ? 'cua-plot__point cua-plot__point--native' : 'cua-plot__point'} data-latest={p.name === 'Latest' || undefined} key={p.name}>
+            <line x1={plotX(p.timeRange[0])} x2={plotX(p.timeRange[1])} y1={y} y2={y} />
+            <line x1={x} x2={x} y1={plotY(p.disruptionRange[0])} y2={plotY(p.disruptionRange[1])} />
+            <circle cx={x} cy={y} r="7" />
+            <text textAnchor={label.anchor} x={x + label.dx} y={y + label.dy}>{p.name}</text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
 function Benchmark() {
   return (
     <section aria-labelledby="benchmark-title" className="cua-bench">
       <Eyebrow lead="Benchmark">Against OpenAI’s Computer Use</Eyebrow>
       <h2 id="benchmark-title">The same agent disturbs you a third as often</h2>
-      <p className="cua-bench__lede">
-        20 everyday tasks, ten in Mac apps and ten in web apps, five seeds each. Every trial ran the same Codex agent in a fresh VM, and only the computer-use tool changed. Native is still faster and cheaper.
-      </p>
 
-      <div className="cua-stats">
-        {BENCHMARK.stats.map((stat) => (
-          <div className={stat.lead ? 'cua-stat cua-stat--lead' : 'cua-stat'} key={stat.label}>
-            <h3 className="cua-result__label">{stat.label}</h3>
-            <p className="cua-stat__value">{stat.cua}</p>
-            <p className="cua-stat__native">native {stat.native}</p>
-          </div>
-        ))}
+      <div className="cua-bench__lead">
+        <TradeOffChart />
+        <div className="cua-bench__read">
+          <p>
+            <b>25%</b> of cua’s trials disturbed the person at the Mac, against <b>79%</b> for OpenAI’s native tool, at nearly the same speed.
+          </p>
+          <p>
+            20 everyday tasks, ten in Mac apps and ten in web apps, five seeds each. Every trial ran the same Codex agent in a fresh VM, and only the computer-use tool changed.
+          </p>
+          <p>
+            Native still wins on speed, tokens and cost. Whiskers show 95% ranges, and with 20 tasks they are wide. These runs are mine, on a frozen VM, and nobody has reproduced them yet.
+          </p>
+        </div>
       </div>
 
-      <div className="cua-disruption">
-        {BENCHMARK.disruption.map((group) => (
-          <figure key={group.label}>
-            <figcaption>{group.label}</figcaption>
-            <ul>
-              {group.values.map((value, i) => (
-                <li data-arm={i} key={BENCHMARK.arms[i]}>
-                  <span>{BENCHMARK.arms[i]}</span>
-                  <i><b style={{ width: `${value}%` }} /></i>
-                  <strong>{value}%</strong>
-                </li>
-              ))}
-            </ul>
-          </figure>
-        ))}
-      </div>
-      <p className="cua-bench__key">Share of 100 trials. Native is the pilot run; the other three are builds of this fork.</p>
-
-      <div className="cua-table">
+      <div aria-label="Benchmark results by tool" className="cua-table" role="region" tabIndex={0}>
         <table>
           <thead>
             <tr>
-              <th scope="col">Tool</th>
-              {BENCHMARK.columns.map((column) => <th key={column} scope="col">{column}</th>)}
+              <td />
+              {BENCHMARK.columns.map((column, i) => <th data-latest={i === 3 || undefined} key={column} scope="col">{column}</th>)}
             </tr>
           </thead>
           <tbody>
             {BENCHMARK.rows.map((row) => (
-              <tr data-latest={row.latest || undefined} key={row.tool}>
-                <th scope="row">{row.tool}</th>
-                {row.values.map((value, i) => <td key={BENCHMARK.columns[i]}>{value}</td>)}
+              <tr key={row.label}>
+                <th scope="row">{row.label}{row.note && <sup>{row.note}</sup>}</th>
+                {row.values.map((value, i) => (
+                  <td data-best={row.best.includes(i) || undefined} data-latest={i === 3 || undefined} key={BENCHMARK.columns[i]}>{value}</td>
+                ))}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <details className="cua-bench__how">
-        <summary>How these numbers were collected. Before the quiet reruns: 95 of 100, 34% disruption, 58 s.</summary>
-        <p>
-          The first pass ran while the test Mac was badly overloaded, and 25 trials failed before the agent started. Those were retried, which gave the 95 of 100 above. The 46 trials that had started under heavy load were then rerun on a quiet machine. I chose that load cutoff after seeing the results, and one real timeout and one wrong result fell above it. Native’s figures are from the pilot, also on a quiet machine.
-        </p>
-        <p>
-          A later controlled test with looping builds on the host slowed both tools and broke VM startup in 5 of 24 trials, but it did not make cua more disruptive, so the first pass’s jump remains unexplained.
-        </p>
-      </details>
+      <ol className="cua-bench__notes">
+        <li>
+          The latest 100 needed reruns. The first pass ran on a badly overloaded Mac, and 25 trials failed before the agent started. Retrying those gave 95 of 100, 34% disruption and a 58 s median. The 46 trials that had started under heavy load were then rerun on a quiet machine. I chose that cutoff after seeing the results, and one real timeout and one wrong result fell above it. Native’s figures are from the pilot, also on a quiet machine.
+        </li>
+        <li>
+          A later controlled test with looping builds on the host slowed both tools and broke VM startup in 5 of 24 trials, but it did not make cua more disruptive, so the first pass’s jump in disruption remains unexplained.
+        </li>
+        <li>What the same tokens would cost at OpenAI’s API rates, divided by trials finished.</li>
+      </ol>
     </section>
   )
 }
