@@ -272,7 +272,7 @@ function Measure() {
           ))}
         </div>
         <p className="cua-charts-note">
-          How the latest 100 were collected: the first pass ran while the test Mac was badly overloaded, and 25 trials failed before the agent started. Those were retried, which gave 95 of 100, 34% disruption and a 58 s median. The 46 trials that had started under heavy load were then rerun on a quiet machine. I chose that load cutoff after seeing the results, and one real timeout and one wrong result fell above it. Native’s figures are from the pilot, also on a quiet machine. Either way, cua gets noticeably worse when the Mac is busy, and that is the next thing to fix.
+          How the latest 100 were collected: the first pass ran while the test Mac was badly overloaded, and 25 trials failed before the agent started. Those were retried, which gave 95 of 100, 34% disruption and a 58 s median. The 46 trials that had started under heavy load were then rerun on a quiet machine. I chose that load cutoff after seeing the results, and one real timeout and one wrong result fell above it. Native’s figures are from the pilot, also on a quiet machine. A later controlled test with looping builds on the host slowed both tools and broke VM startup in 5 of 24 trials, but it did not make cua more disruptive, so the first pass’s jump remains unexplained.
         </p>
       </div>
 
