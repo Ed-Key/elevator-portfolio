@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { CHART_DIR, CHARTS, DEMO } from '../config/cuaCaseStudy'
+import { BENCHMARK, DEMO } from '../config/cuaCaseStudy'
 import LEDGER from '../config/cuaLedger.json'
 import { useReducedMotion } from '../hooks/useMediaQuery'
 import './CuaCaseStudy.css'
 
-// The cua-driver case study at /cua: hero with the demo, measured results,
-// one incident told in full, then every fix in a filterable ledger and the
-// benchmark that will measure the fork against native Computer Use.
+// The cua-driver case study at /cua: hero with the demo, the benchmark against
+// native Computer Use, measured fixes, one incident told in full, then every
+// fix in a filterable ledger and how the measuring works.
 
 const RESULTS = [
   {
@@ -219,32 +219,72 @@ function Ledger() {
   )
 }
 
-// Loads CHART_DIR + file. A missing file fails to decode as an image (the
-// host answers with the HTML page), so the slot falls back to a placeholder.
-function ChartSlot({ chart }) {
-  const [status, setStatus] = useState('loading')
-
+function Benchmark() {
   return (
-    <figure className="cua-chart">
-      <div className="cua-chart__frame" data-status={status}>
-        {status !== 'missing' ? (
-          <img
-            alt={chart.alt}
-            onError={() => setStatus('missing')}
-            onLoad={() => setStatus('ready')}
-            src={CHART_DIR + chart.file}
-          />
-        ) : null}
-        {status !== 'ready' ? (
-          <span aria-hidden="true" className="cua-chart__placeholder">Chart pending</span>
-        ) : null}
+    <section aria-labelledby="benchmark-title" className="cua-bench">
+      <Eyebrow lead="Benchmark">Against OpenAI’s Computer Use</Eyebrow>
+      <h2 id="benchmark-title">The same agent disturbs you a third as often</h2>
+      <p className="cua-bench__lede">
+        20 everyday tasks, ten in Mac apps and ten in web apps, five seeds each. Every trial ran the same Codex agent in a fresh VM, and only the computer-use tool changed. Native is still faster and cheaper.
+      </p>
+
+      <div className="cua-stats">
+        {BENCHMARK.stats.map((stat) => (
+          <div className={stat.lead ? 'cua-stat cua-stat--lead' : 'cua-stat'} key={stat.label}>
+            <h3 className="cua-result__label">{stat.label}</h3>
+            <p className="cua-stat__value">{stat.cua}</p>
+            <p className="cua-stat__native">native {stat.native}</p>
+          </div>
+        ))}
       </div>
-      <figcaption>
-        <b>{chart.title}</b>
-        {chart.caption}
-        {status !== 'ready' ? ' Data lands after the re-run.' : null}
-      </figcaption>
-    </figure>
+
+      <div className="cua-disruption">
+        {BENCHMARK.disruption.map((group) => (
+          <figure key={group.label}>
+            <figcaption>{group.label}</figcaption>
+            <ul>
+              {group.values.map((value, i) => (
+                <li data-arm={i} key={BENCHMARK.arms[i]}>
+                  <span>{BENCHMARK.arms[i]}</span>
+                  <i><b style={{ width: `${value}%` }} /></i>
+                  <strong>{value}%</strong>
+                </li>
+              ))}
+            </ul>
+          </figure>
+        ))}
+      </div>
+      <p className="cua-bench__key">Share of 100 trials. Native is the pilot run; the other three are builds of this fork.</p>
+
+      <div className="cua-table">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Tool</th>
+              {BENCHMARK.columns.map((column) => <th key={column} scope="col">{column}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {BENCHMARK.rows.map((row) => (
+              <tr data-latest={row.latest || undefined} key={row.tool}>
+                <th scope="row">{row.tool}</th>
+                {row.values.map((value, i) => <td key={BENCHMARK.columns[i]}>{value}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <details className="cua-bench__how">
+        <summary>How these numbers were collected. Before the quiet reruns: 95 of 100, 34% disruption, 58 s.</summary>
+        <p>
+          The first pass ran while the test Mac was badly overloaded, and 25 trials failed before the agent started. Those were retried, which gave the 95 of 100 above. The 46 trials that had started under heavy load were then rerun on a quiet machine. I chose that load cutoff after seeing the results, and one real timeout and one wrong result fell above it. Native’s figures are from the pilot, also on a quiet machine.
+        </p>
+        <p>
+          A later controlled test with looping builds on the host slowed both tools and broke VM startup in 5 of 24 trials, but it did not make cua more disruptive, so the first pass’s jump remains unexplained.
+        </p>
+      </details>
+    </section>
   )
 }
 
@@ -264,15 +304,7 @@ function Measure() {
       <div className="cua-measure__part">
         <h3>Everyday work</h3>
         <p>
-          A frozen benchmark of 20 everyday tasks, ten in native Mac apps and ten in web apps, five seeds each. Every trial ran the same Codex agent in a fresh VM, and only the computer-use tool changed: OpenAI’s native Computer Use, or this fork. The latest build finished all 100 trials and disturbed the person at the Mac in 25% of them, against 79% for native. Native is still cheaper: $0.077 per success at API rates, against $0.113.
-        </p>
-        <div className="cua-charts">
-          {CHARTS.map((chart) => (
-            <ChartSlot chart={chart} key={chart.file} />
-          ))}
-        </div>
-        <p className="cua-charts-note">
-          How the latest 100 were collected: the first pass ran while the test Mac was badly overloaded, and 25 trials failed before the agent started. Those were retried, which gave 95 of 100, 34% disruption and a 58 s median. The 46 trials that had started under heavy load were then rerun on a quiet machine. I chose that load cutoff after seeing the results, and one real timeout and one wrong result fell above it. Native’s figures are from the pilot, also on a quiet machine. A later controlled test with looping builds on the host slowed both tools and broke VM startup in 5 of 24 trials, but it did not make cua more disruptive, so the first pass’s jump remains unexplained.
+          The frozen benchmark at the top of this page. Each build is installed into the same frozen VM image, so the numbers compare like with like.
         </p>
       </div>
 
@@ -317,6 +349,8 @@ export default function CuaCaseStudy() {
             </div>
             <DemoWindow />
           </section>
+
+          <Benchmark />
 
           <section aria-labelledby="results-title" className="cua-results">
             <h2 className="cua-visually-hidden" id="results-title">Measured results</h2>
