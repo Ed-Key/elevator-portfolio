@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { CHART_DIR, CHARTS, DEMO } from '../config/cuaCaseStudy'
+import { BENCHMARK, DEMO } from '../config/cuaCaseStudy'
 import LEDGER from '../config/cuaLedger.json'
 import { useReducedMotion } from '../hooks/useMediaQuery'
 import './CuaCaseStudy.css'
 
-// The cua-driver case study at /cua: hero with the demo, measured results,
-// one incident told in full, then every fix in a filterable ledger and the
-// benchmark that will measure the fork against native Computer Use.
+// The cua-driver case study at /cua: hero with the demo, the benchmark against
+// native Computer Use, measured fixes, one incident told in full, then every
+// fix in a filterable ledger and how the measuring works.
 
 const RESULTS = [
   {
@@ -219,32 +219,105 @@ function Ledger() {
   )
 }
 
-// Loads CHART_DIR + file. A missing file fails to decode as an image (the
-// host answers with the HTML page), so the slot falls back to a placeholder.
-function ChartSlot({ chart }) {
-  const [status, setStatus] = useState('loading')
+// Disruption against time, with lower left better: native's point, then cua's
+// builds joined in order. Whiskers are the 95% ranges.
+const PLOT = { left: 62, right: 622, top: 22, bottom: 372, minTime: 20, maxTime: 90 }
+const plotX = (time) => PLOT.left + ((time - PLOT.minTime) / (PLOT.maxTime - PLOT.minTime)) * (PLOT.right - PLOT.left)
+const plotY = (percent) => PLOT.bottom - (percent / 100) * (PLOT.bottom - PLOT.top)
+const LABELS = {
+  'Native Computer Use': { dx: 14, dy: -10, anchor: 'start' },
+  'First build': { dx: 14, dy: -10, anchor: 'start' },
+  'After fixes': { dx: 16, dy: 6, anchor: 'start' },
+  Latest: { dx: -14, dy: 6, anchor: 'end' },
+}
 
+function TradeOffChart() {
+  const cua = BENCHMARK.points.filter((point) => !point.native)
+  const summary = BENCHMARK.points.map((p) => `${p.name}: ${p.disruption}% disruption, ${p.time} seconds`).join('; ')
   return (
-    <figure className="cua-chart">
-      <div className="cua-chart__frame" data-status={status}>
-        {status !== 'missing' ? (
-          <img
-            alt={chart.title}
-            onError={() => setStatus('missing')}
-            onLoad={() => setStatus('ready')}
-            src={CHART_DIR + chart.file}
-          />
-        ) : null}
-        {status !== 'ready' ? (
-          <span aria-hidden="true" className="cua-chart__placeholder">Chart pending</span>
-        ) : null}
+    <svg aria-label={`Disruption against median time, lower left is better. ${summary}.`} className="cua-plot" role="img" viewBox="0 0 640 430">
+      {[0, 25, 50, 75, 100].map((percent) => (
+        <g key={percent}>
+          <line className="cua-plot__grid" x1={PLOT.left} x2={PLOT.right} y1={plotY(percent)} y2={plotY(percent)} />
+          <text className="cua-plot__tick" textAnchor="end" x={PLOT.left - 10} y={plotY(percent) + 5}>{percent}%</text>
+        </g>
+      ))}
+      {[20, 40, 60, 80].map((time) => (
+        <text className="cua-plot__tick" key={time} textAnchor="middle" x={plotX(time)} y={PLOT.bottom + 26}>{time} s</text>
+      ))}
+      <text className="cua-plot__axis" textAnchor="middle" x={(PLOT.left + PLOT.right) / 2} y={PLOT.bottom + 54}>Median time per trial</text>
+      <text className="cua-plot__axis" textAnchor="middle" transform={`rotate(-90 15 ${(PLOT.top + PLOT.bottom) / 2})`} x="15" y={(PLOT.top + PLOT.bottom) / 2}>Trials that disturbed the person</text>
+      <text className="cua-plot__better" x={PLOT.left + 14} y={PLOT.bottom - 14}>← Better: faster, less disruption</text>
+      <polyline className="cua-plot__path" points={cua.map((p) => `${plotX(p.time)},${plotY(p.disruption)}`).join(' ')} />
+      {BENCHMARK.points.map((p) => {
+        const x = plotX(p.time)
+        const y = plotY(p.disruption)
+        const label = LABELS[p.name]
+        return (
+          <g className={p.native ? 'cua-plot__point cua-plot__point--native' : 'cua-plot__point'} data-latest={p.name === 'Latest' || undefined} key={p.name}>
+            <line x1={plotX(p.timeRange[0])} x2={plotX(p.timeRange[1])} y1={y} y2={y} />
+            <line x1={x} x2={x} y1={plotY(p.disruptionRange[0])} y2={plotY(p.disruptionRange[1])} />
+            <circle cx={x} cy={y} r="7" />
+            <text textAnchor={label.anchor} x={x + label.dx} y={y + label.dy}>{p.name}</text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+function Benchmark() {
+  return (
+    <section aria-labelledby="benchmark-title" className="cua-bench">
+      <Eyebrow lead="Benchmark">Against OpenAI’s Computer Use</Eyebrow>
+      <h2 id="benchmark-title">The same agent disturbs you a third as often</h2>
+
+      <div className="cua-bench__lead">
+        <TradeOffChart />
+        <div className="cua-bench__read">
+          <p>
+            <b>25%</b> of cua’s trials disturbed the person at the Mac, against <b>79%</b> for OpenAI’s native tool, at nearly the same speed.
+          </p>
+          <p>
+            20 everyday tasks, ten in Mac apps and ten in web apps, five seeds each. Every trial ran the same Codex agent in a fresh VM, and only the computer-use tool changed.
+          </p>
+          <p>
+            Native still wins on speed, tokens and cost. Whiskers show 95% ranges, and with 20 tasks they are wide. These runs are mine, on a frozen VM, and nobody has reproduced them yet.
+          </p>
+        </div>
       </div>
-      <figcaption>
-        <b>{chart.title}</b>
-        {chart.caption}
-        {status !== 'ready' ? ' Data lands after the re-run.' : null}
-      </figcaption>
-    </figure>
+
+      <div aria-label="Benchmark results by tool" className="cua-table" role="region" tabIndex={0}>
+        <table>
+          <thead>
+            <tr>
+              <td />
+              {BENCHMARK.columns.map((column, i) => <th data-latest={i === 3 || undefined} key={column} scope="col">{column}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {BENCHMARK.rows.map((row) => (
+              <tr key={row.label}>
+                <th scope="row">{row.label}{row.note && <sup>{row.note}</sup>}</th>
+                {row.values.map((value, i) => (
+                  <td data-best={row.best.includes(i) || undefined} data-latest={i === 3 || undefined} key={BENCHMARK.columns[i]}>{value}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <ol className="cua-bench__notes">
+        <li>
+          The latest 100 needed reruns. The first pass ran on a badly overloaded Mac, and 25 trials failed before the agent started. Retrying those gave 95 of 100, 34% disruption and a 58 s median. The 46 trials that had started under heavy load were then rerun on a quiet machine. I chose that cutoff after seeing the results, and one real timeout and one wrong result fell above it. Native’s figures are from the pilot, also on a quiet machine.
+        </li>
+        <li>
+          A later controlled test with looping builds on the host slowed both tools and broke VM startup in 5 of 24 trials, but it did not make cua more disruptive, so the first pass’s jump in disruption remains unexplained.
+        </li>
+        <li>What the same tokens would cost at OpenAI’s API rates, divided by trials finished.</li>
+      </ol>
+    </section>
   )
 }
 
@@ -264,13 +337,8 @@ function Measure() {
       <div className="cua-measure__part">
         <h3>Everyday work</h3>
         <p>
-          A frozen benchmark of everyday tasks in native Mac apps and web apps. The first pilot run is done. These charts fill in after the current round of fixes and a re-run on the same tasks, so the numbers compare like with like.
+          The frozen benchmark at the top of this page. Each build is installed into the same frozen VM image, so the numbers compare like with like.
         </p>
-        <div className="cua-charts">
-          {CHARTS.map((chart) => (
-            <ChartSlot chart={chart} key={chart.file} />
-          ))}
-        </div>
       </div>
 
       <div className="cua-measure__part">
@@ -314,6 +382,8 @@ export default function CuaCaseStudy() {
             </div>
             <DemoWindow />
           </section>
+
+          <Benchmark />
 
           <section aria-labelledby="results-title" className="cua-results">
             <h2 className="cua-visually-hidden" id="results-title">Measured results</h2>
