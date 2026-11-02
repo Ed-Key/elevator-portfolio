@@ -95,14 +95,14 @@ function DemoWindow() {
           <>
             <img alt={DEMO.stillAlt} src={DEMO.still} />
             <button className="cua-window__play" onClick={() => setRequested(true)} type="button">
-              Play the 25 s demo
+              Play the 45 s demo
             </button>
           </>
         )}
       </div>
       <figcaption className="cua-window__caption" id="demo-caption">
         <span>
-          Real recording in a macOS VM. The agent books a meeting in Calendar and adds a reminder while TextEdit stays in front. Waits are cut and the speed is shown on screen. Silent, with captions.
+          Real recordings in macOS VMs, each screen recorded separately. Claude Code and Codex finish tasks behind TextEdit while someone keeps typing in it. Speed changes are shown on screen. Silent, with captions.
         </span>
       </figcaption>
     </figure>
