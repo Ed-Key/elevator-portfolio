@@ -14,29 +14,27 @@ export const DEMO = {
     'The whole Mac screen after the run. TextEdit is still in front with the launch notes draft, the agent card in the corner shows Reminders and Calendar both checked, and the caption reads TextEdit stayed in front, with 0 front-app changes, 0 window raises and 0 pointer moves.',
 }
 
-// Benchmark charts. Each slot loads CHART_DIR + file; until that SVG exists
-// the slot shows a placeholder, so publishing a chart means adding the file.
-export const CHART_DIR = '/media/cua/charts/'
-
-export const CHARTS = [
-  {
-    file: 'success.svg',
-    title: 'Tasks finished on the first try',
-    caption: 'Share of pilot tasks each tool completed on its first attempt.',
-  },
-  {
-    file: 'time.svg',
-    title: 'Success against time',
-    caption: 'Each tool’s success rate plotted against its median time per task.',
-  },
-  {
-    file: 'tokens.svg',
-    title: 'Tokens per task',
-    caption: 'Model tokens each run used. Where a tool does not report them, the chart says unknown.',
-  },
-  {
-    file: 'disruption.svg',
-    title: 'Disruption to the person at the Mac',
-    caption: 'Front-app changes, focus changes, pointer moves and window raises per run.',
-  },
-]
+// Benchmark results, from cua-bench report/pilot/summary.json,
+// report/final/pilot/summary.json and report/rerun2/compare-*.md. Native is the
+// pilot; cua's latest build is b29cb9fd9. Ranges are 95% bootstrap intervals over
+// whole tasks. Cost is API-equivalent per success (report/rerun2/FINDINGS.md).
+export const BENCHMARK = {
+  points: [
+    { name: 'Native Computer Use', time: 37.4, timeRange: [30.4, 47.5], disruption: 79, disruptionRange: [60, 93], native: true },
+    { name: 'First build', time: 67.8, timeRange: [52.0, 86.7], disruption: 46, disruptionRange: [28, 65] },
+    { name: 'After fixes', time: 42.6, timeRange: [39.1, 48.9], disruption: 27, disruptionRange: [11, 44] },
+    { name: 'Latest', time: 40.7, timeRange: [35.9, 47.0], disruption: 25, disruptionRange: [11, 41] },
+  ],
+  columns: ['Native', 'cua, first build', 'cua, after fixes', 'cua, latest'],
+  // best is the column index of the best value in the row, or several on a tie
+  rows: [
+    { label: 'Trials finished', note: 1, values: ['96 of 100', '97 of 100', '99 of 100', '100 of 100'], best: [3] },
+    { label: 'Any disruption', note: 2, values: ['79%', '46%', '27%', '25%'], best: [3] },
+    { label: 'Window raised', values: ['79%', '40%', '22%', '19%'], best: [3] },
+    { label: 'Front app taken', values: ['21%', '46%', '22%', '23%'], best: [0] },
+    { label: 'Pointer moved', values: ['0%', '25%', '12%', '14%'], best: [0] },
+    { label: 'Median time', values: ['37.4 s', '67.8 s', '42.6 s', '40.7 s'], best: [0] },
+    { label: 'Median input tokens', values: ['131k', '297k', '265k', '246k'], best: [0] },
+    { label: 'Cost per success', note: 3, values: ['$0.077', '$0.140', '$0.111', '$0.113'], best: [0] },
+  ],
+}
