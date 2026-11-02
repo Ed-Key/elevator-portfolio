@@ -5,13 +5,13 @@
 // and the card both read from this object. The captions file describes what
 // is on screen at each moment, so it has to be rewritten for every new cut.
 export const DEMO = {
-  mp4: '/media/cua/demo-v5.mp4',
-  webm: '/media/cua/demo-v5.webm',
-  poster: '/media/cua/poster-v5.jpg', // first frame shown before playback
-  still: '/media/cua/still-v5.jpg', // shown instead of the video under reduced motion
-  captions: '/media/cua/demo-v5.vtt',
+  mp4: '/media/cua/demo-v7.mp4',
+  webm: '/media/cua/demo-v7.webm',
+  poster: '/media/cua/poster-v7.jpg', // first frame shown before playback
+  still: '/media/cua/still-v7.jpg', // shown instead of the video under reduced motion
+  captions: '/media/cua/demo-v7.vtt',
   stillAlt:
-    'The whole Mac screen after the run. TextEdit is still in front with the launch notes draft, the agent card in the corner shows Reminders and Calendar both checked, and the caption reads TextEdit stayed in front, with 0 front-app changes, 0 window raises and 0 pointer moves.',
+    'Two Mac screens side by side after the runs. TextEdit is in front on both, with the person\'s writing in it, and the caption reads TextEdit stayed in front, with zero front-app changes, window raises and pointer moves.',
 }
 
 // Benchmark results, from cua-bench report/pilot/summary.json,

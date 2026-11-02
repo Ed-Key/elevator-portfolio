@@ -1,0 +1,31 @@
+WEBVTT
+
+00:00.000 --> 00:03.000
+Two Mac screens side by side, each a separate recording. On screen: "Two agents, your work stays in front".
+
+00:03.000 --> 00:08.000
+On the left, a prompt is typed into Claude Code in Terminal, asking it to use cua-driver to turn Jordan's emailed to-dos into a checklist in Notes.
+
+00:08.000 --> 00:13.000
+On the right, a prompt is typed into Codex: split a $186.40 bill four ways with an 18% tip in Calculator and put the amount on the blank sticky.
+
+00:13.000 --> 00:18.000
+Back on both screens, the person returns to writing in TextEdit while the agent's calls run in Terminal.
+
+00:18.000 --> 00:26.500
+The view moves into the picture-in-picture card and into Notes, captured directly. Claude builds the "Launch to-dos" checklist with its cursor visible.
+
+00:26.500 --> 00:30.000
+On the right, Codex uses Calculator, which shows 54.988, with its cursor on the keys.
+
+00:30.000 --> 00:33.500
+The sticky note now reads "$54.99 per person".
+
+00:33.500 --> 00:37.500
+In Terminal, Codex's bring_to_front call fails with user_active. On screen: "Codex tried to take the front. cua refused".
+
+00:37.500 --> 00:42.000
+Both screens again, with TextEdit in front on each. On screen: 0 front-app changes, 0 window raises, 0 pointer moves, typing unchanged.
+
+00:42.000 --> 00:45.000
+End line: "Claude and Codex, in the background".
