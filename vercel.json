@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/keep-my-snap/demo",
+      "destination": "/keep-my-snap/demo/index.html"
+    },
+    {
+      "source": "/keep-my-snap/demo/",
+      "destination": "/keep-my-snap/demo/index.html"
+    },
+    {
       "source": "/cua",
       "destination": "/cua.html"
     },
