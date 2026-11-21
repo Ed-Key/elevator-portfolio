@@ -260,6 +260,13 @@ export default function ProjectsPanel() {
                     src={project.eventLogo.src}
                   />
                 )}
+                {project.award && (
+                  <span className="projects-award">
+                    <b>{project.award.place}</b>
+                    <i aria-hidden="true" />
+                    {project.award.name}
+                  </span>
+                )}
                 {meta}
               </span>
             </p>

@@ -419,6 +419,37 @@
   letter-spacing: 0.06em;
 }
 
+.projects-award {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 10px;
+  padding: 6px 12px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  background: rgb(240 200 112 / 6%);
+  color: var(--ink-hi);
+  font-size: 0.8rem;
+  font-weight: 560;
+  letter-spacing: 0.02em;
+}
+
+/* the place reads as a label; the award keeps its own casing (OpenSpace) */
+.projects-award b {
+  color: var(--gold);
+  font-size: 0.68rem;
+  font-weight: 680;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.projects-award i {
+  width: 1px;
+  height: 11px;
+  background: var(--gold-dim);
+}
+
 .projects-caption__event {
   display: block;
   width: auto;

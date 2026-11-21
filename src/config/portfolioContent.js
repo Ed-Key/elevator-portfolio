@@ -38,21 +38,22 @@ const TECH = {
   unity: { name: 'Unity', slug: 'unity', color: '#ffffff' },
 }
 
-// Floor 02 lists these in order. tag is the one line a visitor scans in the
+// Floor 2 lists these in order. tag is the one line a visitor scans in the
 // list; blurb is the longer caption under the stage. media is either a video
 // (with a poster shown until it plays) or a still image; a project with
 // neither shows its name on a dark tile. contain letterboxes footage that is
-// not landscape (a phone recording) instead of cropping it. meta and
-// eventLogo sit under the blurb. Optional extras: mark ('pageaura' sparkles)
-// or model (a draco glb turntable, with logo as its poster) beside the
-// caption, and props: stills that cycle, peeking out behind the screen.
+// not landscape (a phone recording) instead of cropping it. eventLogo, award
+// (a boxed badge) and meta sit under the blurb. Optional extras: mark
+// ('pageaura' sparkles) or model (a draco glb turntable, with logo as its
+// poster) beside the caption, and props: stills that cycle, peeking out
+// behind the screen.
 export const PROJECTS = [
   {
     id: 'trailblazer',
     name: 'Trailblazer',
     year: '2026',
     tag: "Spot moving objects in NASA's infrared sky",
-    meta: 'Winner, Open Space award',
+    award: { place: 'Winner', name: 'OpenSpace Award' },
     blurb: "A public window into NASA's SPHEREx telescope. Explore the whole infrared sky, open a time-lapse of any spot, and find the dots that move.",
     eventLogo: { src: '/images/logos/space-apps-white.png', alt: 'NASA Space Apps Challenge' },
     tech: [TECH.javascript, TECH.python, TECH.threejs],
@@ -114,7 +115,7 @@ export const PROJECTS = [
     name: 'Keep My SNAP',
     year: '2026',
     tag: 'Helps New Jersey residents keep their food benefits',
-    meta: '2nd place, Newark Tech Week hackathon',
+    award: { place: '2nd place', name: 'Newark Tech Week Hackathon' },
     blurb: 'A resident tells their story and photographs the county letter. It fills in the New Jersey SNAP exemption form so they keep their benefits.',
     tech: [TECH.javascript, TECH.nextjs, TECH.claude],
     links: [
