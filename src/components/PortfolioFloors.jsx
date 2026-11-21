@@ -110,7 +110,7 @@ export function HomeFloor() {
       </p>
       <figure className="home-portrait" data-reveal>
         <img alt="Edward Kiboma laughing while holding his dog" decoding="async" src="/images/eddie.jpg" />
-        <figcaption>The developer in question w/ P.P. (doggy)</figcaption>
+        <figcaption>The developer in question w/ Lil Penelope (doggy)</figcaption>
       </figure>
     </article>
   )
