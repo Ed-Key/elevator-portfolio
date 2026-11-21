@@ -363,7 +363,7 @@ export default function CuaCaseStudy() {
         <main>
           <section className="cua-hero">
             <div>
-              <Eyebrow lead="05">Case study</Eyebrow>
+              <Eyebrow lead="Project">Case study</Eyebrow>
               <h1>
                 Teaching an AI agent to use a Mac <em>without taking it over</em>
               </h1>
