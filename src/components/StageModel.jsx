@@ -1,6 +1,6 @@
 import { Center, Environment, Lightformer, useGLTF } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { Component, Suspense, useEffect, useRef, useState } from 'react'
 
 // Tiny R3F stage mark for a project's 3D logo. Draco decoders are vendored
 // at public/draco/ — nothing loads from a CDN. The static `poster` node shows
@@ -30,9 +30,14 @@ function FloatingModel({ onReady, src, view = DEFAULT_VIEW }) {
   const eased = useRef({ x: 0, y: 0 })
   const [baseX, baseY, baseZ] = view.rotation ?? DEFAULT_VIEW.rotation
 
-  useEffect(() => {
+  // Ready on the first drawn frame, not on mount: a paused canvas mounts
+  // without drawing, and dropping the poster then would leave a blank mark.
+  const drawn = useRef(false)
+  useFrame(() => {
+    if (drawn.current) return
+    drawn.current = true
     onReady()
-  }, [onReady])
+  })
 
   useEffect(() => {
     // Same guards as the hall's cursor parallax: no lean where there is no
@@ -91,7 +96,30 @@ function FloatingModel({ onReady, src, view = DEFAULT_VIEW }) {
   )
 }
 
-export default function StageModel({ poster, src, view = DEFAULT_VIEW }) {
+// A model that fails to load (network, decoder) throws out of the Canvas;
+// catch it here and keep showing the flat poster instead of losing the page.
+class ModelBoundary extends Component {
+  state = { failed: false }
+
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children
+  }
+}
+
+// paused stops the render loop, for when the mark is scrolled off screen.
+export default function StageModel(props) {
+  return (
+    <ModelBoundary fallback={<span aria-hidden="true" className="stage-model">{props.poster}</span>}>
+      <ModelCanvas {...props} />
+    </ModelBoundary>
+  )
+}
+
+function ModelCanvas({ paused = false, poster, src, view = DEFAULT_VIEW }) {
   const [ready, setReady] = useState(false)
   const camera = view.camera ?? DEFAULT_VIEW.camera
 
@@ -101,6 +129,7 @@ export default function StageModel({ poster, src, view = DEFAULT_VIEW }) {
       <Canvas
         camera={{ fov: view.fov ?? 40, position: camera }}
         dpr={[1, 2]}
+        frameloop={paused ? 'never' : 'always'}
         gl={{ alpha: true, antialias: true }}
       >
         <ambientLight color="#fff3dc" intensity={0.9} />
