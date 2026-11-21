@@ -53,7 +53,7 @@ export const PROJECTS = [
     name: 'Trailblazer',
     year: '2026',
     tag: "Spot moving objects in NASA's infrared sky",
-    award: { place: 'Winner', name: 'OpenSpace Award' },
+    award: { place: 'Winner', name: 'Local OpenSpace Award' },
     blurb: "A public window into NASA's SPHEREx telescope. Explore the whole infrared sky, open a time-lapse of any spot, and find the dots that move.",
     eventLogo: { src: '/images/logos/space-apps-white.png', alt: 'NASA Space Apps Challenge' },
     tech: [TECH.javascript, TECH.python, TECH.threejs],
