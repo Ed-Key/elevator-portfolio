@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { PROJECTS } from '../config/portfolioContent'
-import { useReducedMotion } from '../hooks/useMediaQuery'
+import { LANGUAGES, PROJECTS } from '../config/portfolioContent'
+import { useMediaQuery, useReducedMotion } from '../hooks/useMediaQuery'
+import PageAuraMark from './PageAuraMark'
+import StageModel from './StageModel'
 import './ProjectsPanel.css'
 
 // Floor 2: a plain list of projects (name, one-line tag, tech glyphs) beside
@@ -16,6 +18,65 @@ function TechGlyph({ tech }) {
       style={{ '--brand': tech.color, '--glyph': `url(/images/tech/${tech.slug}.svg)` }}
       title={tech.name}
     />
+  )
+}
+
+// Stills tucked behind the screen with a corner peeking out. With several
+// faces it cycles; reduced motion pins the first face. Keyed by project, so
+// each project's stack starts fresh.
+function StageProps({ reducedMotion, srcs }) {
+  const [face, setFace] = useState(0)
+
+  useEffect(() => {
+    if (reducedMotion || srcs.length < 2) return undefined
+    const id = setInterval(() => setFace((n) => (n + 1) % srcs.length), 7000)
+    return () => clearInterval(id)
+  }, [reducedMotion, srcs.length])
+
+  return <img alt="" aria-hidden="true" className="projects-prop" key={face} src={srcs[face]} />
+}
+
+// The project's own mark beside its caption: PageAura's sparkling book, or a
+// 3D logo turntable (its flat logo under reduced motion).
+function CaptionMark({ paused, project, reducedMotion }) {
+  const { logo, mark, model } = project.media
+  if (mark === 'pageaura') return <PageAuraMark />
+  if (model && !reducedMotion) {
+    return (
+      <StageModel
+        paused={paused}
+        poster={logo ? <img alt="" className="projects-mark__logo" src={logo} /> : null}
+        src={model}
+      />
+    )
+  }
+  if (logo) return <img alt="" aria-hidden="true" className="projects-mark__logo" src={logo} />
+  return null
+}
+
+// The "Rated for" plate: every language, etched; the staged project lights
+// the ones it is built in.
+function RatedFor({ projectId }) {
+  return (
+    <div className="projects-plate" data-reveal>
+      <span className="projects-plate__label">Rated for</span>
+      <ul className="projects-plate__list">
+        {LANGUAGES.map((lang) => (
+          <li className={lang.projects.includes(projectId) ? 'plate-lang is-lit' : 'plate-lang'} key={lang.name}>
+            {lang.projects.includes(projectId) && (
+              <span className="projects-visually-hidden">Used in this project: </span>
+            )}
+            {lang.slug ? (
+              <TechGlyph tech={lang} />
+            ) : (
+              <span className="plate-lang__chip" style={{ '--brand': lang.color }} title={lang.name}>
+                {lang.name}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 
@@ -62,6 +123,8 @@ export default function ProjectsPanel() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [inView, setInView] = useState(false)
   const reducedMotion = useReducedMotion()
+  // props peek out beside the screen only where there is room for them
+  const wide = useMediaQuery('(min-width: 881px)')
   const screenRef = useRef(null)
   const videoRefs = useRef([])
   const rowRefs = useRef([])
@@ -148,49 +211,59 @@ export default function ProjectsPanel() {
       </ul>
 
       <section aria-label={project.name} className="projects-stage" data-reveal>
-        <div className="projects-screen" ref={screenRef}>
-          {PROJECTS.map((item, index) => (
-            <ScreenLayer
-              active={index === activeIndex}
-              key={item.id}
-              live={live && index === activeIndex}
-              project={item}
-              videoRef={(node) => {
-                videoRefs.current[index] = node
-              }}
-            />
-          ))}
-          {project.media.video && (
-            <button
-              aria-label={playing ? 'Pause video' : 'Play video'}
-              className="projects-screen__toggle"
-              onClick={() => setPlayChoice(!playing)}
-              type="button"
-            >
-              <svg aria-hidden="true" viewBox="0 0 12 12">
-                {playing ? (
-                  <path d="M2.5 1.5h2.5v9H2.5zM7 1.5h2.5v9H7z" />
-                ) : (
-                  <path d="M3 1.5l7 4.5-7 4.5z" />
-                )}
-              </svg>
-            </button>
+        <div className="projects-screen-wrap">
+          {project.media.props && wide && inView && (
+            <StageProps key={project.id} reducedMotion={reducedMotion} srcs={project.media.props} />
           )}
+          <div className="projects-screen" ref={screenRef}>
+            {PROJECTS.map((item, index) => (
+              <ScreenLayer
+                active={index === activeIndex}
+                key={item.id}
+                live={live && index === activeIndex}
+                project={item}
+                videoRef={(node) => {
+                  videoRefs.current[index] = node
+                }}
+              />
+            ))}
+            {project.media.video && (
+              <button
+                aria-label={playing ? 'Pause video' : 'Play video'}
+                className="projects-screen__toggle"
+                onClick={() => setPlayChoice(!playing)}
+                type="button"
+              >
+                <svg aria-hidden="true" viewBox="0 0 12 12">
+                  {playing ? (
+                    <path d="M2.5 1.5h2.5v9H2.5zM7 1.5h2.5v9H7z" />
+                  ) : (
+                    <path d="M3 1.5l7 4.5-7 4.5z" />
+                  )}
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
         <div className="projects-caption">
-          <p className="projects-caption__blurb">
-            {project.blurb}
-            <span className="projects-caption__meta">
-              {project.eventLogo && (
-                <img
-                  alt={project.eventLogo.alt}
-                  className="projects-caption__event"
-                  src={project.eventLogo.src}
-                />
-              )}
-              {meta}
+          <div className="projects-caption__lead">
+            <span className="projects-mark" key={project.id}>
+              <CaptionMark paused={!inView} project={project} reducedMotion={reducedMotion} />
             </span>
-          </p>
+            <p className="projects-caption__blurb">
+              {project.blurb}
+              <span className="projects-caption__meta">
+                {project.eventLogo && (
+                  <img
+                    alt={project.eventLogo.alt}
+                    className="projects-caption__event"
+                    src={project.eventLogo.src}
+                  />
+                )}
+                {meta}
+              </span>
+            </p>
+          </div>
           {project.links.length > 0 && (
             <span className="projects-caption__links">
               {project.links.map((link) =>
@@ -209,6 +282,7 @@ export default function ProjectsPanel() {
           )}
         </div>
       </section>
+      <RatedFor projectId={project.id} />
     </article>
   )
 }

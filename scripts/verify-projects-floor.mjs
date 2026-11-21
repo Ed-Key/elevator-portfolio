@@ -124,6 +124,40 @@ const browser = await chromium.launch({ channel: 'chrome' })
   await page.close()
 }
 
+// 2c. Extras: props hug the screen, the plate names lit languages, and a
+// 3D logo that fails to load falls back to its flat logo without a crash.
+{
+  const page = await browser.newPage({ viewport: { width: 1920, height: 600 } })
+  const errors = []
+  page.on('pageerror', (e) => errors.push(e.message))
+  await page.route('**/daily-bread-logo.glb', (route) => route.abort())
+  await page.goto(`${BASE}/#projects`)
+  await page.waitForSelector('.projects-row', { timeout: 20000 })
+  await page.waitForTimeout(1500)
+  await page.locator('.projects-row', { hasText: 'Showdown' }).hover()
+  await page.waitForTimeout(1200)
+  const prop = await page.locator('.projects-prop').boundingBox()
+  const screen = await page.locator('.projects-screen').boundingBox()
+  check('prop overlaps the screen corner', prop && prop.x < screen.x + screen.width && prop.x + prop.width > screen.x + screen.width)
+  check(
+    'plate names the lit languages',
+    (await page.locator('.plate-lang.is-lit .projects-visually-hidden').count()) ===
+      (await page.locator('.plate-lang.is-lit').count()),
+  )
+  await page.locator('.projects-row', { hasText: 'Daily Bread' }).hover()
+  await page.waitForTimeout(2500)
+  check('failed 3D logo falls back to the flat logo', await page.locator('.projects-mark .projects-mark__logo').isVisible())
+  // the loader still reports the failed fetch; what matters is the page lives on
+  await page.locator('.projects-row', { hasText: 'Hone' }).hover()
+  await page.waitForTimeout(500)
+  check(
+    'failed 3D logo leaves the floor working',
+    errors.every((e) => e.includes('daily-bread-logo.glb')) &&
+      (await page.locator('.projects-caption').textContent()).includes('interview practice'),
+  )
+  await page.close()
+}
+
 // 3. Desktop windows: the wheel scrolls the list itself, not the whole floor.
 for (const [w, h] of [[1440, 900], [1280, 720]]) {
   const page = await browser.newPage({ viewport: { width: w, height: h } })
@@ -146,7 +180,9 @@ for (const [w, h] of [[1440, 900], [1280, 720]]) {
   check(`${w}x${h} last project reachable`, last.y + last.height <= h)
   const screen = await page.locator('.projects-screen').boundingBox()
   const caption = await page.locator('.projects-caption').boundingBox()
+  const plate = await page.locator('.projects-plate').boundingBox()
   check(`${w}x${h} screen and caption fit the window`, screen.y >= 0 && caption.y + caption.height <= h)
+  check(`${w}x${h} Rated-for plate sits below the caption`, plate.y >= caption.y + caption.height && plate.y + plate.height <= h)
   await page.close()
 }
 
@@ -178,6 +214,15 @@ for (const [w, h, sticky] of [[390, 844, true], [768, 1024, true], [880, 601, fa
   await row.tap()
   await page.waitForTimeout(500)
   check(`${w}x${h} tap selects a project`, (await page.locator('.projects-caption').textContent()).includes('YouVersion'))
+  if (w < 881) {
+    const cards = []
+    page.on('request', (r) => r.url().includes('showdown-card') && cards.push(r.url()))
+    const showdown = page.locator('.projects-row', { hasText: 'Showdown' })
+    await showdown.evaluate((el) => el.scrollIntoView({ block: 'center' }))
+    await showdown.dispatchEvent('click')
+    await page.waitForTimeout(1500)
+    check(`${w}x${h} no hidden props downloaded`, cards.length === 0 && (await page.locator('.projects-prop').count()) === 0)
+  }
   await page.close()
 }
 

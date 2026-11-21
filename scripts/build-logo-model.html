@@ -1,0 +1,146 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>build-logo-model</title>
+<!--
+  Rebuilds a project's 3D stage mark from its flat SVG.
+
+  Run it with scripts/build-logo-model.mjs, which drives this page in a
+  headless browser and writes the GLB. It lives as a page rather than a plain
+  node script because SVGLoader and GLTFExporter both want a real DOM.
+
+  Why this exists: the original daily-bread-logo.glb was a 1.9 MB, 1.5M
+  triangle mesh whose Draco position quantization (14 bits over a 4 unit
+  bounding box, a 0.000244 grid) was coarser than the ~0.001 gap between its
+  stacked faces. Flat surfaces came out terraced, which wrecked the normals
+  and put streaks across the cross. Extruding from the vector source instead
+  keeps the faces exactly flat.
+-->
+<body style="background:#2b1a0e;color:#eee;font:12px monospace">
+<pre id="out"></pre>
+<!-- Reporting lives in a classic script ahead of the module. A module that
+     fails on a static import never runs its own body, so handlers installed
+     inside it would never exist and the driver would sit on its full timeout
+     with the real error hidden. Status is a flag rather than a word in the
+     log, so a source path containing DONE or FAILED cannot be read as the
+     outcome. -->
+<script>
+  window.__STATUS__ = 'running'
+  window.__log = (line) => {
+    document.getElementById('out').textContent += line + '\n'
+  }
+  window.__fail = (reason) => {
+    window.__STATUS__ = 'failed'
+    window.__log('FAILED: ' + ((reason && reason.message) || reason))
+  }
+  // Capture phase: a module that 404s fires its error on the script element,
+  // which does not bubble, so a normal bubble-phase listener never sees it.
+  window.addEventListener('error', (event) => {
+    window.__fail(event.error || event.message || `failed to load ${event.target?.src ?? 'a resource'}`)
+  }, true)
+  window.addEventListener('unhandledrejection', (event) => window.__fail(event.reason))
+</script>
+<script type="module">
+import * as THREE from 'three'
+import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js'
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
+import * as BGU from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+
+const log = window.__log
+
+const params = new URLSearchParams(location.search)
+const SRC = params.get('src') ?? '/media/projects/daily-bread-logo.svg'
+
+const TARGET_W = 4     // footprint the stage camera is framed for
+const DEPTH = 14       // extrusion depth, svg units
+const STEP = 1.2       // per-path z offset, so stacked art is never coplanar
+
+// Near-black paths are 2D line art. Extruded they become black walls along
+// the book spine and page edges, which is not what they mean in the artwork.
+const INK = '#080301'
+
+const MATERIALS = {
+  '#d7a14d': { metalness: 0.45, roughness: 0.30 },  // gold cross
+  '#ae7646': { metalness: 0.05, roughness: 0.48 },  // bread
+  default: { metalness: 0.10, roughness: 0.42 },
+}
+
+// fetch only rejects on network failure, so a mistyped --src would otherwise
+// parse a 404 page into zero paths and still export over a good asset.
+const res = await fetch(SRC)
+if (!res.ok) throw new Error(`cannot read ${SRC}: HTTP ${res.status}`)
+const parsed = new SVGLoader().parse(await res.text())
+
+// Extruding from y-down svg coords needs a mirror, and a mirror inverts
+// winding, so the triangles are flipped back or every face lights from inside.
+const flipY = new THREE.Matrix4().makeScale(1, -1, 1)
+function mirror(geo) {
+  geo.applyMatrix4(flipY)
+  const p = geo.attributes.position
+  for (const name of Object.keys(geo.attributes)) {
+    const attr = geo.attributes[name], it = attr.itemSize, arr = attr.array
+    for (let i = 0; i < p.count; i += 3) {
+      for (let k = 0; k < it; k++) {
+        const A = i * it + k, C = (i + 2) * it + k
+        const t = arr[A]; arr[A] = arr[C]; arr[C] = t
+      }
+    }
+  }
+  geo.computeVertexNormals()
+  return geo
+}
+
+const root = new THREE.Group()
+const byColor = new Map()
+let dropped = 0
+
+parsed.paths.forEach((path, i) => {
+  const color = (path.userData?.style?.fill ?? '#ffffff').toLowerCase()
+  if (color === 'none') return
+  if (color === INK) { dropped += 1; return }
+  SVGLoader.createShapes(path).forEach((shape) => {
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: DEPTH, bevelEnabled: false, curveSegments: 8 })
+    geo.translate(0, 0, i * STEP)   // draw order becomes depth order
+    geo.deleteAttribute('uv')       // no textures, so UVs are dead weight
+    mirror(geo)
+    if (!byColor.has(color)) byColor.set(color, [])
+    byColor.get(color).push(geo)
+  })
+})
+
+// One mesh per colour: cheap draw calls, and no palette atlas to go wrong.
+let tris = 0
+for (const [color, geos] of byColor) {
+  const merged = BGU.mergeVertices(BGU.mergeGeometries(geos))
+  tris += merged.index.count / 3
+  const cfg = MATERIALS[color] ?? MATERIALS.default
+  root.add(new THREE.Mesh(merged, new THREE.MeshStandardMaterial({
+    color: new THREE.Color(color), metalness: cfg.metalness, roughness: cfg.roughness,
+  })))
+}
+
+if (!root.children.length) throw new Error(`no fillable paths in ${SRC}`)
+
+const box = new THREE.Box3().setFromObject(root)
+const size = box.getSize(new THREE.Vector3())
+// An empty Box3 sizes to -Infinity, which would scale to nothing and still
+// write a valid but empty GLB over the target.
+if (!Number.isFinite(size.x) || size.x <= 0) throw new Error(`degenerate bounds from ${SRC}`)
+const centre = box.getCenter(new THREE.Vector3())
+root.children.forEach((m) => m.geometry.translate(-centre.x, -centre.y, -centre.z))
+root.scale.setScalar(TARGET_W / size.x)
+root.updateMatrixWorld(true)
+
+log('src: ' + SRC)
+log('paths: ' + parsed.paths.length + '  (dropped ' + dropped + ' near-black line-art paths)')
+log('colour groups: ' + byColor.size + '  triangles: ' + tris)
+log('layer separation: ' + (STEP * TARGET_W / size.x).toFixed(5) + ' model units')
+
+const glb = new Uint8Array(await new GLTFExporter().parseAsync(root, { binary: true }))
+let bin = ''
+for (let i = 0; i < glb.length; i++) bin += String.fromCharCode(glb[i])
+window.__GLB__ = btoa(bin)
+log('glb bytes: ' + glb.length)
+log('DONE')
+window.__STATUS__ = 'done'
+</script>
+</body>

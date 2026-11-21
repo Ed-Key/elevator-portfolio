@@ -43,7 +43,9 @@ const TECH = {
 // (with a poster shown until it plays) or a still image; a project with
 // neither shows its name on a dark tile. contain letterboxes footage that is
 // not landscape (a phone recording) instead of cropping it. meta and
-// eventLogo sit under the blurb.
+// eventLogo sit under the blurb. Optional extras: mark ('pageaura' sparkles)
+// or model (a draco glb turntable, with logo as its poster) beside the
+// caption, and props: stills that cycle, peeking out behind the screen.
 export const PROJECTS = [
   {
     id: 'trailblazer',
@@ -67,7 +69,12 @@ export const PROJECTS = [
     blurb: 'My public bookshelf and the EPUB reader behind it. Upload books to build your own shelf, or just listen.',
     tech: [TECH.typescript, TECH.react, TECH.threejs, TECH.supabase],
     links: [{ label: 'Visit', url: 'https://pageaura.app/' }],
-    media: { video: '/media/projects/pageaura-stage.mp4', poster: '/media/projects/pageaura-poster.jpg' },
+    media: {
+      video: '/media/projects/pageaura-stage.mp4',
+      poster: '/media/projects/pageaura-poster.jpg',
+      mark: 'pageaura',
+      props: ['/media/projects/pageaura-cover-sorcerers-stone.jpg', '/media/projects/pageaura-cover-homegoing.jpg'],
+    },
   },
   {
     id: 'cua',
@@ -90,7 +97,16 @@ export const PROJECTS = [
     blurb: 'An advisor that suggests moves during live Pokémon Showdown battles, built on Monte Carlo tree search in Rust.',
     tech: [TECH.rust, TECH.python, TECH.typescript],
     links: [{ label: 'Code', url: 'https://github.com/Ed-Key/showdown-stack' }],
-    media: { video: '/media/projects/showdown-stage.mp4', poster: '/media/projects/showdown-poster.jpg' },
+    media: {
+      video: '/media/projects/showdown-stage.mp4',
+      poster: '/media/projects/showdown-poster.jpg',
+      props: [
+        '/media/projects/showdown-tcg-card.png',
+        '/media/projects/showdown-card-ogerpon.png',
+        '/media/projects/showdown-card-gholdengo.png',
+        '/media/projects/showdown-card-garchomp.png',
+      ],
+    },
   },
   {
     id: 'keep-my-snap',
@@ -127,7 +143,11 @@ export const PROJECTS = [
     blurb: 'A YouVersion companion that puts the verse of the day in every new tab. Study notes and prayer are one click away.',
     tech: [TECH.typescript, TECH.react, TECH.firebase],
     links: [{ label: 'Visit', url: 'https://daily-bread-landing.web.app' }],
-    media: { image: '/media/projects/daily-bread.jpg' },
+    media: {
+      image: '/media/projects/daily-bread.jpg',
+      logo: '/media/projects/daily-bread-logo.svg',
+      model: '/media/projects/daily-bread-logo.glb',
+    },
   },
   {
     id: 'hone',
@@ -175,6 +195,25 @@ export const PROJECTS = [
     ],
     media: { image: '/media/projects/ace.jpg' },
   },
+]
+
+// The "Rated for" plate: languages the operator is rated for. `projects`
+// lists which projects light each glyph while staged; empty arrays stay
+// etched, rated beyond what's on display.
+export const LANGUAGES = [
+  { name: 'TypeScript', slug: 'typescript', color: '#3178c6', projects: ['pageaura', 'showdown-copilot', 'daily-bread', 'kemuma-studio', 'hone'] },
+  { name: 'JavaScript', slug: 'javascript', color: '#f7df1e', projects: ['trailblazer', 'keep-my-snap', 'ace'] },
+  { name: 'Python', slug: 'python', color: '#4b8bbe', projects: ['trailblazer', 'showdown-copilot', 'cua', 'potencia'] },
+  { name: 'Rust', slug: 'rust', color: '#ce6d35', projects: ['showdown-copilot', 'cua', 'hone'] },
+  { name: 'Java', slug: 'openjdk', color: '#f89820', projects: [] },
+  { name: 'C', slug: 'c', color: '#a8b9cc', projects: [] },
+  { name: 'C++', slug: 'cplusplus', color: '#659ad2', projects: [] },
+  { name: 'C#', slug: 'csharp', color: '#a179dc', projects: ['water-sim'] },
+  { name: 'SQL', slug: null, color: '#e8b54a', projects: ['pageaura', 'kemuma-studio'] },
+  { name: 'HTML', slug: 'html5', color: '#e34f26', projects: ['trailblazer', 'daily-bread', 'ace'] },
+  { name: 'CSS', slug: 'css', color: '#2965f1', projects: ['trailblazer', 'daily-bread', 'ace'] },
+  { name: 'GLSL', slug: 'opengl', color: '#5586a4', projects: ['pageaura'] },
+  { name: 'Bash', slug: 'gnubash', color: '#4eaa25', projects: [] },
 ]
 
 export const EXPERIENCE = [
