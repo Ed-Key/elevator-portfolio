@@ -182,7 +182,7 @@ for (const [w, h] of [[1440, 900], [1280, 720]]) {
   const caption = await page.locator('.projects-caption').boundingBox()
   const plate = await page.locator('.projects-plate').boundingBox()
   check(`${w}x${h} screen and caption fit the window`, screen.y >= 0 && caption.y + caption.height <= h)
-  check(`${w}x${h} Rated-for plate sits below the caption`, plate.y >= caption.y + caption.height && plate.y + plate.height <= h)
+  check(`${w}x${h} Languages plate sits below the caption`, plate.y >= caption.y + caption.height && plate.y + plate.height <= h)
   await page.close()
 }
 

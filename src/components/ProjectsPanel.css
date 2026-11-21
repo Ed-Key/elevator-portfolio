@@ -334,7 +334,7 @@
   opacity: 1;
 }
 
-/* ---------- Rated for: every language, lit by the staged project ---------- */
+/* ---------- Languages: every language, lit by the staged project ---------- */
 
 .projects-plate {
   grid-area: plate;
@@ -506,7 +506,7 @@
     scrollbar-color: rgb(240 200 112 / 30%) transparent;
   }
 
-  /* keep screen, caption and the Rated-for plate inside a short window:
+  /* keep screen, caption and the Languages plate inside a short window:
      the screen gets whatever height the rest leaves, at 16:10 */
   .projects-screen-wrap {
     width: min(100%, calc((100vh - 440px) * 1.6));
