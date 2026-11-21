@@ -5,11 +5,11 @@ import PageAuraMark from './PageAuraMark'
 import StageModel from './StageModel'
 import './ProjectsPanel.css'
 
-// Floor 02 — the elevator button panel. Eight engraved cells ring an open
-// center stage; hovering a cell "presses" it and the stage plays that
-// project (video → poster → monogram ladder).
+// Floor 2: a plain list of projects (name, one-line tag, tech glyphs) beside
+// one large screen. Hovering, focusing or tapping a row puts that project on
+// the screen; its footage plays while the screen is in view.
 
-export function TechGlyph({ tech }) {
+function TechGlyph({ tech }) {
   return (
     <span
       aria-label={tech.name}
@@ -21,428 +21,275 @@ export function TechGlyph({ tech }) {
   )
 }
 
-function getProjectLinks(project) {
-  return project.links ?? (project.url ? [{ label: 'Visit', url: project.url }] : [])
-}
-
-// Pages on this site (paths like /cua) open in place; everything else opens
-// in a new tab so the elevator stays where the visitor left it.
-function linkTarget(url) {
-  return url.startsWith('/') ? {} : { rel: 'noreferrer', target: '_blank' }
-}
-
-// Prop art behind the window. With several faces it cycles like the
-// engine re-reading the board; reduced motion pins the first face.
-function StageProp({ reducedMotion, srcs }) {
-  const faces = Array.isArray(srcs) ? srcs : [srcs]
+// Stills tucked behind the screen with a corner peeking out. With several
+// faces it cycles; reduced motion pins the first face. Keyed by project, so
+// each project's stack starts fresh.
+function StageProps({ reducedMotion, srcs }) {
   const [face, setFace] = useState(0)
 
   useEffect(() => {
-    if (reducedMotion || faces.length < 2) return undefined
-    const id = setInterval(() => setFace((n) => (n + 1) % faces.length), 7000)
+    if (reducedMotion || srcs.length < 2) return undefined
+    const id = setInterval(() => setFace((n) => (n + 1) % srcs.length), 7000)
     return () => clearInterval(id)
-  }, [reducedMotion, faces.length])
+  }, [reducedMotion, srcs.length])
 
-  return (
-    <img
-      alt=""
-      aria-hidden="true"
-      className="stage-show__prop"
-      key={face}
-      src={faces[face]}
-    />
-  )
+  return <img alt="" aria-hidden="true" className="projects-prop" key={face} src={srcs[face]} />
 }
 
-// Ladder: video → poster → null (text tier's monogram carries the stage).
-// Only the active project's <video> is ever mounted, and only when motion
-// is allowed; reduced-motion visitors get the poster tier.
-//
-// `stillOnly` holds the ladder one rung down for the project the floor opens
-// on. Nobody asked for that one, and the demos run to 29MB, so arriving should
-// not cost a visitor a video they did not choose. Ignored when the project has
-// no poster to fall back to, since a blank window is worse than the download.
-function StageMedia({ project, reducedMotion, stillOnly }) {
-  const { poster, video } = project.media
-  const showVideo = Boolean(video) && !reducedMotion && !(stillOnly && poster)
-
-  if (!showVideo && !poster) return null
-
-  return (
-    <div className="stage-show__media">
-      {/* a prop tucked behind the window, corner peeking out */}
-      {project.media.prop && <StageProp reducedMotion={reducedMotion} srcs={project.media.prop} />}
-      <div className="stage-show__window">
-        {showVideo && <span className="stage-show__live">Live</span>}
-        {/* real demo footage carries its own chrome; the fake bar only frames stills */}
-        {!showVideo && (
-          <span aria-hidden="true" className="stage-show__windowbar">
-            <i /><i /><i />
-          </span>
-        )}
-        {showVideo ? (
-          <video
-            autoPlay
-            key={project.id}
-            loop
-            muted
-            playsInline
-            poster={poster ?? undefined}
-            src={video}
-          />
-        ) : (
-          <img alt={`${project.name} screenshot`} src={poster} />
-        )}
-      </div>
-    </div>
-  )
-}
-
-// Ambient backdrop tier: the staged project's footage fills the stage
-// behind the window and text, dimmed to texture by the CSS layers. Only
-// mounted when the project defines media.backdrop and motion is allowed.
-function StageBackdrop({ src }) {
-  const [ready, setReady] = useState(false)
-  const videoRef = useRef(null)
-
-  useEffect(() => {
-    if (videoRef.current) videoRef.current.playbackRate = 0.75
-  }, [src])
-
-  return (
-    <div aria-hidden="true" className={ready ? 'stage-backdrop is-ready' : 'stage-backdrop'}>
-      <video
-        autoPlay
-        loop
-        muted
-        onPlaying={() => setReady(true)}
-        playsInline
-        ref={videoRef}
-        src={src}
-      />
-    </div>
-  )
-}
-
-function CellInner({ index, project }) {
-  return (
-    <>
-      <span aria-hidden="true" className="panel-cell__num">
-        {String(index + 1).padStart(2, '0')}
-      </span>
-      <span aria-hidden="true" className="panel-cell__year">
-        {project.year}
-      </span>
-      <span className="panel-cell__base">
-        <span className="panel-cell__name">{project.name}</span>
-        <span className="panel-cell__blurb">{project.blurb}</span>
-      </span>
-    </>
-  )
-}
-
-function ProjectCell({ denied, index, onArm, onArmNow, onDeniedPress, onDisarm, project }) {
-  const primaryLink = getProjectLinks(project)[0]
-  const shared = {
-    className: `panel-cell panel-cell--slot${index + 1}`,
-    onFocus: onArmNow, // keyboard drives the stage exactly like hover
-    onPointerEnter: (event) => {
-      if (event.pointerType === 'mouse') onArm()
-    },
-    onPointerLeave: onDisarm, // cancels pending intent; stage HOLDS current project
-    'data-reveal': true,
-  }
-
-  if (primaryLink) {
+// The project's own mark beside its caption: PageAura's sparkling book, or a
+// 3D logo turntable (its flat logo under reduced motion).
+function CaptionMark({ paused, project, reducedMotion }) {
+  const { logo, mark, model } = project.media
+  if (mark === 'pageaura') return <PageAuraMark />
+  if (model && !reducedMotion) {
     return (
-      <a {...shared} href={primaryLink.url} {...linkTarget(primaryLink.url)}>
-        <CellInner index={index} project={project} />
-      </a>
+      <StageModel
+        paused={paused}
+        poster={logo ? <img alt="" className="projects-mark__logo" src={logo} /> : null}
+        src={model}
+      />
     )
   }
-
-  return (
-    <button
-      {...shared}
-      data-denied={denied ? 'true' : undefined}
-      onClick={() => onDeniedPress(project.id)}
-      type="button"
-    >
-      <CellInner index={index} project={project} />
-    </button>
-  )
+  if (logo) return <img alt="" aria-hidden="true" className="projects-mark__logo" src={logo} />
+  return null
 }
 
-function ProjectStage({ backdropped, project, reducedMotion, stillOnly }) {
-  const capsLine = `${project.tech.map((tech) => tech.name).join(' · ')} — ${project.year}`
-  const hasWindow = Boolean(project.media.video || project.media.poster)
-  const links = getProjectLinks(project)
-  const classes = [
-    'stage-show',
-    hasWindow && 'stage-show--windowed',
-    backdropped && 'stage-show--backdropped',
-  ]
-    .filter(Boolean)
-    .join(' ')
-
+// The "Rated for" plate: every language, etched; the staged project lights
+// the ones it is built in.
+function RatedFor({ projectId }) {
   return (
-    <div className={classes} key={project.id}>
-      <StageMedia project={project} reducedMotion={reducedMotion} stillOnly={stillOnly} />
-      <div className="stage-show__text">
-        {project.media.stageMark === 'pageauraSparkles' ? (
-          <PageAuraMark />
-        ) : project.media.model && !reducedMotion ? (
-          <StageModel
-            poster={
-              project.media.logo ? (
-                <img alt="" className="stage-show__logo" src={project.media.logo} />
-              ) : null
-            }
-            src={project.media.model}
-            view={project.media.modelView}
-          />
-        ) : project.media.logo ? (
-          <img alt="" aria-hidden="true" className="stage-show__logo" src={project.media.logo} />
-        ) : !hasWindow ? (
-          <span aria-hidden="true" className="stage-show__mark">
-            {project.name[0]}
-          </span>
-        ) : null}
-        <h3 className="stage-show__name">{project.name}</h3>
-        <span className="stage-show__glyphs">
-          {project.tech.map((tech) => (
-            <TechGlyph key={tech.name} tech={tech} />
-          ))}
-        </span>
-        <span className="stage-show__caps">{capsLine}</span>
-        {links.length > 0 ? (
-          <span className="stage-show__actions">
-            {links.map((link) => (
-              <a className="stage-show__visit" href={link.url} key={link.url} {...linkTarget(link.url)}>
-                {link.label}
-              </a>
-            ))}
-          </span>
-        ) : project.status === 'private' ? (
-          <span className="stage-show__private">Private build</span>
-        ) : null}
-      </div>
-    </div>
-  )
-}
-
-// The rated-capacity plate: every elevator carries one. Languages sit
-// etched at rest; the staged project lights the ones it's built in.
-function CapacityPlate({ litId }) {
-  return (
-    <div className="capacity-plate" data-reveal>
-      <span className="capacity-plate__label">Rated for</span>
-      <ul className="capacity-plate__list">
-        {LANGUAGES.map((lang) => {
-          const lit = litId !== null && lang.projects.includes(litId)
-          return (
-            <li className={lit ? 'plate-lang is-lit' : 'plate-lang'} key={lang.name}>
-              {lang.slug ? (
-                <TechGlyph tech={lang} />
-              ) : (
-                <span className="plate-lang__chip" style={{ '--brand': lang.color }} title={lang.name}>
-                  {lang.name}
-                </span>
-              )}
-            </li>
-          )
-        })}
+    <div className="projects-plate" data-reveal>
+      <span className="projects-plate__label">Rated for</span>
+      <ul className="projects-plate__list">
+        {LANGUAGES.map((lang) => (
+          <li className={lang.projects.includes(projectId) ? 'plate-lang is-lit' : 'plate-lang'} key={lang.name}>
+            {lang.projects.includes(projectId) && (
+              <span className="projects-visually-hidden">Used in this project: </span>
+            )}
+            {lang.slug ? (
+              <TechGlyph tech={lang} />
+            ) : (
+              <span className="plate-lang__chip" style={{ '--brand': lang.color }} title={lang.name}>
+                {lang.name}
+              </span>
+            )}
+          </li>
+        ))}
       </ul>
     </div>
   )
 }
 
-// Idle constellation scatter — hand-placed (no Math.random, screenshots
-// stay stable), ringing the count without entering the center ~30% where
-// it sits. Durations/delays stagger the drift so motes never beat in sync.
-const MOTE_FIELD = [
-  { left: 10, top: 16, dx: 9, dy: -8, dur: 7.5, delay: -1.2 },
-  { left: 28, top: 8, dx: -8, dy: 10, dur: 9, delay: -3.5 },
-  { left: 50, top: 12, dx: 10, dy: 8, dur: 6.5, delay: -2 },
-  { left: 72, top: 8, dx: -9, dy: -9, dur: 10.5, delay: -5 },
-  { left: 88, top: 20, dx: 8, dy: 11, dur: 8, delay: -0.5 },
-  { left: 92, top: 48, dx: -10, dy: -8, dur: 6, delay: -4.2 },
-  { left: 86, top: 76, dx: 11, dy: 8, dur: 9.5, delay: -6.3 },
-  { left: 66, top: 88, dx: -8, dy: -10, dur: 7, delay: -2.8 },
-  { left: 42, top: 90, dx: 9, dy: 9, dur: 10, delay: -1.8 },
-  { left: 20, top: 84, dx: -11, dy: 8, dur: 8.5, delay: -4.8 },
-  { left: 7, top: 62, dx: 8, dy: -11, dur: 6.8, delay: -3.1 },
-  { left: 16, top: 38, dx: -9, dy: 8, dur: 11, delay: -0.9 },
-]
+// Pages on this site (paths like /cua) open in place; everything else opens
+// in a new tab so the elevator stays where the visitor left it.
+function isInternal(url) {
+  return url.startsWith('/')
+}
 
-function IdlePlate() {
-  const motes = LANGUAGES.filter((lang) => lang.slug)
+// Every project's media is mounted once and stacked; switching only changes
+// which layer is visible. A video stays at preload="none" (poster only) until
+// it is on screen and allowed to play, so the floor costs one download per
+// project a visitor actually watches.
+function ScreenLayer({ active, live, project, videoRef }) {
+  const { contain, image, poster, video } = project.media
+  const className = ['projects-screen__layer', active && 'is-on', contain && 'is-contain']
+    .filter(Boolean)
+    .join(' ')
 
+  if (video) {
+    return (
+      <video
+        aria-hidden="true"
+        className={className}
+        loop
+        muted
+        playsInline
+        poster={poster}
+        preload={live ? 'auto' : 'none'}
+        ref={videoRef}
+        src={video}
+      />
+    )
+  }
+  if (image) return <img alt="" aria-hidden="true" className={className} src={image} />
   return (
-    <div className="stage-idle">
-      <span aria-hidden="true" className="stage-idle__field">
-        {motes.map((lang, index) => {
-          const spot = MOTE_FIELD[index % MOTE_FIELD.length]
-          return (
-            <i
-              className="stage-idle__mote"
-              key={lang.name}
-              style={{
-                '--glyph': `url(/images/tech/${lang.slug}.svg)`,
-                '--mote-x': `${spot.dx}px`,
-                '--mote-y': `${spot.dy}px`,
-                '--mote-dur': `${spot.dur}s`,
-                '--mote-delay': `${spot.delay}s`,
-                left: `${spot.left}%`,
-                top: `${spot.top}%`,
-              }}
-            />
-          )
-        })}
-      </span>
-      <span className="stage-idle__count">{String(PROJECTS.length).padStart(2, '0')}</span>
-      <span className="stage-idle__hint">projects — hover a cell</span>
+    <div aria-hidden="true" className={`${className} projects-screen__blank`}>
+      {project.name}
     </div>
   )
 }
 
-/* The stage opens on a project rather than an empty plate, chosen at random so
-   the floor is not the same picture twice. Only projects with something to
-   show are eligible: the rest carry no video, poster or model, and would open
-   the floor on a blank window frame, which is worse than the idle plate it
-   replaces. Derived from the media rather than a hardcoded list, so a project
-   joins the rotation the moment it gets a thumbnail. */
-const SHOWABLE = PROJECTS.filter((project) => project.media.video || project.media.poster)
-
-function openingProjectId() {
-  if (SHOWABLE.length === 0) return null
-  return SHOWABLE[Math.floor(Math.random() * SHOWABLE.length)].id
-}
-
 export default function ProjectsPanel() {
-  const [deniedId, setDeniedId] = useState(null)
-  const [activeId, setActiveId] = useState(openingProjectId) // stage holds the last armed project
-  // True until the visitor arms a cell themselves. The opening pick shows its
-  // poster; a project someone actually chose gets the footage.
-  const [untouched, setUntouched] = useState(true)
-  const intentRef = useRef(null)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [inView, setInView] = useState(false)
   const reducedMotion = useReducedMotion()
-  const compact = useMediaQuery('(max-width: 900px), (pointer: coarse)')
-  const [expandedId, setExpandedId] = useState(null)
+  // props peek out beside the screen only where there is room for them
+  const wide = useMediaQuery('(min-width: 881px)')
+  const screenRef = useRef(null)
+  const videoRefs = useRef([])
+  const rowRefs = useRef([])
+  // null until the visitor presses pause or play; then their choice holds
+  // across projects. Reduced motion starts paused.
+  const [playChoice, setPlayChoice] = useState(null)
+  const playing = playChoice ?? !reducedMotion
+  const live = inView && playing
 
-  useEffect(() => () => clearTimeout(intentRef.current), [])
+  // All floors are mounted at once inside one scroller, so "in view" is what
+  // keeps a visitor on the lobby from downloading the opening film.
+  useEffect(() => {
+    const node = screenRef.current
+    if (!node) return undefined
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), {
+      threshold: 0.25,
+    })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
 
-  // ~100ms hover intent: sweeping across the ring doesn't thrash the stage.
-  const armStage = (id) => {
-    clearTimeout(intentRef.current)
-    setUntouched(false)
-    intentRef.current = setTimeout(() => setActiveId(id), 100)
+  useEffect(() => {
+    videoRefs.current.forEach((video, index) => {
+      if (!video) return
+      if (index === activeIndex && live) {
+        // A blocked autoplay (iOS Low Power Mode) flips the button to Play, so
+        // the visitor's tap starts it; a play cut short by pause is ignored.
+        video.play().catch((error) => {
+          if (error.name === 'NotAllowedError') setPlayChoice(false)
+        })
+      } else {
+        video.pause()
+      }
+    })
+  }, [activeIndex, live])
+
+
+  // The list is one tab stop (the selected row); arrow keys move between
+  // projects, so Tab goes straight from the chosen project to its links.
+  const onRowKeyDown = (event, index) => {
+    const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[event.key]
+    const next =
+      event.key === 'Home' ? 0
+      : event.key === 'End' ? PROJECTS.length - 1
+      : step ? (index + step + PROJECTS.length) % PROJECTS.length
+      : null
+    if (next === null) return
+    event.preventDefault()
+    setActiveIndex(next)
+    rowRefs.current[next]?.focus()
   }
-  const armStageNow = (id) => {
-    clearTimeout(intentRef.current)
-    setUntouched(false)
-    setActiveId(id)
-  }
-  const disarmStage = () => clearTimeout(intentRef.current)
 
-  const pressDenied = (id) => {
-    setDeniedId(null)
-    requestAnimationFrame(() => setDeniedId(id))
-    setTimeout(() => setDeniedId((current) => (current === id ? null : current)), 600)
-  }
-
-  const activeProject = PROJECTS.find((project) => project.id === activeId) ?? null
-
-  if (compact) {
-    return (
-      <article aria-label="Selected projects" className="floor floor--projects">
-        <div className="projects-stack">
-          {PROJECTS.map((project, index) => {
-            const expanded = expandedId === project.id
-            const links = getProjectLinks(project)
-            const className = [
-              'panel-cell',
-              expanded ? 'panel-cell--open' : '',
-            ].filter(Boolean).join(' ')
-            return (
-              <div className={className} data-reveal key={project.id}>
-                <button
-                  aria-expanded={expanded}
-                  className="panel-cell__toggle"
-                  onClick={() => setExpandedId(expanded ? null : project.id)}
-                  type="button"
-                >
-                  <CellInner index={index} project={project} />
-                </button>
-                <div aria-hidden={!expanded} className="panel-cell__drawer">
-                  <div className="panel-cell__drawer-inner">
-                    {project.media.stageMark === 'pageauraSparkles' ? (
-                      <PageAuraMark />
-                    ) : project.media.logo ? (
-                      <img alt="" aria-hidden="true" className="stage-show__logo stage-show__logo--drawer" src={project.media.logo} />
-                    ) : null}
-                    <StageMedia project={project} reducedMotion={reducedMotion || !expanded} />
-                    {links.length > 0 ? (
-                      <span className="stage-show__actions">
-                        {links.map((link) => (
-                          <a
-                            className="stage-show__visit"
-                            href={link.url}
-                            key={link.url}
-                            {...linkTarget(link.url)}
-                            tabIndex={expanded ? 0 : -1}
-                          >
-                            {link.label}
-                          </a>
-                        ))}
-                      </span>
-                    ) : project.status === 'private' ? (
-                      <span className="stage-show__private">Private build</span>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-        <CapacityPlate litId={expandedId} />
-      </article>
-    )
-  }
+  const project = PROJECTS[activeIndex]
+  const meta = [project.year, project.meta].filter(Boolean).join(' · ')
 
   return (
     <article aria-label="Selected projects" className="floor floor--projects">
-      <div className="projects-ring">
-        {PROJECTS.map((project, index) => (
-          <ProjectCell
-            denied={deniedId === project.id}
-            index={index}
-            key={project.id}
-            onArm={() => armStage(project.id)}
-            onArmNow={() => armStageNow(project.id)}
-            onDeniedPress={pressDenied}
-            onDisarm={disarmStage}
-            project={project}
-          />
+      <ul aria-label="Projects, arrow keys to browse" className="projects-list" data-reveal>
+        {PROJECTS.map((item, index) => (
+          <li key={item.id}>
+            <button
+              aria-current={index === activeIndex ? 'true' : undefined}
+              className="projects-row"
+              onClick={() => setActiveIndex(index)}
+              onFocus={() => setActiveIndex(index)}
+              onKeyDown={(event) => onRowKeyDown(event, index)}
+              onMouseEnter={() => setActiveIndex(index)}
+              ref={(node) => {
+                rowRefs.current[index] = node
+              }}
+              tabIndex={index === activeIndex ? 0 : -1}
+              type="button"
+            >
+              <span className="projects-row__name">{item.name}</span>
+              <span className="projects-row__tech">
+                {item.tech.map((tech) => (
+                  <TechGlyph key={tech.name} tech={tech} />
+                ))}
+              </span>
+              <span className="projects-row__tag">{item.tag}</span>
+            </button>
+          </li>
         ))}
-        <div className="panel-stage" data-reveal>
-          {activeProject?.media.backdrop && !reducedMotion ? (
-            <StageBackdrop key={activeProject.id} src={activeProject.media.backdrop} />
-          ) : null}
-          {activeProject ? (
-            <ProjectStage
-              backdropped={Boolean(activeProject.media.backdrop) && !reducedMotion}
-              project={activeProject}
-              reducedMotion={reducedMotion}
-              stillOnly={untouched}
-            />
-          ) : (
-            /* Only reachable if no project has any media at all. */
-            <IdlePlate />
+      </ul>
+
+      <section aria-label={project.name} className="projects-stage" data-reveal>
+        <div className="projects-screen-wrap">
+          {project.media.props && wide && inView && (
+            <StageProps key={project.id} reducedMotion={reducedMotion} srcs={project.media.props} />
+          )}
+          <div className="projects-screen" ref={screenRef}>
+            {PROJECTS.map((item, index) => (
+              <ScreenLayer
+                active={index === activeIndex}
+                key={item.id}
+                live={live && index === activeIndex}
+                project={item}
+                videoRef={(node) => {
+                  videoRefs.current[index] = node
+                }}
+              />
+            ))}
+            {project.media.video && (
+              <button
+                aria-label={playing ? 'Pause video' : 'Play video'}
+                className="projects-screen__toggle"
+                onClick={() => setPlayChoice(!playing)}
+                type="button"
+              >
+                <svg aria-hidden="true" viewBox="0 0 12 12">
+                  {playing ? (
+                    <path d="M2.5 1.5h2.5v9H2.5zM7 1.5h2.5v9H7z" />
+                  ) : (
+                    <path d="M3 1.5l7 4.5-7 4.5z" />
+                  )}
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="projects-caption">
+          <div className="projects-caption__lead">
+            <span className="projects-mark" key={project.id}>
+              <CaptionMark paused={!inView} project={project} reducedMotion={reducedMotion} />
+            </span>
+            <p className="projects-caption__blurb">
+              {project.blurb}
+              <span className="projects-caption__meta">
+                {project.eventLogo && (
+                  <img
+                    alt={project.eventLogo.alt}
+                    className="projects-caption__event"
+                    src={project.eventLogo.src}
+                  />
+                )}
+                {project.award && (
+                  <span className="projects-award">
+                    <b>{project.award.place}</b>
+                    <i aria-hidden="true" />
+                    {project.award.name}
+                  </span>
+                )}
+                {meta}
+              </span>
+            </p>
+          </div>
+          {project.links.length > 0 && (
+            <span className="projects-caption__links">
+              {project.links.map((link) =>
+                isInternal(link.url) ? (
+                  <a href={link.url} key={link.url}>
+                    {link.label}
+                  </a>
+                ) : (
+                  <a href={link.url} key={link.url} rel="noreferrer" target="_blank">
+                    {link.label}
+                    <span aria-hidden="true"> ↗</span>
+                  </a>
+                ),
+              )}
+            </span>
           )}
         </div>
-      </div>
-      <CapacityPlate litId={activeId} />
+      </section>
+      <RatedFor projectId={project.id} />
     </article>
   )
 }

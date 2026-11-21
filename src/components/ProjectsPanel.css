@@ -1,363 +1,267 @@
-/* Floor 02 — button panel. Inherits the modal's custom properties. */
+/* Floor 2: project list beside one screen. Inherits the modal's custom properties. */
 
 .floor--projects {
-  grid-template-rows: minmax(0, 1fr) auto;
-  min-height: 0;
-  height: 100%;
+  width: 100%;
+  max-width: 1360px;
+  margin-inline: auto;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-areas:
+    'list stage'
+    'list plate';
+  gap: clamp(20px, 3vh, 28px) clamp(32px, 4vw, 56px);
+  align-items: start;
 }
 
-.projects-ring {
+/* ---------- list ---------- */
+
+.projects-list {
+  grid-area: list;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--gold-hair);
+}
+
+.projects-list li {
+  border-bottom: 1px solid var(--gold-hair);
+}
+
+.projects-row {
   display: grid;
-  min-height: 560px;
-  height: 100%;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-template-rows: minmax(150px, 0.85fr) minmax(330px, 2.35fr) minmax(150px, 0.95fr);
-  gap: clamp(7px, 0.78vw, 12px);
-}
-
-/* ring placement — reading order: top 01-03, left 04, right 05, bottom 06-08 */
-.panel-cell--slot1 { grid-area: 1 / 1 / 2 / 5; }
-.panel-cell--slot2 { grid-area: 1 / 5 / 2 / 9; }
-.panel-cell--slot3 { grid-area: 1 / 9 / 2 / 13; }
-.panel-cell--slot4 { grid-area: 2 / 1 / 3 / 3; }
-.panel-cell--slot5 { grid-area: 2 / 11 / 3 / 13; }
-.panel-cell--slot6 { grid-area: 3 / 1 / 4 / 5; }
-.panel-cell--slot7 { grid-area: 3 / 5 / 4 / 9; }
-.panel-cell--slot8 { grid-area: 3 / 9 / 4 / 13; }
-.panel-stage { grid-area: 2 / 3 / 3 / 11; }
-
-.panel-cell.panel-cell--slot4,
-.panel-cell.panel-cell--slot5 {
-  --blurb-lines: 5;
-}
-
-.panel-cell--slot1,
-.panel-cell--slot2,
-.panel-cell--slot3 {
-  justify-content: flex-start;
-}
-
-/* ---------- engraved cell ---------- */
-
-.panel-cell {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-width: 0;
-  --cell-pad-x: clamp(14px, 1.4vw, 20px);
-  --cell-pad-y: clamp(12px, 1.6vh, 18px);
-  --blurb-lines: 3;
-  padding: var(--cell-pad-y) var(--cell-pad-x);
-  border: 1px solid var(--gold-hair);
-  border-radius: 2px;
-  background:
-    linear-gradient(180deg, rgb(255 255 255 / 2.5%), rgb(255 255 255 / 0%) 45%),
-    rgb(240 200 112 / 2%);
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 3px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 4px;
+  border: 0;
+  background: none;
   color: inherit;
   font: inherit;
   text-align: left;
-  text-decoration: none;
   cursor: pointer;
-  transition: border-color 220ms ease, background-color 220ms ease;
 }
 
-.panel-cell:hover,
-.panel-cell:focus-visible {
-  border-color: rgb(240 200 112 / 55%);
-  background-color: rgb(240 200 112 / 5%);
-}
-
-.panel-cell__num {
-  position: absolute;
-  top: 6px;
-  right: 14px;
-  color: rgb(240 200 112 / 11%);
+.projects-row__name {
+  color: rgb(246 240 226 / 58%);
   font-family: var(--font-display);
-  font-size: clamp(2rem, 3.4vw, 3rem);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  transition: color 250ms ease, text-shadow 250ms ease;
-}
-
-/* the number IS the lamp */
-.panel-cell:hover .panel-cell__num,
-.panel-cell:focus-visible .panel-cell__num {
-  color: rgb(240 200 112 / 92%);
-  text-shadow: 0 0 18px rgb(240 200 112 / 45%);
-}
-
-/* year rides under the engraved number — always on, brightens with the button */
-.panel-cell__year {
-  position: absolute;
-  top: calc(10px + clamp(2rem, 3.4vw, 3rem));
-  right: 14px;
-  color: rgb(240 200 112 / 45%);
-  font-family: var(--font-display);
-  font-size: 0.6rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.18em;
+  font-size: clamp(1.2rem, 1.7vw, 1.6rem);
+  letter-spacing: -0.012em;
+  line-height: 1.15;
   transition: color 250ms ease;
 }
 
-.panel-cell:hover .panel-cell__year,
-.panel-cell:focus-visible .panel-cell__year,
-.panel-cell--open .panel-cell__year {
-  color: rgb(240 200 112 / 80%);
-}
-
-.panel-cell__base {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  gap: 7px;
-}
-
-.panel-cell__name {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  font-family: var(--font-display);
-  font-size: clamp(0.98rem, 1.3vw, 1.22rem);
-  font-weight: 640;
-  line-height: 1.12;
-  white-space: normal;
-}
-
-.panel-cell__blurb {
-  display: -webkit-box;
-  overflow: hidden;
-  max-width: 32ch;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: var(--blurb-lines);
-  line-clamp: var(--blurb-lines);
-  color: var(--ink-mid);
+.projects-row__tag {
+  grid-column: 1 / -1;
+  color: var(--ink-low);
   font-family: var(--font-serif);
-  font-size: clamp(0.72rem, 0.86vw, 0.86rem);
-  font-weight: 420;
-  line-height: 1.32;
+  font-size: 0.94rem;
+  line-height: 1.35;
+  transition: color 250ms ease;
 }
 
-/* ---------- tech glyphs: etched gold → brand color on press ---------- */
+.projects-row__tech {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  justify-self: end;
+}
 
 .tech-glyph {
   width: 15px;
   height: 15px;
   flex: none;
-  background-color: rgb(240 200 112 / 45%);
+  background-color: rgb(240 200 112 / 40%);
   transition: background-color 280ms ease;
   -webkit-mask: var(--glyph) center / contain no-repeat;
   mask: var(--glyph) center / contain no-repeat;
 }
 
-/* ---------- locked floor: denied blink ---------- */
-
-@keyframes cell-denied {
-  0%, 100% { color: rgb(240 200 112 / 11%); }
-  20%, 60% { color: rgb(240 200 112 / 92%); }
-  40%, 80% { color: rgb(240 200 112 / 20%); }
+.projects-row:hover .projects-row__name,
+.projects-row:focus-visible .projects-row__name,
+.projects-row[aria-current='true'] .projects-row__name {
+  color: var(--ink-hi);
 }
 
-.panel-cell[data-denied='true'] .panel-cell__num { animation: cell-denied 550ms ease; }
+.projects-row:hover .projects-row__tag,
+.projects-row:focus-visible .projects-row__tag,
+.projects-row[aria-current='true'] .projects-row__tag {
+  color: var(--ink-mid);
+}
 
-/* ---------- the stage ---------- */
+.projects-row:hover .tech-glyph,
+.projects-row:focus-visible .tech-glyph,
+.projects-row[aria-current='true'] .tech-glyph {
+  background-color: var(--brand);
+}
 
-.panel-stage {
+.projects-row:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* ---------- stage ---------- */
+
+.projects-stage {
+  grid-area: stage;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.projects-screen {
   position: relative;
-  isolation: isolate;
-  overflow: visible;
-  border: 0;
-  border-radius: 2px;
-  background:
-    radial-gradient(ellipse at 50% 58%, rgb(240 200 112 / 6%), transparent 68%),
-    radial-gradient(ellipse at 50% 50%, rgb(10 8 16 / 38%), transparent 76%);
-}
-
-.panel-stage::before,
-.panel-stage::after {
-  position: absolute;
-  z-index: 0;
-  content: '';
-  pointer-events: none;
-}
-
-.panel-stage::before {
-  inset: clamp(-34px, -2.6vw, -18px);
-  background:
-    radial-gradient(ellipse at 46% 52%, rgb(240 200 112 / 8%), transparent 68%),
-    radial-gradient(ellipse at 50% 50%, rgb(0 0 0 / 38%), transparent 74%);
-  filter: blur(22px);
-}
-
-.panel-stage::after {
-  inset: clamp(18px, 2vw, 34px);
-  background: radial-gradient(ellipse at 50% 54%, rgb(10 8 16 / 34%), transparent 72%);
-  filter: blur(34px);
-}
-
-.panel-stage > * {
-  z-index: 1;
-}
-
-/* ---------- stage backdrop: ambient footage behind the show ---------- */
-
-.stage-backdrop {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
+  aspect-ratio: 16 / 10;
   overflow: hidden;
-  border-radius: 2px;
-  opacity: 0;
-  transition: opacity 600ms ease;
-  pointer-events: none;
-  -webkit-mask: radial-gradient(ellipse at 50% 50%, #000 62%, transparent 98%);
-  mask: radial-gradient(ellipse at 50% 50%, #000 62%, transparent 98%);
+  border-radius: 6px;
+  background: #000;
 }
 
-.stage-backdrop.is-ready { opacity: 1; }
-
-.stage-backdrop video {
+.projects-screen__layer {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: brightness(0.34) saturate(0.6) blur(3px);
+  opacity: 0;
+  transition: opacity 350ms ease;
 }
 
-/* gold-tinted scrim: keeps the footage in the floor's atmosphere */
-.stage-backdrop::after {
+.projects-screen__layer.is-on {
+  opacity: 1;
+}
+
+.projects-screen__layer.is-contain {
+  object-fit: contain;
+}
+
+.projects-screen__toggle {
   position: absolute;
-  inset: 0;
-  content: '';
-  background:
-    radial-gradient(ellipse at 50% 58%, rgb(240 200 112 / 7%), transparent 70%),
-    rgb(10 8 16 / 38%);
-}
-
-.stage-idle {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.stage-idle__count {
-  color: rgb(240 200 112 / 35%);
-  font-family: var(--font-display);
-  font-size: clamp(2.2rem, 3.6vw, 3.2rem);
-  font-weight: 700;
-  line-height: 1;
-}
-
-.stage-idle__hint {
-  color: var(--ink-low);
-  font-family: var(--font-display);
-  font-size: 0.62rem;
-  font-weight: 560;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-}
-
-/* the count stays the anchor — motes drift behind it */
-.stage-idle__count,
-.stage-idle__hint {
-  position: relative;
-  z-index: 1;
-}
-
-/* ---------- idle constellation: rated languages adrift in the void ---------- */
-
-.stage-idle__field {
-  position: absolute;
-  inset: clamp(10px, 2vh, 18px);
-}
-
-.stage-idle__mote {
-  position: absolute;
-  width: 15px;
-  height: 15px;
-  background-color: rgb(240 200 112 / 35%);
-  animation: mote-drift var(--mote-dur) ease-in-out var(--mote-delay) infinite alternate;
-  -webkit-mask: var(--glyph) center / contain no-repeat;
-  mask: var(--glyph) center / contain no-repeat;
-}
-
-@keyframes mote-drift {
-  to { transform: translate(var(--mote-x), var(--mote-y)); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .stage-idle__mote { animation: none; }
-}
-
-/* ---------- stage: active project ---------- */
-
-.stage-show {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  gap: clamp(18px, 2.4vw, 42px);
-  align-items: center;
-  justify-content: center;
-  padding: clamp(16px, 2.3vh, 30px) clamp(20px, 2.7vw, 44px);
-  animation: stage-in 320ms ease both;
-}
-
-@keyframes stage-in {
-  from { opacity: 0; transform: translateY(8px); }
-}
-
-.stage-show__text {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  min-width: 0;
-  max-width: 44ch;
-  text-align: center;
-}
-
-.stage-show__mark {
+  right: 12px;
+  bottom: 12px;
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  border: 1px solid rgb(240 200 112 / 50%);
-  border-radius: 2px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgb(240 200 112 / 35%);
+  border-radius: 50%;
+  background: rgb(16 14 20 / 70%);
   color: var(--gold);
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 640;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 200ms ease;
 }
 
-/* a real project logo outranks the monogram mark */
-.stage-show__logo {
-  width: clamp(82px, 10vw, 124px);
-  height: clamp(82px, 10vw, 124px);
+.projects-screen__toggle svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+.projects-screen__toggle:hover,
+.projects-screen__toggle:focus-visible {
+  opacity: 1;
+}
+
+.projects-screen__toggle:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.projects-screen__blank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #120e09;
+  color: rgb(240 200 112 / 20%);
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 4.6vw, 4.5rem);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-align: center;
+}
+
+/* ---------- props: stills peeking out behind the screen ---------- */
+
+.projects-screen-wrap {
+  position: relative;
+  isolation: isolate;
+}
+
+.projects-prop {
+  position: absolute;
+  z-index: -1;
+  top: -7%;
+  right: -3%;
+  width: 22%;
+  border-radius: 10px;
+  box-shadow: 0 16px 42px rgb(0 0 0 / 45%);
+  transform: rotate(7deg);
+  animation: projects-prop-in 600ms ease both;
+}
+
+@keyframes projects-prop-in {
+  from { opacity: 0; transform: rotate(7deg) translateY(6px); }
+}
+
+.projects-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.projects-caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+/* ---------- the project's own mark beside its caption ---------- */
+
+.projects-caption__lead {
+  flex: 1 1 0;
+  min-width: min(100%, 320px);
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.projects-mark {
+  display: block;
+  flex: none;
+  animation: projects-prop-in 600ms ease both;
+}
+
+.projects-mark:empty {
+  display: none;
+}
+
+.projects-mark__logo {
+  width: 72px;
+  height: 72px;
   object-fit: contain;
   filter: drop-shadow(0 10px 28px rgb(0 0 0 / 46%)) drop-shadow(0 0 16px rgb(240 200 112 / 12%));
 }
 
-.stage-show__logo--drawer {
-  width: 64px;
-  height: 64px;
-}
-
 .pageaura-stage-logo {
-  --pageaura-logo-w: clamp(78px, 9vw, 116px);
+  --pageaura-logo-w: 72px;
   position: relative;
   display: block;
   width: var(--pageaura-logo-w);
   height: calc(var(--pageaura-logo-w) * 946 / 875);
   overflow: visible;
-  flex: none;
   filter: drop-shadow(0 10px 24px rgb(0 0 0 / 42%));
 }
 
@@ -406,16 +310,15 @@
   50% { opacity: 1; transform: scale(1.12); }
 }
 
-/* 3D logo turntable — poster img shows until the model's first frame */
+/* 3D logo turntable: the flat logo shows until the model's first frame */
 .stage-model {
   position: relative;
   display: block;
-  width: clamp(116px, 11vw, 154px);
-  height: clamp(96px, 10vw, 128px);
-  flex: none;
+  width: 96px;
+  height: 80px;
 }
 
-.stage-model .stage-show__logo {
+.stage-model .projects-mark__logo {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -431,251 +334,11 @@
   opacity: 1;
 }
 
-.stage-show__name {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.3rem, 2vw, 1.8rem);
-  font-weight: 700;
-  line-height: 1.08;
-}
+/* ---------- Rated for: every language, lit by the staged project ---------- */
 
-.stage-show__glyphs {
-  display: flex;
-  gap: 11px;
-  align-items: center;
-}
-
-/* stage glyphs are always awake (brand color) */
-.stage-show .tech-glyph {
-  width: 16px;
-  height: 16px;
-  background-color: var(--brand);
-}
-
-.stage-show__caps {
-  color: rgb(240 200 112 / 70%);
-  font-family: var(--font-display);
-  font-size: 0.58rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-/* Quiet status tag where links would sit: private work stays honest
-   without a dead-feeling call to action. */
-.stage-show__private {
-  display: inline-flex;
-  align-items: center;
-  margin-top: 2px;
-  padding: 7px 12px;
-  border: 1px solid rgb(240 200 112 / 28%);
-  border-radius: 2px;
-  color: rgb(240 200 112 / 65%);
-  font-family: var(--font-display);
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
-.stage-show__visit {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  justify-content: center;
-  margin-top: 2px;
-  padding: 8px 16px;
-  border-radius: 2px;
-  color: var(--void-deep);
-  background: var(--gold);
-  font-family: var(--font-display);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-decoration: none;
-  text-transform: uppercase;
-  transition: background-color 200ms ease;
-}
-
-.stage-show__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  margin-top: 2px;
-}
-
-.stage-show__visit:hover,
-.stage-show__visit:focus-visible {
-  background: #ffe7c2;
-}
-
-.stage-show__lock {
-  position: static;
-  margin-top: 2px;
-}
-
-/* ---------- stage media window ---------- */
-
-.stage-show--windowed .stage-show__text {
-  align-items: flex-start;
-  max-width: min(34%, 360px);
-  text-align: left;
-}
-
-/* readable things sit on frosted glass whenever footage plays behind them;
-   the frost is a masked oversized layer so it feathers into the footage
-   with no card edge */
-.stage-show--backdropped .stage-show__text {
-  position: relative;
-  z-index: 0;
-  padding: clamp(14px, 2vh, 22px) clamp(16px, 1.8vw, 26px);
-}
-
-.stage-show--backdropped .stage-show__text::before {
-  position: absolute;
-  z-index: -1;
-  inset: clamp(-64px, -4.5vw, -36px);
-  content: '';
-  pointer-events: none;
-  background: radial-gradient(ellipse at 50% 50%, rgb(10 8 16 / 66%), rgb(10 8 16 / 34%) 55%, transparent 76%);
-  -webkit-backdrop-filter: blur(32px);
-  backdrop-filter: blur(32px);
-  -webkit-mask: radial-gradient(ellipse at 50% 50%, #000 42%, transparent 80%);
-  mask: radial-gradient(ellipse at 50% 50%, #000 42%, transparent 80%);
-}
-
-.stage-show--windowed .stage-show__actions {
-  justify-content: flex-start;
-}
-
-.stage-show__media {
-  position: relative;
-  z-index: 0;
-  flex: none;
-  width: min(54%, 560px);
-}
-
-/* prop art peeks out from behind the window, leaning the other way */
-.stage-show__prop {
-  position: absolute;
-  z-index: -1;
-  top: -11%;
-  right: -10%;
-  width: 36%;
-  border-radius: 10px;
-  box-shadow: 0 16px 42px rgb(0 0 0 / 45%);
-  transform: rotate(7deg);
-  animation: prop-in 600ms ease both;
-}
-
-@keyframes prop-in {
-  from { opacity: 0; transform: rotate(7deg) translateY(6px); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .stage-show__prop { animation: none; }
-}
-
-.stage-show__window {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  border: 1px solid rgb(240 200 112 / 30%);
-  border-radius: 3px;
-  background: var(--void-deep);
-  box-shadow: 0 18px 50px rgb(0 0 0 / 55%), 0 0 40px rgb(240 200 112 / 7%);
-  transform: rotate(-1.6deg);
-}
-
-.stage-show__windowbar {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  height: 20px;
-  padding: 0 9px;
-  border-bottom: 1px solid rgb(240 200 112 / 12%);
-  background: rgb(255 255 255 / 4%);
-}
-
-.stage-show__windowbar i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: rgb(240 200 112 / 30%);
-}
-
-.stage-show__window video,
-.stage-show__window img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-}
-
-.stage-show__live {
-  position: absolute;
-  top: 26px;
-  right: 10px;
-  z-index: 1;
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  padding: 4px 8px;
-  border-radius: 2px;
-  color: var(--void-deep);
-  background: var(--gold);
-  font-family: var(--font-display);
-  font-size: 0.5rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.stage-show__live::before {
-  content: '';
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--void-deep);
-  animation: live-blink 1.2s steps(2) infinite;
-}
-
-@keyframes live-blink {
-  50% { opacity: 0.25; }
-}
-
-/* narrow ring: the stage can't fit window + text side by side, so the
-   window stacks above a tightened text column instead of both shrinking */
-@media (max-width: 1180px) and (min-width: 901px) {
-  .stage-show--windowed {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .stage-show--windowed .stage-show__text {
-    align-items: center;
-    max-width: 46ch;
-    text-align: center;
-  }
-
-  .stage-show--windowed .stage-show__media {
-    width: min(56%, 260px);
-  }
-
-  .stage-show--windowed .stage-show__mark { display: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .stage-show { animation: none; }
-  .stage-show__live::before { animation: none; }
-  .pageaura-stage-logo__drift,
-  .pageaura-stage-logo__twinkle { animation: none; }
-}
-
-/* ---------- capacity plate: rated languages, cross-lit by the stage ---------- */
-
-.capacity-plate {
+.projects-plate {
+  grid-area: plate;
+  align-self: end;
   display: flex;
   gap: 18px;
   align-items: center;
@@ -687,7 +350,7 @@
     rgb(240 200 112 / 2%);
 }
 
-.capacity-plate__label {
+.projects-plate__label {
   flex: none;
   color: var(--ink-low);
   font-family: var(--font-display);
@@ -697,7 +360,7 @@
   text-transform: uppercase;
 }
 
-.capacity-plate__list {
+.projects-plate__list {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 14px;
@@ -728,7 +391,6 @@
   transition: color 250ms ease, text-shadow 250ms ease;
 }
 
-/* the staged project lights the languages it's built in */
 .plate-lang.is-lit .tech-glyph {
   background-color: var(--brand);
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--brand) 55%, transparent));
@@ -739,82 +401,188 @@
   text-shadow: 0 0 10px color-mix(in srgb, var(--brand) 45%, transparent);
 }
 
-/* ---------- compact: stacked accordion (touch / narrow) ---------- */
-
-.projects-stack {
-  display: grid;
-  gap: 10px;
+.projects-caption__blurb {
+  max-width: 56ch;
+  margin: 0;
+  color: var(--ink-mid);
+  font-family: var(--font-serif);
+  font-size: 1.12rem;
+  line-height: 1.5;
 }
 
-.projects-stack .panel-cell {
-  display: grid;
-  /* The column must always fill the cell: with a content-sized track, the
-     desktop rule's justify-content: flex-end (vertical there, horizontal
-     here) shoves narrow no-media cells to the right edge. */
-  grid-template-columns: minmax(0, 1fr);
-  padding: 0;
-  cursor: default;
+.projects-caption__meta {
+  display: block;
+  margin-top: 8px;
+  color: var(--ink-low);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
 }
 
-.panel-cell__toggle {
+.projects-award {
   display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  min-height: 142px;
-  padding: 14px 16px;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
+  width: fit-content;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 10px;
+  padding: 6px 12px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  background: rgb(240 200 112 / 6%);
+  color: var(--ink-hi);
+  font-size: 0.8rem;
+  font-weight: 560;
+  letter-spacing: 0.02em;
 }
 
-.projects-stack .panel-cell__num { font-size: 1.9rem; }
-
-.projects-stack .panel-cell__year { top: calc(12px + 1.9rem); }
-
-.projects-stack .panel-cell {
-  --blurb-lines: 3;
+/* the place reads as a label; the award keeps its own casing (OpenSpace) */
+.projects-award b {
+  color: var(--gold);
+  font-size: 0.68rem;
+  font-weight: 680;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-/* expanding drawer — 0fr → 1fr grid-rows trick */
-.panel-cell__drawer {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 360ms ease;
+.projects-award i {
+  width: 1px;
+  height: 11px;
+  background: var(--gold-dim);
 }
 
-.panel-cell--open .panel-cell__drawer { grid-template-rows: 1fr; }
-
-.panel-cell__drawer-inner {
-  display: grid;
-  gap: 12px;
-  justify-items: start;
-  min-height: 0;
-  overflow: hidden;
-  padding: 0 16px;
+.projects-caption__event {
+  display: block;
+  width: auto;
+  height: 40px;
+  margin: 4px 0 8px;
 }
 
-.panel-cell--open .panel-cell__drawer-inner { padding: 4px 16px 16px; }
-
-/* the drawer is tight; no room for prop art */
-.panel-cell__drawer-inner .stage-show__prop { display: none; }
-
-.panel-cell--open {
-  border-color: rgb(240 200 112 / 55%);
+.projects-caption__links {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
 }
 
-.panel-cell--open .panel-cell__num {
-  color: rgb(240 200 112 / 92%);
-  text-shadow: 0 0 18px rgb(240 200 112 / 45%);
+.projects-caption__links a {
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgb(240 200 112 / 40%);
+  color: var(--gold);
+  text-decoration: none;
 }
 
-.projects-stack .stage-show__window {
-  width: min(100%, 420px);
-  transform: none;
+.projects-caption__links a:hover {
+  border-color: var(--gold);
+}
+
+.projects-caption__links a:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* ---------- desktop: one screen tall, the list scrolls on its own ---------- */
+
+/* Eleven rows outgrow a laptop window. Left to the page, scrolling them hands
+   the wheel to the floor snap, which jumps to About. Fixing the floor to the
+   view and scrolling the list inside it keeps the screen in place; at the
+   list's end the wheel carries on to the next floor. */
+@media (min-width: 881px) and (min-height: 560px) {
+  .floor-section[data-floor='projects'] {
+    height: 100%;
+  }
+
+  .floor--projects {
+    grid-template-rows: minmax(0, 1fr) auto;
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  .projects-list {
+    align-self: start;
+    max-height: 100%;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(240 200 112 / 30%) transparent;
+  }
+
+  /* keep screen, caption and the Rated-for plate inside a short window:
+     the screen gets whatever height the rest leaves, at 16:10 */
+  .projects-screen-wrap {
+    width: min(100%, calc((100vh - 440px) * 1.6));
+  }
+}
+
+/* ---------- phone: screen pinned above the list ---------- */
+
+@media (max-width: 880px) {
+  .floor--projects {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'stage'
+      'list'
+      'plate';
+    gap: 16px;
+  }
+
+  .projects-plate {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  /* no room beside a phone-width screen for a peeking prop */
+  .projects-prop {
+    display: none;
+  }
+
+  /* full bleed, so list rows slide under it rather than around a box */
+  .projects-stage {
+    z-index: 2;
+    margin-inline: calc(-1 * clamp(18px, 4vw, 28px));
+    padding: 12px clamp(18px, 4vw, 28px);
+    background: var(--void-deep);
+  }
+
+  .projects-caption__blurb {
+    font-size: 1rem;
+  }
+
+  /* rows focused from the keyboard stop below the pinned screen and caption,
+     not under it (16:10 screen of the column width plus the caption) */
+  .projects-row {
+    scroll-margin-top: calc(62.5vw + 260px);
+  }
+
+  .projects-row__name {
+    font-size: 1.3rem;
+  }
+}
+
+/* Pin only on a tall, upright screen; anything squarer (a phone on its side,
+   a narrow desktop window) has no room left for rows under a pinned screen. */
+@media (max-width: 880px) and (min-aspect-ratio: 4/5) {
+  .projects-stage {
+    position: static;
+  }
+
+  .projects-row {
+    scroll-margin-top: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .panel-cell__drawer { transition: none; }
+  .projects-prop,
+  .projects-mark,
+  .pageaura-stage-logo__drift,
+  .pageaura-stage-logo__twinkle {
+    animation: none;
+  }
+
+  .projects-screen__layer,
+  .projects-row__name,
+  .projects-row__tag,
+  .tech-glyph {
+    transition: none;
+  }
 }

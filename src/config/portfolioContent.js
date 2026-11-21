@@ -24,70 +24,85 @@ const TECH = {
   csharp: { name: 'C#', slug: 'csharp', color: '#a179dc' },
   figma: { name: 'Figma', slug: 'figma', color: '#f24e1e' },
   firebase: { name: 'Firebase', slug: 'firebase', color: '#ffca28' },
-  gcp: { name: 'GCP', slug: 'googlecloud', color: '#4285f4' },
-  gemini: { name: 'Gemini', slug: 'gemini', color: '#8e75b2' },
-  glsl: { name: 'GLSL', slug: 'opengl', color: '#5586a4' },
-  gsap: { name: 'GSAP', slug: 'greensock', color: '#88ce02' },
+  gcp: { name: 'Google Cloud', slug: 'googlecloud', color: '#4285f4' },
+  javascript: { name: 'JavaScript', slug: 'javascript', color: '#f7df1e' },
   langchain: { name: 'LangChain', slug: 'langchain', color: '#5ac8a8' },
   nextjs: { name: 'Next.js', slug: 'nextdotjs', color: '#ffffff' },
-  openai: { name: 'OpenAI', slug: 'openai', color: '#ffffff' },
   python: { name: 'Python', slug: 'python', color: '#4b8bbe' },
-  r3f: { name: 'React Three Fiber', slug: 'react', color: '#61dafb' },
   react: { name: 'React', slug: 'react', color: '#61dafb' },
   rust: { name: 'Rust', slug: 'rust', color: '#ce6d35' },
   sqlite: { name: 'SQLite', slug: 'sqlite', color: '#3ba0d8' },
-  stripe: { name: 'Stripe Connect', slug: 'stripe', color: '#635bff' },
   supabase: { name: 'Supabase', slug: 'supabase', color: '#3fcf8e' },
   threejs: { name: 'Three.js', slug: 'threedotjs', color: '#ffffff' },
   typescript: { name: 'TypeScript', slug: 'typescript', color: '#3178c6' },
   unity: { name: 'Unity', slug: 'unity', color: '#ffffff' },
 }
 
-// media: best available asset per project — the stage renders
-// video → poster → monogram (nothing blocks on recordings existing).
-// logo, when present, replaces the monogram mark beside the text;
-// model (draco glb) outranks logo as a spinning 3D mark on the stage.
-// backdrop, when present, plays dimmed behind the whole stage while the
-// project is staged (skipped under reduced motion).
-// prop, when present, is a still (or list of stills that cycle) tucked
-// behind the window with a corner peeking out (desktop stage only).
+// Floor 2 lists these in order. tag is the one line a visitor scans in the
+// list; blurb is the longer caption under the stage. media is either a video
+// (with a poster shown until it plays) or a still image; a project with
+// neither shows its name on a dark tile. contain letterboxes footage that is
+// not landscape (a phone recording) instead of cropping it. eventLogo, award
+// (a boxed badge) and meta sit under the blurb. Optional extras: mark
+// ('pageaura' sparkles) or model (a draco glb turntable, with logo as its
+// poster) beside the caption, and props: stills that cycle, peeking out
+// behind the screen.
 export const PROJECTS = [
+  {
+    id: 'trailblazer',
+    name: 'Trailblazer',
+    year: '2026',
+    tag: "Spot moving objects in NASA's infrared sky",
+    award: { place: 'Winner', name: 'Local OpenSpace Award' },
+    blurb: "A public window into NASA's SPHEREx telescope. Explore the whole infrared sky, open a time-lapse of any spot, and find the dots that move.",
+    eventLogo: { src: '/images/logos/space-apps-white.png', alt: 'NASA Space Apps Challenge' },
+    tech: [TECH.javascript, TECH.python, TECH.threejs],
+    links: [
+      { label: 'Visit', url: 'https://comet-hunt.comet-hunt.workers.dev' },
+      { label: 'Code', url: 'https://github.com/hkafle3/space-apps-2026-nyc' },
+    ],
+    media: { video: '/media/projects/trailblazer-intro.mp4', poster: '/media/projects/trailblazer-poster.jpg' },
+  },
   {
     id: 'pageaura',
     name: 'PageAura',
-    blurb: 'My public bookshelf and the EPUB reader behind it. Upload books to build your own shelf, or just listen.',
     year: '2026',
-    status: 'live',
-    tech: [TECH.react, TECH.threejs, TECH.supabase, TECH.claude],
+    tag: 'A public bookshelf and the EPUB reader behind it',
+    blurb: 'My public bookshelf and the EPUB reader behind it. Upload books to build your own shelf, or just listen.',
+    tech: [TECH.typescript, TECH.react, TECH.threejs, TECH.supabase],
     links: [{ label: 'Visit', url: 'https://pageaura.app/' }],
     media: {
-      video: '/media/projects/pageaura-demo.mp4',
-      poster: '/media/projects/pageaura-shelf.png',
-      logo: '/media/projects/pageaura-book.svg',
-      model: null,
-      stageMark: 'pageauraSparkles',
-      backdrop: '/media/projects/pageaura-teaser.mp4',
-      prop: [
-        '/media/projects/pageaura-cover-sorcerers-stone.jpg',
-        '/media/projects/pageaura-cover-homegoing.jpg',
-      ],
+      video: '/media/projects/pageaura-stage.mp4',
+      poster: '/media/projects/pageaura-poster.jpg',
+      mark: 'pageaura',
+      props: ['/media/projects/pageaura-cover-sorcerers-stone.jpg', '/media/projects/pageaura-cover-homegoing.jpg'],
     },
+  },
+  {
+    id: 'cua',
+    name: 'cua-driver Fork',
+    year: '2026',
+    tag: 'AI agents use Mac apps while you keep working',
+    blurb: 'My fork of an open-source tool that lets AI agents use Mac apps in the background while you keep working.',
+    tech: [TECH.rust, TECH.python],
+    links: [
+      { label: 'Case study', url: '/cua' },
+      { label: 'Code', url: 'https://github.com/Ed-Key/cua/tree/ed/main' },
+    ],
+    media: { video: '/media/projects/cua-stage.mp4', poster: DEMO.poster },
   },
   {
     id: 'showdown-copilot',
     name: 'Showdown Copilot',
-    blurb: 'An advisor that suggests moves during live Pokémon Showdown battles, built on Monte Carlo tree search in Rust.',
     year: '2026',
-    status: 'live',
+    tag: 'Live move advice in Pokémon Showdown battles',
+    blurb: 'An advisor that suggests moves during live Pokémon Showdown battles, built on Monte Carlo tree search in Rust.',
     tech: [TECH.rust, TECH.python, TECH.typescript],
     links: [{ label: 'Code', url: 'https://github.com/Ed-Key/showdown-stack' }],
     media: {
-      video: '/media/projects/showdown-demo.mp4',
-      poster: '/media/projects/showdown-dashboard.png',
-      logo: null,
-      model: null,
-      backdrop: '/media/projects/showdown-teaser.mp4',
-      prop: [
+      video: '/media/projects/showdown-stage.mp4',
+      poster: '/media/projects/showdown-poster.jpg',
+      props: [
         '/media/projects/showdown-tcg-card.png',
         '/media/projects/showdown-card-ogerpon.png',
         '/media/projects/showdown-card-gholdengo.png',
@@ -96,102 +111,110 @@ export const PROJECTS = [
     },
   },
   {
+    id: 'keep-my-snap',
+    name: 'Keep My SNAP',
+    year: '2026',
+    tag: 'Helps New Jersey residents keep their food benefits',
+    award: { place: '2nd place', name: 'Newark Tech Week Hackathon' },
+    blurb: 'A resident tells their story and photographs the county letter. It fills in the New Jersey SNAP exemption form so they keep their benefits.',
+    tech: [TECH.javascript, TECH.nextjs, TECH.claude],
+    links: [
+      { label: 'Watch demo', url: '/keep-my-snap/demo' },
+      { label: 'Code', url: 'https://github.com/Ed-Key/keep-my-snap-newark' },
+    ],
+    media: { video: '/media/projects/snap-stage.mp4', poster: '/media/projects/snap-poster.jpg', contain: true },
+  },
+  {
+    id: 'kemuma-studio',
+    name: 'Kemuma Studio',
+    year: '2026',
+    tag: 'Turns a photo of a carving into an Etsy listing',
+    blurb: "The tool behind my family's Etsy shop. Photograph a carving and it drafts, prices and photographs the listing.",
+    tech: [TECH.typescript, TECH.nextjs, TECH.sqlite],
+    links: [
+      { label: 'Code', url: 'https://github.com/Ed-Key/kemuma-studio' },
+      { label: 'Shop', url: 'https://www.etsy.com/shop/KemumaCarvings' },
+    ],
+    media: { video: '/media/projects/kemuma-stage.mp4', poster: '/media/projects/kemuma-poster.jpg' },
+  },
+  {
     id: 'daily-bread',
     name: 'Daily Bread',
-    blurb: 'A YouVersion companion that puts the verse of the day in every new tab. Study notes and prayer are one click away.',
     year: '2026',
-    status: 'live',
-    tech: [TECH.typescript, TECH.react, TECH.firebase, TECH.claude],
+    tag: 'The verse of the day in every new tab',
+    meta: '50+ active installs',
+    blurb: 'A YouVersion companion that puts the verse of the day in every new tab. Study notes and prayer are one click away.',
+    tech: [TECH.typescript, TECH.react, TECH.firebase],
     links: [{ label: 'Visit', url: 'https://daily-bread-landing.web.app' }],
     media: {
-      video: null,
-      poster: '/media/projects/daily-bread-landing.png',
+      image: '/media/projects/daily-bread.jpg',
       logo: '/media/projects/daily-bread-logo.svg',
       model: '/media/projects/daily-bread-logo.glb',
     },
   },
   {
-    id: 'kemuma-studio',
-    name: 'Kemuma Studio',
-    blurb: "The tool behind my family's Etsy shop. Photograph a carving and it drafts, prices and photographs the listing.",
+    id: 'hone',
+    name: 'Hone',
     year: '2026',
-    status: 'live',
-    tech: [TECH.nextjs, TECH.typescript, TECH.sqlite, TECH.openai, TECH.gemini, TECH.claude],
-    links: [
-      { label: 'Code', url: 'https://github.com/Ed-Key/kemuma-studio' },
-      { label: 'Shop', url: 'https://www.etsy.com/shop/KemumaCarvings' },
-    ],
-    media: {
-      video: '/media/projects/kemuma-demo.mp4',
-      poster: '/media/projects/kemuma-preview.png',
-      logo: null,
-      model: null,
-      backdrop: '/media/projects/kemuma-teaser.mp4',
-    },
-  },
-  {
-    id: 'cua',
-    name: 'cua-driver Fork',
-    blurb: 'My fork of an open-source tool that lets AI agents use Mac apps in the background while you keep working.',
-    year: '2026',
-    status: 'live',
-    tech: [TECH.rust, TECH.python],
-    links: [
-      { label: 'Case study', url: '/cua' },
-      { label: 'Code', url: 'https://github.com/Ed-Key/cua/tree/ed/main' },
-    ],
-    media: { video: DEMO.mp4, poster: DEMO.poster, logo: null, model: null },
+    tag: 'Python interview practice that runs on your laptop',
+    meta: 'Built on the open-source Anvil app (MIT)',
+    blurb: 'Private Python interview practice that runs on your own laptop. Predict what code does, write it, then prove the idea transfers.',
+    tech: [TECH.typescript, TECH.rust],
+    links: [],
+    media: {},
   },
   {
     id: 'potencia',
     name: 'Potencia Tutor Chatbot',
-    blurb: 'A WhatsApp assistant that answers volunteer tutors’ questions from program documents during live sessions.',
     year: '2025',
-    status: 'private',
+    tag: 'Answers volunteer tutors on WhatsApp, mid-session',
+    meta: 'Private build, ask for a walkthrough',
+    blurb: 'A WhatsApp assistant that answers volunteer tutors’ questions from program documents during live sessions.',
     tech: [TECH.python, TECH.langchain, TECH.gcp],
     links: [],
-    media: { video: null, poster: null, logo: null, model: null },
+    media: {},
   },
   {
     id: 'water-sim',
     name: 'Water Purification Sim',
-    blurb: 'A Unity simulator that teaches water-treatment systems, used by two hundred engineering students at Tufts.',
     year: '2025',
-    status: 'private',
-    tech: [TECH.unity, TECH.csharp],
+    tag: 'Teaches water treatment to 200 Tufts engineers',
+    meta: 'Private build, ask for a walkthrough',
+    blurb: 'A Unity simulator that teaches water-treatment systems, used by two hundred engineering students at Tufts.',
+    tech: [TECH.csharp, TECH.unity],
     links: [],
-    media: { video: null, poster: null, logo: null, model: null },
+    media: {},
   },
   {
     id: 'ace',
     name: 'ACE++ Website',
-    blurb: 'The first website I shipped: a CS access program site at Tufts that reached 500+ students at launch.',
     year: '2023',
-    status: 'live',
-    tech: [TECH.react, TECH.figma],
+    tag: 'My first shipped site, for 500+ Tufts students',
+    blurb: 'The first website I shipped: a CS access program site at Tufts that reached 500+ students at launch.',
+    tech: [TECH.javascript, TECH.react, TECH.figma],
     links: [
       { label: 'Visit', url: 'https://ed-key.github.io/ACE/' },
       { label: 'Code', url: 'https://github.com/Ed-Key/ACE' },
     ],
-    media: { video: null, poster: '/media/projects/ace-preview.png', logo: null, model: null },
+    media: { image: '/media/projects/ace.jpg' },
   },
 ]
 
-// The capacity plate: languages the operator is rated for. `projects`
-// lists which ring projects light each glyph (cross-highlight); empty
-// arrays stay etched — rated beyond what's on display.
+// The "Rated for" plate: languages the operator is rated for. `projects`
+// lists which projects light each glyph while staged; empty arrays stay
+// etched, rated beyond what's on display.
 export const LANGUAGES = [
-  { name: 'TypeScript', slug: 'typescript', color: '#3178c6', projects: ['pageaura', 'showdown-copilot', 'daily-bread', 'kemuma-studio'] },
-  { name: 'JavaScript', slug: 'javascript', color: '#f7df1e', projects: ['ace'] },
-  { name: 'Python', slug: 'python', color: '#4b8bbe', projects: ['showdown-copilot', 'cua', 'potencia'] },
-  { name: 'Rust', slug: 'rust', color: '#ce6d35', projects: ['showdown-copilot', 'cua'] },
+  { name: 'TypeScript', slug: 'typescript', color: '#3178c6', projects: ['pageaura', 'showdown-copilot', 'daily-bread', 'kemuma-studio', 'hone'] },
+  { name: 'JavaScript', slug: 'javascript', color: '#f7df1e', projects: ['trailblazer', 'keep-my-snap', 'ace'] },
+  { name: 'Python', slug: 'python', color: '#4b8bbe', projects: ['trailblazer', 'showdown-copilot', 'cua', 'potencia'] },
+  { name: 'Rust', slug: 'rust', color: '#ce6d35', projects: ['showdown-copilot', 'cua', 'hone'] },
   { name: 'Java', slug: 'openjdk', color: '#f89820', projects: [] },
   { name: 'C', slug: 'c', color: '#a8b9cc', projects: [] },
   { name: 'C++', slug: 'cplusplus', color: '#659ad2', projects: [] },
   { name: 'C#', slug: 'csharp', color: '#a179dc', projects: ['water-sim'] },
   { name: 'SQL', slug: null, color: '#e8b54a', projects: ['pageaura', 'kemuma-studio'] },
-  { name: 'HTML', slug: 'html5', color: '#e34f26', projects: ['daily-bread', 'ace'] },
-  { name: 'CSS', slug: 'css', color: '#2965f1', projects: ['daily-bread', 'ace'] },
+  { name: 'HTML', slug: 'html5', color: '#e34f26', projects: ['trailblazer', 'daily-bread', 'ace'] },
+  { name: 'CSS', slug: 'css', color: '#2965f1', projects: ['trailblazer', 'daily-bread', 'ace'] },
   { name: 'GLSL', slug: 'opengl', color: '#5586a4', projects: ['pageaura'] },
   { name: 'Bash', slug: 'gnubash', color: '#4eaa25', projects: [] },
 ]
@@ -216,8 +239,8 @@ export const BIO = [
 ]
 
 export const PORTFOLIO_FLOORS = [
-  { id: 'home', number: '01', label: 'Lobby' },
-  { id: 'projects', number: '02', label: 'Projects' },
-  { id: 'about', number: '03', label: 'About' },
-  { id: 'contact', number: '04', label: 'Contact' },
+  { id: 'home', number: '1', label: 'Lobby' },
+  { id: 'projects', number: '2', label: 'Projects' },
+  { id: 'about', number: '3', label: 'About' },
+  { id: 'contact', number: '4', label: 'Contact' },
 ]
