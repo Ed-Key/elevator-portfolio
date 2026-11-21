@@ -139,7 +139,10 @@ export default function PortfolioModal({ initialFloor = null, onClosed, onOpened
           const id = entry.target.dataset.floor
           const targets = entry.target.querySelectorAll('[data-reveal]')
 
-          if (entry.intersectionRatio >= 0.25 && !revealed.has(id)) {
+          // A floor taller than four screens never shows a quarter of itself,
+          // so a floor also counts as arrived once it fills a quarter of the view.
+          const fillsView = entry.rootBounds && entry.intersectionRect.height >= entry.rootBounds.height * 0.25
+          if ((entry.intersectionRatio >= 0.25 || fillsView) && !revealed.has(id)) {
             revealed.add(id)
             gsap.to(targets, {
               autoAlpha: 1,
@@ -159,7 +162,7 @@ export default function PortfolioModal({ initialFloor = null, onClosed, onOpened
           }
         })
       },
-      { root: scroller, threshold: [0, 0.25] },
+      { root: scroller, threshold: [0, 0.05, 0.1, 0.15, 0.2, 0.25] },
     )
 
     sections.forEach((section) => io.observe(section))

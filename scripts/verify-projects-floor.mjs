@@ -1,4 +1,5 @@
-// Asserts the Projects button-panel floor + snap scroll end-to-end.
+// Asserts the Projects floor end to end: the list, the screen, when footage
+// loads and plays, keyboard reach, phone layout, and no zero-padded numbers.
 // Usage: BASE_URL=http://127.0.0.1:5173 node scripts/verify-projects-floor.mjs
 import { chromium } from 'playwright'
 
@@ -8,91 +9,178 @@ const check = (name, ok) => {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`)
   if (!ok) failures += 1
 }
+// Installed Chrome: the bundled headless shell renders the 3D lobby in
+// software and stalls before the tools panel answers clicks.
+const browser = await chromium.launch({ channel: 'chrome' })
 
-const browser = await chromium.launch()
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
-await page.goto(`${BASE}/?tools=1`)
-await page.waitForTimeout(1500)
-await page.getByRole('button', { name: 'Open', exact: true }).click()
-await page.waitForSelector('[data-phase="open"]', { timeout: 15000 })
-// The Lighting Lab aside overlays the floor panel in ?tools=1 mode and
-// would intercept panel clicks — hide it for the assertions.
-await page.addStyleTag({ content: '[data-preview-ui]{display:none !important}' })
-await page.waitForTimeout(600)
-check('modal reaches open phase', true)
+// 1. Lobby: the opening film must not download before Projects is on screen.
+{
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+  const fetched = []
+  page.on('request', (r) => fetched.push(r.url()))
+  await page.goto(`${BASE}/?tools=1`)
+  await page.waitForTimeout(1500)
+  await page.getByRole('button', { name: 'fx', exact: true }).click() // the tools tab holding Open
+  await page.getByRole('button', { name: 'Open', exact: true }).click()
+  await page.waitForSelector('[data-phase="open"]', { state: 'attached', timeout: 15000 })
+  await page.waitForTimeout(2500)
+  check('lobby fetches no project footage', !fetched.some((u) => u.includes('/media/projects/') && u.endsWith('.mp4')))
+  check(
+    'floor numbers have no leading zero',
+    (await page.locator('.floor-panel__num').allTextContents()).every((n) => /^[1-9]\d*$/.test(n)),
+  )
+  await page.close()
+}
 
-await page.locator('.floor-panel__button', { hasText: 'Projects' }).click()
-await page.waitForTimeout(1200)
-check('ring renders 8 cells', (await page.locator('.panel-cell').count()) === 8)
-check('idle plate shows count', await page.locator('.stage-idle__count').isVisible())
+// 2. Desktop floor.
+{
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+  const clips = new Set()
+  page.on('request', (r) => {
+    if (r.url().endsWith('.mp4')) clips.add(r.url().split('/').pop())
+  })
+  await page.goto(`${BASE}/#projects`)
+  await page.waitForSelector('.projects-row', { timeout: 20000 })
+  await page.waitForTimeout(2500)
+  const rows = page.locator('.projects-row')
+  check('list shows 11 projects', (await rows.count()) === 11)
+  check('rows carry no numbers', (await rows.allTextContents()).every((t) => !/^\s*\d/.test(t)))
+  const videoState = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll('.projects-screen video')].map((v) => ({
+        src: v.getAttribute('src'),
+        paused: v.paused,
+        time: v.currentTime,
+        preload: v.preload,
+      })),
+    )
+  let videos = await videoState()
+  check('opening film plays', !videos[0].paused && videos[0].time > 0.5)
+  check('other clips stay unloaded', videos.slice(1).every((v) => v.paused && v.preload === 'none'))
+  check('Space Apps logo shows for Trailblazer', await page.locator('.projects-caption__event').isVisible())
 
-await page.locator('.panel-cell').first().hover()
-await page.waitForTimeout(400)
-check('hover puts PageAura on stage', await page.locator('.stage-show__name', { hasText: 'PageAura' }).isVisible())
+  await rows.filter({ hasText: 'Keep My SNAP' }).hover()
+  await page.waitForTimeout(1500)
+  videos = await videoState()
+  const snap = videos.find((v) => v.src.includes('snap'))
+  check('hover switches the screen and plays that clip', !snap.paused && videos[0].paused)
+  check('caption follows hover', (await page.locator('.projects-caption').textContent()).includes('2nd place'))
 
-await page.locator('.panel-stage').hover() // move off the cells onto the stage itself
-await page.waitForTimeout(300)
-check('stage holds after pointer leaves', await page.locator('.stage-show__name', { hasText: 'PageAura' }).isVisible())
+  check(
+    'only clips that were shown were fetched',
+    [...clips].every((c) => ['trailblazer-intro.mp4', 'snap-stage.mp4'].includes(c)),
+  )
 
-await page.locator('.panel-cell', { hasText: 'Showdown Copilot' }).hover()
-await page.waitForTimeout(800)
-check('showdown mounts stage backdrop', (await page.locator('.stage-backdrop video').count()) === 1)
-check('showdown text sits on shield', (await page.locator('.stage-show--backdropped').count()) === 1)
-// backdrop only flags is-ready once the video autoplays, so a codec/autoplay
-// regression trips this rather than only the gitignored probe
-check('backdrop reaches is-ready', (await page.locator('.stage-backdrop.is-ready').count()) === 1)
-await page.locator('.panel-cell', { hasText: 'PageAura' }).hover()
-await page.waitForTimeout(600)
-check('backdrop unmounts off showdown', (await page.locator('.stage-backdrop').count()) === 0)
+  await rows.filter({ hasText: 'Hone' }).hover()
+  await page.waitForTimeout(500)
+  check('project without media shows its name tile', await page.locator('.projects-screen__blank.is-on').isVisible())
+  check('no clip plays on a media-less project', (await videoState()).every((v) => v.paused))
 
-const before = page.context().pages().length
-await page.locator('button.panel-cell', { hasText: 'Potencia' }).click()
-await page.waitForTimeout(150)
-check('private press blinks (data-denied)', (await page.locator('[data-denied="true"]').count()) === 1)
-await page.waitForTimeout(600)
-check('private press opens no page', page.context().pages().length === before)
+  // keyboard: one tab stop, arrows move, Tab reaches the chosen project's links
+  await page.mouse.move(5, 895)
+  await rows.filter({ hasText: 'Trailblazer' }).click()
+  check('only the selected row is a tab stop', (await page.locator('.projects-row[tabindex="0"]').count()) === 1)
+  await page.keyboard.press('ArrowDown')
+  check('ArrowDown selects the next project', (await page.locator('.projects-row[aria-current="true"]').textContent()).includes('PageAura'))
+  await page.keyboard.press('Tab') // the screen's pause button
+  check('Tab reaches the pause button first', await page.evaluate(() => document.activeElement?.classList.contains('projects-screen__toggle')))
+  await page.keyboard.press('Tab')
+  check(
+    'next Tab reaches the project link',
+    await page.evaluate(() => document.activeElement?.closest('.projects-caption__links')?.textContent.includes('Visit')),
+  )
 
-await page.locator('.floor-panel__button', { hasText: 'Contact' }).click()
-await page.waitForTimeout(1400)
-check(
-  'panel lamp follows scroll to Contact',
-  (await page.locator('.floor-panel__button', { hasText: 'Contact' }).getAttribute('aria-current')) === 'true',
-)
+  // the pause button holds across projects until pressed again
+  await page.getByRole('button', { name: 'Pause video' }).click()
+  await page.waitForTimeout(400)
+  await rows.filter({ hasText: 'PageAura' }).hover()
+  await page.waitForTimeout(800)
+  check('pause holds when switching projects', (await videoState()).every((v) => v.paused))
+  await page.getByRole('button', { name: 'Play video' }).click()
+  await page.waitForTimeout(800)
+  check('play resumes the shown clip', (await videoState()).some((v) => !v.paused))
 
-await page.locator('.floor-panel__button', { hasText: 'Lobby' }).click()
-await page.waitForTimeout(1400)
-check(
-  'riding back re-lights Lobby',
-  (await page.locator('.floor-panel__button', { hasText: 'Lobby' }).getAttribute('aria-current')) === 'true',
-)
+  // leaving the floor pauses the clip
+  await rows.filter({ hasText: 'Trailblazer' }).click()
+  await page.waitForTimeout(800)
+  await page.locator('.floor-panel__button', { hasText: 'Contact' }).click()
+  await page.waitForTimeout(2000)
+  check('scrolling away pauses the clip', (await videoState()).every((v) => v.paused))
+  await page.close()
+}
 
-// reduced-motion policy: a second context asks for reduced motion, rides to the
-// projects floor, hovers showdown, and asserts no backdrop, no shield, no window
-// video, and the dashboard poster in the window instead
-const rmContext = await browser.newContext({
-  reducedMotion: 'reduce',
-  viewport: { width: 1440, height: 900 },
-})
-const rmPage = await rmContext.newPage()
-await rmPage.goto(`${BASE}/?tools=1`)
-await rmPage.waitForTimeout(1500)
-await rmPage.getByRole('button', { name: 'Open', exact: true }).click()
-await rmPage.waitForSelector('[data-phase="open"]', { timeout: 15000 })
-await rmPage.addStyleTag({ content: '[data-preview-ui]{display:none !important}' })
-await rmPage.waitForTimeout(600)
-await rmPage.locator('.floor-panel__button', { hasText: 'Projects' }).click()
-await rmPage.waitForTimeout(1200)
-await rmPage.locator('.panel-cell', { hasText: 'Showdown Copilot' }).hover()
-await rmPage.waitForTimeout(800)
-check('reduced motion mounts no backdrop', (await rmPage.locator('.stage-backdrop').count()) === 0)
-check('reduced motion drops the shield', (await rmPage.locator('.stage-show--backdropped').count()) === 0)
-check('reduced motion plays no window video', (await rmPage.locator('.stage-show__window video').count()) === 0)
-check(
-  'reduced motion shows dashboard poster',
-  (await rmPage.locator('.stage-show__window img').getAttribute('src')) === '/media/projects/showdown-dashboard.png',
-)
-await rmContext.close()
+// 2b. Reduced motion: posters only, nothing plays.
+{
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' })
+  await page.goto(`${BASE}/#projects`)
+  await page.waitForSelector('.projects-row', { timeout: 20000 })
+  await page.waitForTimeout(2000)
+  await page.locator('.projects-row', { hasText: 'PageAura' }).hover()
+  await page.waitForTimeout(1000)
+  const states = await page.evaluate(() =>
+    [...document.querySelectorAll('.projects-screen video')].map((v) => v.paused && v.preload === 'none'),
+  )
+  check('reduced motion plays and preloads nothing', states.every(Boolean))
+  await page.close()
+}
+
+// 3. Desktop windows: the wheel scrolls the list itself, not the whole floor.
+for (const [w, h] of [[1440, 900], [1280, 720]]) {
+  const page = await browser.newPage({ viewport: { width: w, height: h } })
+  await page.goto(`${BASE}/#projects`)
+  await page.waitForSelector('.projects-row', { timeout: 20000 })
+  await page.waitForTimeout(2000)
+  const floorTop = () => page.evaluate(() => document.querySelector('.site-content').scrollTop)
+  const before = await floorTop()
+  const box = await page.locator('.projects-list').boundingBox()
+  await page.mouse.move(box.x + box.width / 2, box.y + 60)
+  for (let i = 0; i < 6; i += 1) {
+    await page.mouse.wheel(0, 200)
+    await page.waitForTimeout(120)
+  }
+  await page.waitForTimeout(900)
+  const listTop = await page.locator('.projects-list').evaluate((el) => el.scrollTop)
+  check(`${w}x${h} wheel scrolls the list`, listTop > 100)
+  check(`${w}x${h} floor stays on Projects`, (await floorTop()) === before)
+  const last = await page.locator('.projects-row').last().boundingBox()
+  check(`${w}x${h} last project reachable`, last.y + last.height <= h)
+  const screen = await page.locator('.projects-screen').boundingBox()
+  const caption = await page.locator('.projects-caption').boundingBox()
+  check(`${w}x${h} screen and caption fit the window`, screen.y >= 0 && caption.y + caption.height <= h)
+  await page.close()
+}
+
+// 4. Phone portrait pins the screen; phone landscape does not.
+for (const [w, h, sticky] of [[390, 844, true], [768, 1024, true], [880, 601, false], [844, 390, false]]) {
+  const page = await browser.newPage({ viewport: { width: w, height: h }, hasTouch: true })
+  await page.goto(`${BASE}/#projects`)
+  await page.waitForSelector('.projects-row', { timeout: 20000 })
+  await page.waitForTimeout(1200)
+  const position = await page.locator('.projects-stage').evaluate((el) => getComputedStyle(el).position)
+  check(`${w}x${h} screen ${sticky ? 'pinned' : 'scrolls with the page'}`, (position === 'sticky') === sticky)
+  if (sticky) {
+    // keyboard jump to the top must not leave the focused row under the screen
+    await page.locator('.projects-row[tabindex="0"]').focus()
+    await page.keyboard.press('End')
+    await page.waitForTimeout(500)
+    await page.keyboard.press('Home')
+    await page.waitForTimeout(700)
+    const stageBottom = (await page.locator('.projects-stage').boundingBox()).y + (await page.locator('.projects-stage').boundingBox()).height
+    const rowTop = (await page.locator('.projects-row').first().boundingBox()).y
+    check(`${w}x${h} focused row clears the pinned screen`, rowTop >= stageBottom - 1)
+  }
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)
+  check(`${w}x${h} no sideways scroll`, !overflow)
+  // scroll by hand: Playwright's own scroll-into-view fights the floor's snap
+  const row = page.locator('.projects-row', { hasText: 'Daily Bread' })
+  await row.evaluate((el) => el.scrollIntoView({ block: 'center' }))
+  await page.waitForTimeout(600)
+  await row.tap()
+  await page.waitForTimeout(500)
+  check(`${w}x${h} tap selects a project`, (await page.locator('.projects-caption').textContent()).includes('YouVersion'))
+  await page.close()
+}
 
 await browser.close()
-console.log(failures === 0 ? '\nALL CHECKS PASSED' : `\n${failures} CHECK(S) FAILED`)
-process.exit(failures === 0 ? 0 : 1)
+console.log(failures ? `\n${failures} FAILED` : '\nALL PASS')
+process.exit(failures ? 1 : 0)
