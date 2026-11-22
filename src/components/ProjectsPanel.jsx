@@ -54,12 +54,12 @@ function CaptionMark({ paused, project, reducedMotion }) {
   return null
 }
 
-// The "Rated for" plate: every language, etched; the staged project lights
+// The Languages plate: every language, etched; the staged project lights
 // the ones it is built in.
-function RatedFor({ projectId }) {
+function LanguagesPlate({ projectId }) {
   return (
     <div className="projects-plate" data-reveal>
-      <span className="projects-plate__label">Rated for</span>
+      <span className="projects-plate__label">Languages</span>
       <ul className="projects-plate__list">
         {LANGUAGES.map((lang) => (
           <li className={lang.projects.includes(projectId) ? 'plate-lang is-lit' : 'plate-lang'} key={lang.name}>
@@ -289,7 +289,7 @@ export default function ProjectsPanel() {
           )}
         </div>
       </section>
-      <RatedFor projectId={project.id} />
+      <LanguagesPlate projectId={project.id} />
     </article>
   )
 }
