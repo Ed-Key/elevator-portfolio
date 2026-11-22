@@ -91,10 +91,8 @@ function isInternal(url) {
 // it is on screen and allowed to play, so the floor costs one download per
 // project a visitor actually watches.
 function ScreenLayer({ active, live, project, videoRef }) {
-  const { contain, image, poster, video } = project.media
-  const className = ['projects-screen__layer', active && 'is-on', contain && 'is-contain']
-    .filter(Boolean)
-    .join(' ')
+  const { image, poster, video } = project.media
+  const className = ['projects-screen__layer', active && 'is-on'].filter(Boolean).join(' ')
 
   if (video) {
     return (
