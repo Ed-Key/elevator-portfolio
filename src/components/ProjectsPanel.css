@@ -134,10 +134,6 @@
   opacity: 1;
 }
 
-.projects-screen__layer.is-contain {
-  object-fit: contain;
-}
-
 .projects-screen__toggle {
   position: absolute;
   right: 12px;
