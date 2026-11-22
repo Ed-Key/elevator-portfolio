@@ -41,8 +41,8 @@ const TECH = {
 // Floor 2 lists these in order. tag is the one line a visitor scans in the
 // list; blurb is the longer caption under the stage. media is either a video
 // (with a poster shown until it plays) or a still image; a project with
-// neither shows its name on a dark tile. contain letterboxes footage that is
-// not landscape (a phone recording) instead of cropping it. eventLogo, award
+// neither shows its name on a dark tile. Footage is 16:10 so it fills the
+// screen. eventLogo, award
 // (a boxed badge) and meta sit under the blurb. Optional extras: mark
 // ('pageaura' sparkles) or model (a draco glb turntable, with logo as its
 // poster) beside the caption, and props: stills that cycle, peeking out
@@ -54,7 +54,7 @@ export const PROJECTS = [
     year: '2026',
     tag: "Spot moving objects in NASA's infrared sky",
     award: { place: 'Winner', name: 'Local OpenSpace Award' },
-    blurb: "A public window into NASA's SPHEREx telescope. Explore the whole infrared sky, open a time-lapse of any spot, and find the dots that move.",
+    blurb: "Started at the NASA Space Apps hackathon, now a public window into NASA's SPHEREx telescope. Explore the whole infrared sky, open a time-lapse of any spot, and find the dots that move.",
     eventLogo: { src: '/images/logos/space-apps-white.png', alt: 'NASA Space Apps Challenge' },
     tech: [TECH.javascript, TECH.python, TECH.threejs],
     links: [
@@ -116,13 +116,13 @@ export const PROJECTS = [
     year: '2026',
     tag: 'Helps New Jersey residents keep their food benefits',
     award: { place: '2nd place', name: 'Newark Tech Week Hackathon' },
-    blurb: 'A resident tells their story and photographs the county letter. It fills in the New Jersey SNAP exemption form so they keep their benefits.',
+    blurb: 'Built in one day at a hackathon. A resident tells their story and photographs the county letter. It fills in the New Jersey SNAP exemption form so they keep their benefits.',
     tech: [TECH.javascript, TECH.nextjs, TECH.claude],
     links: [
       { label: 'Watch demo', url: '/keep-my-snap/demo' },
       { label: 'Code', url: 'https://github.com/Ed-Key/keep-my-snap-newark' },
     ],
-    media: { video: '/media/projects/snap-stage.mp4', poster: '/media/projects/snap-poster.jpg', contain: true },
+    media: { video: '/media/projects/snap-stage.mp4', poster: '/media/projects/snap-poster.jpg' },
   },
   {
     id: 'kemuma-studio',
