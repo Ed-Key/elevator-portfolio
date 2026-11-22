@@ -1,6 +1,7 @@
 import { Center, Environment, Lightformer, useGLTF } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Component, Suspense, useEffect, useRef, useState } from 'react'
+import { NeutralToneMapping } from 'three'
 
 // Tiny R3F stage mark for a project's 3D logo. Draco decoders are vendored
 // at public/draco/ — nothing loads from a CDN. The static `poster` node shows
@@ -130,19 +131,23 @@ function ModelCanvas({ paused = false, poster, src, view = DEFAULT_VIEW }) {
         camera={{ fov: view.fov ?? 40, position: camera }}
         dpr={[1, 2]}
         frameloop={paused ? 'never' : 'always'}
-        gl={{ alpha: true, antialias: true }}
+        // Neutral tone mapping keeps the logo's own colours. R3F's default,
+        // ACES, crushes these browns toward maroon and pushes tan to orange.
+        gl={{ alpha: true, antialias: true, toneMapping: NeutralToneMapping }}
       >
-        <ambientLight color="#fff3dc" intensity={0.9} />
-        <directionalLight color="#f0c870" intensity={1.7} position={[2.5, 3, 4]} />
+        {/* Near-white light from the upper left, like the logo's own art:
+            warm-tinted light turned the tan bread orange. */}
+        <ambientLight color="#fffaf2" intensity={0.6} />
+        <directionalLight color="#fff8ee" intensity={2.2} position={[-3, 4, 5]} />
         <directionalLight color="#8fa1ff" intensity={0.45} position={[-3, -1.5, 2]} />
         {/* Project logos are glTF PBR: with no environment their indirect
             diffuse and specular are both zero, so the art reads several stops
             darker here than it does on the project's own site. Baked once from
             lightformers for the same reason as the hall, no CDN HDRI. */}
-        <Environment environmentIntensity={0.25} frames={1} resolution={128}>
+        <Environment environmentIntensity={1} frames={1} resolution={128}>
           <color args={['#120a04']} attach="background" />
-          <Lightformer color="#ffd9a0" form="rect" intensity={3.2} position={[3, 3, 4]} scale={[6, 6, 1]} />
-          <Lightformer color="#ffb066" form="rect" intensity={1.6} position={[-4, 1, 2]} rotation-y={Math.PI / 2} scale={[6, 4, 1]} />
+          <Lightformer color="#fff4e6" form="rect" intensity={3.2} position={[3, 3, 4]} scale={[6, 6, 1]} />
+          <Lightformer color="#e8ecff" form="rect" intensity={1.6} position={[-4, 1, 2]} rotation-y={Math.PI / 2} scale={[6, 4, 1]} />
         </Environment>
         <Suspense fallback={null}>
           <FloatingModel onReady={() => setReady(true)} src={src} view={view} />

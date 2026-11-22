@@ -200,9 +200,9 @@ export const PROJECTS = [
   },
 ]
 
-// The "Rated for" plate: languages the operator is rated for. `projects`
-// lists which projects light each glyph while staged; empty arrays stay
-// etched, rated beyond what's on display.
+// The Languages plate: every language I work in. `projects` lists which
+// projects light each glyph while staged; empty arrays stay etched, used
+// beyond what's on display.
 export const LANGUAGES = [
   { name: 'TypeScript', slug: 'typescript', color: '#3178c6', projects: ['pageaura', 'showdown-copilot', 'daily-bread', 'kemuma-studio', 'hone'] },
   { name: 'JavaScript', slug: 'javascript', color: '#f7df1e', projects: ['trailblazer', 'keep-my-snap', 'ace'] },
