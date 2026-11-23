@@ -57,14 +57,14 @@ const browser = await chromium.launch({ channel: 'chrome' })
   let videos = await videoState()
   check('opening film plays', !videos[0].paused && videos[0].time > 0.5)
   check('other clips stay unloaded', videos.slice(1).every((v) => v.paused && v.preload === 'none'))
-  check('Space Apps logo shows for Trailblazer', await page.locator('.projects-caption__event').isVisible())
+  check('Space Apps logo shows for Trailblazer', await page.locator('.projects-caption:not(.is-ghost) .projects-caption__event').isVisible())
 
   await rows.filter({ hasText: 'Keep My SNAP' }).hover()
   await page.waitForTimeout(1500)
   videos = await videoState()
   const snap = videos.find((v) => v.src.includes('snap'))
   check('hover switches the screen and plays that clip', !snap.paused && videos[0].paused)
-  check('caption follows hover', (await page.locator('.projects-caption').textContent()).includes('2nd place'))
+  check('caption follows hover', (await page.locator('.projects-caption:not(.is-ghost)').textContent()).includes('2nd place'))
 
   check(
     'only clips that were shown were fetched',
@@ -146,15 +146,42 @@ const browser = await chromium.launch({ channel: 'chrome' })
   )
   await page.locator('.projects-row', { hasText: 'Daily Bread' }).hover()
   await page.waitForTimeout(2500)
-  check('failed 3D logo falls back to the flat logo', await page.locator('.projects-mark .projects-mark__logo').isVisible())
+  check('failed 3D logo falls back to the flat logo', await page.locator('.projects-caption:not(.is-ghost) .projects-mark .projects-mark__logo').isVisible())
   // the loader still reports the failed fetch; what matters is the page lives on
   await page.locator('.projects-row', { hasText: 'Hone' }).hover()
   await page.waitForTimeout(500)
   check(
     'failed 3D logo leaves the floor working',
     errors.every((e) => e.includes('daily-bread-logo.glb')) &&
-      (await page.locator('.projects-caption').textContent()).includes('interview practice'),
+      (await page.locator('.projects-caption:not(.is-ghost)').textContent()).includes('interview practice'),
   )
+  await page.close()
+}
+
+// 2d. Short laptop windows: every caption clears the Languages plate, the
+// plate stays on screen, and the screen keeps one size across projects.
+for (const [w, h] of [[1280, 720], [1100, 620], [960, 560]]) {
+  const page = await browser.newPage({ viewport: { width: w, height: h } })
+  await page.goto(`${BASE}/#projects`)
+  await page.waitForSelector('.projects-row', { timeout: 20000 })
+  await page.waitForTimeout(1200)
+  const rows = page.locator('.projects-row')
+  const widths = new Set()
+  let worst = Infinity
+  for (let i = 0; i < (await rows.count()); i += 1) {
+    await rows.nth(i).hover()
+    await page.waitForTimeout(100)
+    const m = await page.evaluate(() => {
+      const caption = document.querySelector('.projects-caption:not(.is-ghost)').getBoundingClientRect()
+      const plate = document.querySelector('.projects-plate').getBoundingClientRect()
+      const screen = document.querySelector('.projects-screen').getBoundingClientRect()
+      return { gap: plate.top - caption.bottom, onScreen: plate.bottom <= innerHeight + 1, width: Math.round(screen.width) }
+    })
+    widths.add(m.width)
+    worst = Math.min(worst, m.onScreen ? m.gap : -1)
+  }
+  check(`${w}x${h} captions clear the plate (closest ${Math.round(worst)} px)`, worst >= 8)
+  check(`${w}x${h} screen keeps one size across projects`, widths.size === 1)
   await page.close()
 }
 
@@ -179,7 +206,7 @@ for (const [w, h] of [[1440, 900], [1280, 720]]) {
   const last = await page.locator('.projects-row').last().boundingBox()
   check(`${w}x${h} last project reachable`, last.y + last.height <= h)
   const screen = await page.locator('.projects-screen').boundingBox()
-  const caption = await page.locator('.projects-caption').boundingBox()
+  const caption = await page.locator('.projects-caption:not(.is-ghost)').boundingBox()
   const plate = await page.locator('.projects-plate').boundingBox()
   check(`${w}x${h} screen and caption fit the window`, screen.y >= 0 && caption.y + caption.height <= h)
   check(`${w}x${h} Languages plate sits below the caption`, plate.y >= caption.y + caption.height && plate.y + plate.height <= h)
@@ -213,7 +240,7 @@ for (const [w, h, sticky] of [[390, 844, true], [768, 1024, true], [880, 601, fa
   await page.waitForTimeout(600)
   await row.tap()
   await page.waitForTimeout(500)
-  check(`${w}x${h} tap selects a project`, (await page.locator('.projects-caption').textContent()).includes('YouVersion'))
+  check(`${w}x${h} tap selects a project`, (await page.locator('.projects-caption:not(.is-ghost)').textContent()).includes('YouVersion'))
   if (w < 881) {
     const cards = []
     page.on('request', (r) => r.url().includes('showdown-card') && cards.push(r.url()))
