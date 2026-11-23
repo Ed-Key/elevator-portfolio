@@ -54,6 +54,59 @@ function CaptionMark({ paused, project, reducedMotion }) {
   return null
 }
 
+// One project's caption. The stage also lays out every other project's
+// caption as an invisible ghost in the same grid cell, so on desktop the
+// caption area is always as tall as the tallest one and the screen above it
+// keeps one size while visitors move through the list.
+function Caption({ ghost = false, mark, project }) {
+  const meta = [project.year, project.meta].filter(Boolean).join(' · ')
+  return (
+    <div aria-hidden={ghost || undefined} className={ghost ? 'projects-caption is-ghost' : 'projects-caption'} inert={ghost || undefined}>
+      <div className="projects-caption__lead">
+        <span className="projects-mark" key={project.id}>
+          {mark}
+        </span>
+        <p className="projects-caption__blurb">
+          {project.blurb}
+          <span className="projects-caption__meta">
+            {project.eventLogo && (
+              <img
+                alt={project.eventLogo.alt}
+                className="projects-caption__event"
+                src={project.eventLogo.src}
+              />
+            )}
+            {project.award && (
+              <span className="projects-award">
+                <b>{project.award.place}</b>
+                <i aria-hidden="true" />
+                {project.award.name}
+              </span>
+            )}
+            <span className="projects-caption__year">{meta}</span>
+          </span>
+        </p>
+      </div>
+      {project.links.length > 0 && (
+        <span className="projects-caption__links">
+          {project.links.map((link) =>
+            isInternal(link.url) ? (
+              <a href={link.url} key={link.url}>
+                {link.label}
+              </a>
+            ) : (
+              <a href={link.url} key={link.url} rel="noreferrer" target="_blank">
+                {link.label}
+                <span aria-hidden="true"> ↗</span>
+              </a>
+            ),
+          )}
+        </span>
+      )}
+    </div>
+  )
+}
+
 // The Languages plate: every language, etched; the staged project lights
 // the ones it is built in.
 function LanguagesPlate({ projectId }) {
@@ -176,7 +229,6 @@ export default function ProjectsPanel() {
   }
 
   const project = PROJECTS[activeIndex]
-  const meta = [project.year, project.meta].filter(Boolean).join(' · ')
 
   return (
     <article aria-label="Selected projects" className="floor floor--projects">
@@ -209,82 +261,55 @@ export default function ProjectsPanel() {
       </ul>
 
       <section aria-label={project.name} className="projects-stage" data-reveal>
-        <div className="projects-screen-wrap">
-          {project.media.props && wide && inView && (
-            <StageProps key={project.id} reducedMotion={reducedMotion} srcs={project.media.props} />
-          )}
-          <div className="projects-screen" ref={screenRef}>
-            {PROJECTS.map((item, index) => (
-              <ScreenLayer
-                active={index === activeIndex}
-                key={item.id}
-                live={live && index === activeIndex}
-                project={item}
-                videoRef={(node) => {
-                  videoRefs.current[index] = node
-                }}
-              />
-            ))}
-            {project.media.video && (
-              <button
-                aria-label={playing ? 'Pause video' : 'Play video'}
-                className="projects-screen__toggle"
-                onClick={() => setPlayChoice(!playing)}
-                type="button"
-              >
-                <svg aria-hidden="true" viewBox="0 0 12 12">
-                  {playing ? (
-                    <path d="M2.5 1.5h2.5v9H2.5zM7 1.5h2.5v9H7z" />
-                  ) : (
-                    <path d="M3 1.5l7 4.5-7 4.5z" />
-                  )}
-                </svg>
-              </button>
+        <div className="projects-screen-fit">
+          <div className="projects-screen-wrap">
+            {project.media.props && wide && inView && (
+              <StageProps key={project.id} reducedMotion={reducedMotion} srcs={project.media.props} />
             )}
+            <div className="projects-screen" ref={screenRef}>
+              {PROJECTS.map((item, index) => (
+                <ScreenLayer
+                  active={index === activeIndex}
+                  key={item.id}
+                  live={live && index === activeIndex}
+                  project={item}
+                  videoRef={(node) => {
+                    videoRefs.current[index] = node
+                  }}
+                />
+              ))}
+              {project.media.video && (
+                <button
+                  aria-label={playing ? 'Pause video' : 'Play video'}
+                  className="projects-screen__toggle"
+                  onClick={() => setPlayChoice(!playing)}
+                  type="button"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 12 12">
+                    {playing ? (
+                      <path d="M2.5 1.5h2.5v9H2.5zM7 1.5h2.5v9H7z" />
+                    ) : (
+                      <path d="M3 1.5l7 4.5-7 4.5z" />
+                    )}
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
         </div>
-        <div className="projects-caption">
-          <div className="projects-caption__lead">
-            <span className="projects-mark" key={project.id}>
-              <CaptionMark paused={!inView} project={project} reducedMotion={reducedMotion} />
-            </span>
-            <p className="projects-caption__blurb">
-              {project.blurb}
-              <span className="projects-caption__meta">
-                {project.eventLogo && (
-                  <img
-                    alt={project.eventLogo.alt}
-                    className="projects-caption__event"
-                    src={project.eventLogo.src}
-                  />
-                )}
-                {project.award && (
-                  <span className="projects-award">
-                    <b>{project.award.place}</b>
-                    <i aria-hidden="true" />
-                    {project.award.name}
-                  </span>
-                )}
-                {meta}
-              </span>
-            </p>
-          </div>
-          {project.links.length > 0 && (
-            <span className="projects-caption__links">
-              {project.links.map((link) =>
-                isInternal(link.url) ? (
-                  <a href={link.url} key={link.url}>
-                    {link.label}
-                  </a>
-                ) : (
-                  <a href={link.url} key={link.url} rel="noreferrer" target="_blank">
-                    {link.label}
-                    <span aria-hidden="true"> ↗</span>
-                  </a>
-                ),
-              )}
-            </span>
-          )}
+        <div className="projects-caption-stack">
+          <Caption
+            mark={<CaptionMark paused={!inView} project={project} reducedMotion={reducedMotion} />}
+            project={project}
+          />
+          {PROJECTS.map((item) => (
+            <Caption
+              ghost
+              key={item.id}
+              mark={item.media.mark || item.media.logo ? <span className="projects-mark__logo" /> : null}
+              project={item}
+            />
+          ))}
         </div>
       </section>
       <LanguagesPlate projectId={project.id} />

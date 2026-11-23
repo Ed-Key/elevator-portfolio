@@ -216,6 +216,19 @@
   border: 0;
 }
 
+.projects-caption-stack {
+  display: grid;
+}
+
+.projects-caption-stack > .projects-caption {
+  grid-area: 1 / 1;
+}
+
+/* ghosts only reserve height on desktop (see the short-window block) */
+.projects-caption.is-ghost {
+  display: none;
+}
+
 .projects-caption {
   display: flex;
   flex-wrap: wrap;
@@ -406,9 +419,13 @@
   line-height: 1.5;
 }
 
+/* event logo, award badge and year share one row, centred on each other */
 .projects-caption__meta {
-  display: block;
-  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 12px;
   color: var(--ink-low);
   font-family: var(--font-display);
   font-size: 0.75rem;
@@ -420,7 +437,7 @@
   width: fit-content;
   align-items: center;
   gap: 10px;
-  margin: 4px 0 10px;
+  margin: 0;
   padding: 6px 12px;
   border: 1px solid var(--gold-dim);
   border-radius: 3px;
@@ -449,8 +466,8 @@
 .projects-caption__event {
   display: block;
   width: auto;
-  height: 40px;
-  margin: 4px 0 8px;
+  height: 34px;
+  margin: 0;
 }
 
 .projects-caption__links {
@@ -503,9 +520,32 @@
   }
 
   /* keep screen, caption and the Languages plate inside a short window:
-     the screen gets whatever height the rest leaves, at 16:10 */
+     the caption keeps its height and the screen shrinks, at 16:10, into
+     whatever the stage row leaves. The fit box is a size container so the
+     screen (and the props pinned to it) can read that height. */
+  .projects-stage {
+    min-height: 0;
+    container-type: inline-size;
+  }
+
+  .projects-screen-fit {
+    flex: 0 1 calc(100cqw / 1.6);
+    min-height: 0;
+    container-type: size;
+  }
+
   .projects-screen-wrap {
-    width: min(100%, calc((100vh - 440px) * 1.6));
+    width: min(100cqw, 100cqh * 1.6);
+  }
+
+  .projects-caption-stack {
+    flex-shrink: 0;
+  }
+
+  .projects-caption.is-ghost {
+    display: flex;
+    visibility: hidden;
+    pointer-events: none;
   }
 }
 
